@@ -1,26 +1,22 @@
 @import "tailwindcss";
 
+/* Custom color variables */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --color-beige: #E4DBCE;
+  --color-blue: #002038;
+  --color-white: #ffffff;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
+/* Reset default margin/padding */
+html,
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+/* Set a default font-family and styling */
+body {
+  font-family: 'Outfit', sans-serif; /* matches your next/font configuration */
+  background-color: var(--color-white);
+  color: var(--color-blue);
 }
