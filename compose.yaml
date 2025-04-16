@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    ports:
+      - '3000:3000'
+    environment:
+      # Example environment variable for your Next.js app to connect to PostgreSQL
+      - DATABASE_URL=postgres://postgres:lili@db:5432/mydatabase
+      - NODE_ENV=production
+    depends_on:
+      - db
+
+  db:
+    image: postgres:14-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: lili
+      POSTGRES_DB: glampingboat
+    ports:
+      - "5432:5432"
+    volumes:
+      # This mounts a Docker-managed volume for persistent storage
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
