@@ -10,7 +10,7 @@ export const { handlers, auth } = NextAuth({
   session: { strategy: "jwt" },
 
   providers: [
-    //–– 1) Credentials Provider ––//
+    // — Credentials Provider — //
     CredentialsProvider({
       name: "Email & Password",
       credentials: {
@@ -21,32 +21,33 @@ export const { handlers, auth } = NextAuth({
         if (!credentials?.email || !credentials.password) {
           throw new Error("Missing email or password")
         }
-        const { email, password } = credentials
+        const { email, password } = credentials as { email: string; password: string }
 
-        // 1a) Look for an existing user
+        // 1) Look up existing user
         const existing = await prisma.user.findUnique({ where: { email } })
 
-        // 1b) If they exist, verify the password
         if (existing) {
+          // 2) Verify password
           if (typeof existing.password !== "string") {
-            throw new Error("No password set on this account")
+            throw new Error("Please sign in with Google")
           }
-          const ok = await bcrypt.compare(password, existing.password)
-          if (!ok) throw new Error("Invalid email or password")
-
+          const isValid = await bcrypt.compare(password, existing.password)
+          if (!isValid) {
+            throw new Error("Invalid email or password")
+          }
           return { id: existing.id, email: existing.email, name: existing.name ?? undefined }
         }
 
-        // 1c) If they don’t exist, create them
-        const hashed = await bcrypt.hash(password, 12)
+        // 3) First‑time signup
+        const hash = await bcrypt.hash(password, 12)
         const user = await prisma.user.create({
-          data: { email, password: hashed, name: "", avatar: "" },
+          data: { email, password: hash, name: "", avatar: "" },
         })
         return { id: user.id, email: user.email, name: user.name ?? undefined }
       },
     }),
 
-    //–– 2) Google OAuth Provider ––//
+    // — Google OAuth Provider — //
     GoogleProvider({
       clientId:     process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
@@ -54,12 +55,35 @@ export const { handlers, auth } = NextAuth({
   ],
 
   callbacks: {
-    // Attach the user.id into the JWT
+    // 0) Upsert Google users on signIn
+    async signIn({ account, profile }) {
+      if (account?.provider === "google") {
+        if (!profile?.email) {
+          throw new Error("No email from Google")
+        }
+        await prisma.user.upsert({
+          where:  { email: profile.email },
+          create: {
+            email:  profile.email,
+            name:   profile.name ?? "",
+            avatar: (profile as any).picture ?? "",
+          },
+          update: {
+            name:   profile.name ?? "",
+            avatar: (profile as any).picture ?? "",
+          },
+        })
+      }
+      return true
+    },
+
+    // 1) Attach user.id into the JWT on first login
     async jwt({ token, user }) {
       if (user) token.id = user.id
       return token
     },
-    // Expose session.user.id
+
+    // 2) Expose session.user.id to the client
     async session({ session, token }) {
       if (session.user) session.user.id = token.id as string
       return session

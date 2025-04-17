@@ -1,12 +1,11 @@
 // middleware.ts
-import { auth } from "@auth"         // your auth.ts alias
-export default auth                  // use your auth() for middleware
+export { auth as middleware } from "@auth"
 
-// Optionally protect only certain routes:
+// Optionally restrict to specific routes:
 export const config = {
   matcher: [
-    "/reserver/:path*", 
-    "/le-bateau/:path*", 
-    "/acheter/:path*", 
+    "/reserver/:path*",
+    "/le-bateau/:path*",
+    "/acheter/:path*",
   ],
 }

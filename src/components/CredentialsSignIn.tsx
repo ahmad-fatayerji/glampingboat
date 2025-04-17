@@ -11,41 +11,51 @@ export default function CredentialsSignIn() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setError(null)
+
     const res = await signIn("credentials", {
       redirect: false,
       email,
       password,
     })
+
     if (res?.error) {
       setError(res.error)
     } else {
-      // Successful login → redirect or update UI
+      // success → go to home
       window.location.href = "/"
     }
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4 w-80 mx-auto">
       {error && <div className="text-red-600">{error}</div>}
       <div>
-        <label>Email</label>
+        <label className="block">Email</label>
         <input
           type="email"
+          className="border w-full p-2"
           value={email}
           onChange={e => setEmail(e.target.value)}
           required
         />
       </div>
       <div>
-        <label>Password</label>
+        <label className="block">Password</label>
         <input
           type="password"
+          className="border w-full p-2"
           value={password}
           onChange={e => setPassword(e.target.value)}
           required
         />
       </div>
-      <button type="submit">Sign in with Email</button>
+      <button
+        type="submit"
+        className="w-full py-2 bg-blue-600 text-white rounded"
+      >
+        Sign up / Sign in
+      </button>
     </form>
   )
 }
