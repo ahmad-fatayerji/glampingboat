@@ -1,51 +1,56 @@
 // src/app/testing/page.tsx
-import { auth } from "@auth"                            // your NextAuth factory
-import CredentialsSignUp from "@/components/CredentialsSignUp"
-import CredentialsSignIn from "@/components/CredentialsSignIn"
-import GoogleSignInButton from "@/components/GoogleSignInButton"
-import LogoutButton from "@/components/LogoutButton"
+import { auth }                   from "@auth"                    // NextAuth server fn
+import Link                       from "next/link"
+import CredentialsPanel           from "@/components/CredentialsPanel"
+import GoogleSignInButton         from "@/components/GoogleSignInButton"
+import LogoutButton               from "@/components/LogoutButton"
 
 export default async function TestingPage() {
-  // run on the server
-  const session = await auth()
+  const session = await auth()  // purely server‑side
 
   return (
     <div className="max-w-md mx-auto mt-12 bg-white shadow-lg rounded-lg overflow-hidden">
-      {/* header */}
-      <div className="bg-blue-600 p-4">
-        <h1 className="text-white text-center text-xl font-semibold">
-          GlampingBoat UserSystem
-        </h1>
+      {/* Header */}
+      <div className="bg-blue-600 p-4 text-center">
+        <h1 className="text-white text-xl font-semibold">GlampingBoat LoginSystem</h1>
       </div>
 
-      {/* body */}
-      <div className="p-6 space-y-6">
+      <div className="p-6 space-y-8">
+        {/* Auth status */}
         {session ? (
-          <div className="bg-green-100 p-4 rounded-lg flex justify-between items-center">
-            <span className="text-green-800 font-medium">
-              Welcome, <strong>{session.user?.email || "User"}</strong>
+          <div className="bg-green-100 p-4 rounded flex items-center justify-between">
+            <span>
+              Welcome, <strong>{session.user?.email}</strong>
             </span>
             <LogoutButton />
           </div>
         ) : (
-          <div className="bg-gray-100 p-4 rounded-lg text-gray-700 text-center">
-            Browsing as <strong>guest</strong>
+          <div className="bg-gray-100 p-4 rounded text-center">
+            Browsing as guest
           </div>
         )}
 
-        {/* Credentials section */}
-        <div className="border-t border-gray-300 pt-4 text-center text-gray-500 uppercase tracking-wide">
-          Credentials
-        </div>
-        <div className="space-y-4">
-          <CredentialsSignUp />
-          <CredentialsSignIn />
+        {/* Credentials: now a single toggle panel */}
+        <div>
+          <h2 className="text-center text-sm uppercase text-gray-500 mb-4">
+            Credentials
+          </h2>
+          <CredentialsPanel />
+
+          {/* Forgot password link */}
+          <div className="text-right mt-2">
+            <Link
+              href="/forgot-password"
+              className="text-sm text-blue-600 hover:underline"
+            >
+              Forgot password?
+            </Link>
+          </div>
         </div>
 
-        {/* OAuth section */}
-        <div className="border-t border-gray-300 pt-4 text-center text-gray-500 uppercase tracking-wide">
-          Or continue with
-        </div>
+        <hr className="border-gray-200" />
+
+        {/* Google OAuth */}
         <GoogleSignInButton />
       </div>
     </div>
