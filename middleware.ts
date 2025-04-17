@@ -1,17 +1,12 @@
 // middleware.ts
-import { withAuth } from "next-auth/middleware"
+import { auth } from "@auth"         // your auth.ts alias
+export default auth                  // use your auth() for middleware
 
-export default withAuth({
-  callbacks: {
-    // Only allow access if the JWT (from your Credentials or Google login)
-    // contains an `id` property
-    authorized({ token }) {
-      return Boolean(token?.id)
-    },
-  },
-})
-
-// Optional: only run this middleware on certain paths
+// Optionally protect only certain routes:
 export const config = {
-  matcher: ["/reserver/:path*", "/le-bateau/:path*", "/acheter/:path*"],
+  matcher: [
+    "/reserver/:path*", 
+    "/le-bateau/:path*", 
+    "/acheter/:path*", 
+  ],
 }
