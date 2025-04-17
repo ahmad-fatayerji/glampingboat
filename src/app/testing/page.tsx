@@ -1,57 +1,53 @@
 // src/app/testing/page.tsx
-import Link from "next/link"
-import { auth } from "@auth"                     // your NextAuth factory
+import { auth } from "@auth"                            // your NextAuth factory
 import CredentialsSignUp from "@/components/CredentialsSignUp"
 import CredentialsSignIn from "@/components/CredentialsSignIn"
 import GoogleSignInButton from "@/components/GoogleSignInButton"
+import LogoutButton from "@/components/LogoutButton"
 
 export default async function TestingPage() {
-  // purely server‑side
+  // run on the server
   const session = await auth()
 
   return (
-    <div className="p-8 space-y-8">
-      {session ? (
-        <div className="bg-green-100 p-4 rounded">
-          <p>Welcome, {session.user?.email || "Guest"}</p>
-          <form action="/api/auth/signout" method="post">
-            <button
-              type="submit"
-              className="mt-2 px-3 py-1 bg-red-600 text-white rounded"
-            >
-              Logout
-            </button>
-          </form>
-        </div>
-      ) : (
-        <div className="bg-gray-100 p-4 rounded">
-          Browsing as guest
-        </div>
-      )}
-
-      <div className="space-y-4">
-        <h2 className="text-xl font-bold">Credentials</h2>
-
-        {/* Sign‑up & Sign‑in forms */}
-        <CredentialsSignUp />
-        <CredentialsSignIn />
-
-        {/* Forgot password link */}
-        <div className="pt-2">
-          <Link href="/forgot-password">
-            <button
-              type="button"
-              className="text-sm text-blue-600 hover:underline"
-            >
-              Forgot password?
-            </button>
-          </Link>
-        </div>
+    <div className="max-w-md mx-auto mt-12 bg-white shadow-lg rounded-lg overflow-hidden">
+      {/* header */}
+      <div className="bg-blue-600 p-4">
+        <h1 className="text-white text-center text-xl font-semibold">
+          GlampingBoat UserSystem
+        </h1>
       </div>
 
-      <hr />
+      {/* body */}
+      <div className="p-6 space-y-6">
+        {session ? (
+          <div className="bg-green-100 p-4 rounded-lg flex justify-between items-center">
+            <span className="text-green-800 font-medium">
+              Welcome, <strong>{session.user?.email || "User"}</strong>
+            </span>
+            <LogoutButton />
+          </div>
+        ) : (
+          <div className="bg-gray-100 p-4 rounded-lg text-gray-700 text-center">
+            Browsing as <strong>guest</strong>
+          </div>
+        )}
 
-      <GoogleSignInButton />
+        {/* Credentials section */}
+        <div className="border-t border-gray-300 pt-4 text-center text-gray-500 uppercase tracking-wide">
+          Credentials
+        </div>
+        <div className="space-y-4">
+          <CredentialsSignUp />
+          <CredentialsSignIn />
+        </div>
+
+        {/* OAuth section */}
+        <div className="border-t border-gray-300 pt-4 text-center text-gray-500 uppercase tracking-wide">
+          Or continue with
+        </div>
+        <GoogleSignInButton />
+      </div>
     </div>
   )
 }
