@@ -1,115 +1,57 @@
 // src/app/testing/page.tsx
-"use client"
+import Link from "next/link"
+import { auth } from "@auth"                     // your NextAuth factory
+import CredentialsSignUp from "@/components/CredentialsSignUp"
+import CredentialsSignIn from "@/components/CredentialsSignIn"
+import GoogleSignInButton from "@/components/GoogleSignInButton"
 
-import { useState } from "react"
-import { useSession, signIn, signOut } from "next-auth/react"
-
-export default function TestingPage() {
-  const { data: session, status } = useSession()
-  const [mode, setMode] = useState<"signin"|"signup">("signin")
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [error, setError] = useState<string|null>(null)
-
-  if (status === "loading") {
-    return <p>Loading session…</p>
-  }
-
-  // Logged‐in view
-  if (session?.user) {
-    return (
-      <div className="p-8 space-y-4">
-        <p className="text-green-600">Welcome, {session.user.email}!</p>
-        <button
-          onClick={() => signOut()}
-          className="px-4 py-2 bg-red-600 text-white rounded"
-        >
-          Logout
-        </button>
-      </div>
-    )
-  }
-
-  // Unauthenticated view: sign‑in / sign‑up form
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError(null)
-
-    // next-auth credential flow will auto‐signup on first use
-    const res = await signIn("credentials", {
-      redirect: false,
-      email,
-      password,
-    })
-
-    if (res?.error) {
-      setError("Credentials incorrect")
-    } else {
-      setError(null)
-    }
-  }
+export default async function TestingPage() {
+  // purely server‑side
+  const session = await auth()
 
   return (
-    <div className="max-w-sm mx-auto p-8 bg-gray-800 text-white rounded space-y-6">
-      <h1 className="text-2xl font-bold">
-        {mode === "signin" ? "Sign In" : "Sign Up"}
-      </h1>
-
-      {error && (
-        <div className="bg-red-600 p-2 rounded">
-          {error}
+    <div className="p-8 space-y-8">
+      {session ? (
+        <div className="bg-green-100 p-4 rounded">
+          <p>Welcome, {session.user?.email || "Guest"}</p>
+          <form action="/api/auth/signout" method="post">
+            <button
+              type="submit"
+              className="mt-2 px-3 py-1 bg-red-600 text-white rounded"
+            >
+              Logout
+            </button>
+          </form>
+        </div>
+      ) : (
+        <div className="bg-gray-100 p-4 rounded">
+          Browsing as guest
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <label className="block">
-          Email
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            className="w-full mt-1 p-2 bg-gray-700 rounded"
-          />
-        </label>
-        <label className="block">
-          Password
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            className="w-full mt-1 p-2 bg-gray-700 rounded"
-          />
-        </label>
+      <div className="space-y-4">
+        <h2 className="text-xl font-bold">Credentials</h2>
 
-        <button
-          type="submit"
-          className="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded"
-        >
-          {mode === "signin" ? "Sign In" : "Sign Up"}
-        </button>
-      </form>
+        {/* Sign‑up & Sign‑in forms */}
+        <CredentialsSignUp />
+        <CredentialsSignIn />
 
-      <div className="text-center">
-        <button
-          onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
-          className="text-blue-400 hover:underline"
-        >
-          {mode === "signin"
-            ? "Need an account? Sign Up"
-            : "Already have one? Sign In"}
-        </button>
+        {/* Forgot password link */}
+        <div className="pt-2">
+          <Link href="/forgot-password">
+            <button
+              type="button"
+              className="text-sm text-blue-600 hover:underline"
+            >
+              Forgot password?
+            </button>
+          </Link>
+        </div>
       </div>
 
-      <hr className="border-gray-600" />
+      <hr />
 
-      <button
-        onClick={() => signIn("google")}
-        className="w-full px-4 py-2 bg-red-600 hover:bg-red-700 rounded flex items-center justify-center space-x-2"
-      >
-        <span>Sign in with Google</span>
-      </button>
+      <GoogleSignInButton />
     </div>
   )
 }
