@@ -6,9 +6,9 @@ services:
     ports:
       - '3000:3000'
     environment:
-      # Example environment variable for your Next.js app to connect to PostgreSQL
-      - DATABASE_URL=postgres://postgres:lili@db:5432/mydatabase
-      - NODE_ENV=production
+      # Next.js environment
+      - DATABASE_URL=${DATABASE_URL}
+      - NODE_ENV=${NODE_ENV}
     depends_on:
       - db
 
@@ -16,13 +16,13 @@ services:
     image: postgres:14-alpine
     restart: always
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: lili
-      POSTGRES_DB: glampingboat
+      # Postgres container credentials
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
     ports:
       - "5432:5432"
     volumes:
-      # This mounts a Docker-managed volume for persistent storage
       - postgres_data:/var/lib/postgresql/data
 
 volumes:
