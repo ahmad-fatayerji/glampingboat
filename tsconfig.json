@@ -19,6 +19,7 @@
       }
     ],
     "paths": {
+      "@prisma": ["./lib/prisma"],
       "@auth": ["./auth.ts"],
       "@/*": ["./src/*"],
       "@/lib/*": ["./lib/*"]
