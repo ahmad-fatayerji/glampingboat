@@ -24,4 +24,17 @@ model User {
   resetTokenExpiresAt  DateTime?// <-- new
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  reservations  Reservation[]
+}
+
+model Reservation {
+  id        String   @id @default(uuid())           // simple, Postgres‑native UUID
+  userId    String   @db.Text                       // foreign key
+  user      User     @relation(fields: [userId], references: [id])
+  date      DateTime                                // the day of the reservation
+  timeSlot  String                                  // e.g. "09:00", "11:00"
+  createdAt DateTime @default(now())
+
+  @@unique([date, timeSlot], name: "unique_reservation_slot")
 }
