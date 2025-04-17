@@ -1,4 +1,5 @@
 // src/app/layout.tsx
+import { SessionProvider } from "next-auth/react"
 import { Marcellus, Outfit } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
@@ -23,10 +24,9 @@ export const metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className={`${marcellus.className} ${outfit.className}`}>
-        <Navbar />
-        {children}
+      <body>
+        <SessionProvider>{children}</SessionProvider>
       </body>
     </html>
-  );
+  )
 }

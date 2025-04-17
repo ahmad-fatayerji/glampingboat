@@ -1,14 +1,14 @@
-// src/components/CredentialsSignIn.tsx
+// src/components/CredentialsSignUp.tsx
 "use client"
 import { signIn } from "next-auth/react"
 import { useState } from "react"
 
-export default function CredentialsSignIn() {
+export default function CredentialsSignUp() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState<string | null>(null)
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
 
@@ -16,7 +16,7 @@ export default function CredentialsSignIn() {
       redirect: false,
       email,
       password,
-      isSignup: "false",
+      isSignup: "true",
     })
 
     if (res?.error) setError(res.error)
@@ -24,7 +24,7 @@ export default function CredentialsSignIn() {
   }
 
   return (
-    <form onSubmit={handleLogin} className="space-y-4">
+    <form onSubmit={handleSignup} className="space-y-4">
       {error && <p className="text-red-600">{error}</p>}
       <div>
         <label>Email</label>
@@ -46,8 +46,8 @@ export default function CredentialsSignIn() {
           className="w-full border p-2"
         />
       </div>
-      <button className="w-full bg-green-600 text-white p-2">
-        Sign In
+      <button className="w-full bg-blue-600 text-white p-2">
+        Sign Up
       </button>
     </form>
   )
