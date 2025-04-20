@@ -1,8 +1,12 @@
-import Navbar from "@/components/Navbar";
+import BackgroundVideo from "@/components/BackgroundVideo";
+import NavBox from "@/components/NavBox/NavBox";
 
 
 export default function Home() {
   return (
-    <Navbar />
+    <>
+    <BackgroundVideo />
+    <NavBox />
+    </>
   );
 }

@@ -1,5 +1,5 @@
 export default function Home() {
     return (
-     <p>reserver!!</p>
+     <p>book!!</p>
     );
   }
