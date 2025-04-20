@@ -1,7 +1,8 @@
+// src/components/LanguagePicker.tsx
 "use client"
 
 import { usePathname, useRouter } from "next/navigation"
-import Image from "next/image"
+import Drop from "./Drop"
 
 const LANGS = [
   { code: "en", label: "EN" },
@@ -18,31 +19,24 @@ export default function LanguagePicker() {
   const path = usePathname()
 
   const switchTo = (locale: string) => {
-    // remember to configure i18n in next.config.js
-    // router.push(path, { locale })
+    // uncomment & configure your i18n in next.config.js
+    // router.push(path, path, { locale })
   }
 
   return (
-    <div className="flex items-center space-x-2">
+    <div className="flex items-center gap-x-.1">
       {LANGS.map(({ code, label }) => (
         <button
           key={code}
           onClick={() => switchTo(code)}
           aria-label={`Switch to ${label}`}
-          className="relative w-10 h-10 flex items-center justify-center mx-0.5"
+          className="relative w-10 h-10 flex items-center justify-center"
         >
-          {/* background drop shape */}
-          <div className="absolute inset-0">
-            <Image
-              src="/svg/drop.svg"
-              alt=""
-              width={40}
-              height={40}
-              className="object-contain"
-            />
-          </div>
-          {/* language label */}
-          <span className="relative text-xs font-medium text-[#002038]">
+          {/* 1) teardrop outline */}
+          <Drop className="absolute inset-0 w-full h-full" />
+
+          {/* 2) code text */}
+          <span className="relative text-xs font-medium text-[#000000]">
             {label}
           </span>
         </button>
