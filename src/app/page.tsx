@@ -1,11 +1,8 @@
-import LanguagePicker from "@/components/LanguagePicker";
-import BackgroundVideo from "@/components/BackgroundVideo";
+import Navbar from "@/components/Navbar";
 
 
 export default function Home() {
   return (
-    <main className="min-h-screen flex items-center justify-center bg-gray-100">
-      <LanguagePicker />
-    </main>
+    <Navbar />
   );
 }

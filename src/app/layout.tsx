@@ -1,21 +1,20 @@
-// src/app/layout.tsx
 import { SessionProvider } from "next-auth/react"
 import { Marcellus, Outfit } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 
-// Import Marcellus with a default weight.
+//Import of fonts
 const marcellus = Marcellus({
   subsets: ["latin"],
   weight: "400",
 });
 
-// Import Outfit with two weights: 100 (thin) and 300 (light).
 const outfit = Outfit({
   subsets: ["latin"],
   weight: ["100", "300"],
 });
 
+//Metadata setup
 export const metadata = {
   title: "Glamping Boat",
   description: "Site de vente et location de bateaux fluviaux",

@@ -1,9 +1,8 @@
-// src/app/testing/page.tsx
 import { auth }                   from "@auth"                    // NextAuth server fn
 import Link                       from "next/link"
-import CredentialsPanel           from "@/components/CredentialsPanel"
-import GoogleSignInButton         from "@/components/GoogleSignInButton"
-import LogoutButton               from "@/components/LogoutButton"
+import CredentialsPanel           from "@/components/auth/CredentialsPanel"
+import GoogleSignInButton         from "@/components/auth/GoogleSignInButton"
+import LogoutButton               from "@/components/auth/LogoutButton"
 
 export default async function TestingPage() {
   const session = await auth()  // purely server‑side
