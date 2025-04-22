@@ -28,12 +28,12 @@ async function main() {
     },
     {
       name: "Barre support + hamac pont arrière",
-      priceHt: 20.0,
+      priceHt: 0.0,
       description: "Location hamac sur pont",
     },
     {
       name: "Barre support vélo pont arrière",
-      priceHt: 12.5,
+      priceHt: 0.0,
       description: "Emplacement porte-vélo",
     },
     {
