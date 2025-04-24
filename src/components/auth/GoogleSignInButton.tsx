@@ -1,7 +1,6 @@
-// src/components/GoogleSignInButton.tsx
-"use client"
+"use client";
 
-import { signIn } from "next-auth/react"
+import { signIn } from "next-auth/react";
 
 export default function GoogleSignInButton() {
   return (
@@ -12,5 +11,5 @@ export default function GoogleSignInButton() {
     >
       Sign in with Google
     </button>
-  )
+  );
 }

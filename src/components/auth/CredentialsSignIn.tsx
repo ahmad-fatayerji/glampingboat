@@ -1,27 +1,26 @@
-// src/components/CredentialsSignIn.tsx
-"use client"
-import { signIn } from "next-auth/react"
-import { useState } from "react"
+"use client";
+import { signIn } from "next-auth/react";
+import { useState } from "react";
 
 export default function CredentialsSignIn() {
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [error, setError] = useState<string | null>(null)
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
 
   const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError(null)
+    e.preventDefault();
+    setError(null);
 
     const res = await signIn("credentials", {
       redirect: false,
       email,
       password,
       isSignup: "false",
-    })
+    });
 
-    if (res?.error) setError(res.error)
-    else window.location.href = "/"
-  }
+    if (res?.error) setError(res.error);
+    else window.location.href = "/";
+  };
 
   return (
     <form onSubmit={handleLogin} className="space-y-4">
@@ -32,7 +31,7 @@ export default function CredentialsSignIn() {
           type="email"
           required
           value={email}
-          onChange={e => setEmail(e.target.value)}
+          onChange={(e) => setEmail(e.target.value)}
           className="w-full border p-2"
         />
       </div>
@@ -42,13 +41,11 @@ export default function CredentialsSignIn() {
           type="password"
           required
           value={password}
-          onChange={e => setPassword(e.target.value)}
+          onChange={(e) => setPassword(e.target.value)}
           className="w-full border p-2"
         />
       </div>
-      <button className="w-full bg-green-600 text-white p-2">
-        Sign In
-      </button>
+      <button className="w-full bg-green-600 text-white p-2">Sign In</button>
     </form>
-  )
+  );
 }
