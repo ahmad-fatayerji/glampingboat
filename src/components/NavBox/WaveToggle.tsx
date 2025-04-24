@@ -1,21 +1,20 @@
-// src/components/WaveToggle.tsx
-"use client"
+"use client";
 
-import { useState } from "react"
-import NavBox from "./NavBox"
+import { useState } from "react";
+import NavBox from "./NavBox";
 
 export default function WaveToggle() {
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = useState(false);
 
   return (
     <>
       {/* floating wave button */}
       <button
-        onClick={() => setOpen(o => !o)}
+        onClick={() => setOpen((o) => !o)}
         aria-label={open ? "Close menu" : "Open menu"}
         className="fixed top-4 left-4 z-50 p-1 bg-transparent"
       >
-        {/* your actual waves.svg */}
+        {/* The actual waves.svg */}
         <svg
           viewBox="0 0 24 24"
           className="w-8 h-8"
@@ -37,12 +36,17 @@ export default function WaveToggle() {
         </svg>
       </button>
 
-      {/* the NavBox */}
-      {open && (
-        <div className="fixed bottom-4 left-4 z-40">
-          <NavBox />
-        </div>
-      )}
+      {/* sliding-in NavBox from bottom left */}
+      <div
+        className={`
+          fixed bottom-4 left-4
+          z-40
+          transform transition-transform duration-300 ease-in-out
+          ${open ? "translate-x-0" : "-translate-x-full"}
+        `}
+      >
+        <NavBox />
+      </div>
     </>
-  )
+  );
 }
