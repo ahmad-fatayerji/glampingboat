@@ -11,7 +11,7 @@ interface NavBoxProps {
 const NAV_ITEMS = [
   { label: "Our vision", href: "/about" },
   { label: "Boat", href: "/boat" },
-  { label: "Book", href: "/book" }, // we intercept this one
+  { label: "Book", href: "/book" }, // intercepted
   { label: "Buy", href: "/buy" },
   { label: "Contact", href: "/contact" },
 ];
@@ -19,12 +19,9 @@ const NAV_ITEMS = [
 export default function NavBox({ onBookClick }: NavBoxProps) {
   return (
     <div className="max-w-sm bg-white p-6 rounded-2xl shadow-lg">
-      {/* Tear-drop language picker */}
       <div className="flex justify-center">
         <LanguagePicker />
       </div>
-
-      {/* Navigation links */}
       <nav className="mt-6 flex flex-col space-y-3">
         {NAV_ITEMS.map(({ label, href }) =>
           label === "Book" ? (
@@ -45,7 +42,6 @@ export default function NavBox({ onBookClick }: NavBoxProps) {
             </Link>
           )
         )}
-        {/* bottom legal links */}
         <LegalLinks />
       </nav>
     </div>

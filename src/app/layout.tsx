@@ -3,6 +3,7 @@ import { Marcellus, Outfit } from "next/font/google";
 import Logo from "@/components/Logo";
 import "./globals.css";
 import WaveToggle from "@/components/NavBox/WaveToggle";
+import AppShell from "@/components/AppShell";
 
 //Import of fonts
 const marcellus = Marcellus({
@@ -32,15 +33,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" className={`${marcellus.className} ${outfit.className}`}>
       <body>
+        {/* wrap everything in SessionProvider */}
         <SessionProvider>
-          {/* WaveToggle lives at z-50 */}
-          <WaveToggle /> {/* Logo under the wave, z-40 */}{" "}
-          <div className="fixed top-8 z p-4 pointer-events-none">
-            <Logo />{" "}
+          {/* fixed logo directly under the waves button (left-4, just below top-4) */}
+          <div className="fixed top-12 left-4 z-40 pointer-events-none">
+            <Logo />
           </div>
-          {/* page contents */} {children}{" "}
+
+          {/* AppShell now assumes session is already provided */}
+          <AppShell>{children}</AppShell>
         </SessionProvider>
       </body>
     </html>

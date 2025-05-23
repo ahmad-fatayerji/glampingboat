@@ -66,14 +66,16 @@ const BookingForm: React.FC = () => {
   };
 
   return (
-    <div className="bg-blue-900 bg-opacity-50 backdrop-filter backdrop-blur-lg p-8 rounded-lg text-gray-100 max-w-5xl mx-auto">
-      <form onSubmit={handleSubmit} className="grid grid-cols-12 gap-6">
+    <div className="bg-blue-900 bg-opacity-50 backdrop-filter backdrop-blur-lg p-4 md:p-8 rounded-lg text-gray-100 w-full">
+      <form
+        onSubmit={handleSubmit}
+        className="grid grid-cols-1 md:grid-cols-12 gap-6"
+      >
         {/* Left / Contact details */}
-        <div className="col-span-7">
+        <div className="md:col-span-7">
           <h2 className="text-xl font-semibold mb-4">Contact details</h2>
-          <div className="grid grid-cols-2 gap-4 mb-4">
-            {/* First / Last Name */}
-            {["firstName", "lastName"].map((field, idx) => (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+            {["firstName", "lastName"].map((field) => (
               <div key={field}>
                 <label htmlFor={field} className="block text-sm capitalize">
                   {field.replace(/([A-Z])/g, " $1")}
@@ -90,9 +92,8 @@ const BookingForm: React.FC = () => {
             ))}
           </div>
 
-          {/* Address */}
           <label className="block text-sm mb-2">Address</label>
-          <div className="grid grid-cols-2 gap-4 mb-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
             {["number", "street", "city", "state"].map((item) => (
               <input
                 key={item}
@@ -106,8 +107,7 @@ const BookingForm: React.FC = () => {
             ))}
           </div>
 
-          {/* Phone / Mobile */}
-          <div className="grid grid-cols-2 gap-4 mb-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
             {["phone", "mobile"].map((item) => (
               <div key={item}>
                 <label htmlFor={item} className="block text-sm capitalize">
@@ -125,8 +125,7 @@ const BookingForm: React.FC = () => {
             ))}
           </div>
 
-          {/* Email / Birth Date */}
-          <div className="grid grid-cols-2 gap-4 mb-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
             <div>
               <label htmlFor="email" className="block text-sm">
                 Email
@@ -155,7 +154,6 @@ const BookingForm: React.FC = () => {
             </div>
           </div>
 
-          {/* Special Offers */}
           <label className="inline-flex items-center mt-2">
             <input
               type="checkbox"
@@ -171,7 +169,7 @@ const BookingForm: React.FC = () => {
         </div>
 
         {/* Right Side */}
-        <div className="col-span-5 flex flex-col justify-between">
+        <div className="md:col-span-5 flex flex-col justify-between">
           <div>
             <h2 className="text-xl font-semibold mb-4">Comments</h2>
             <textarea
