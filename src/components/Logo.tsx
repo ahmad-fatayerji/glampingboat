@@ -1,4 +1,3 @@
-// src/components/Logo.tsx
 "use client";
 
 export default function Logo() {

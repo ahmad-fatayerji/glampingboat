@@ -1,16 +1,16 @@
-"use client"
+"use client";
 
-import LanguagePicker from "./LanguagePicker"
-import Link from "next/link"
-import LegalLinks from "./LegalLinks"
+import LanguagePicker from "./LanguagePicker";
+import Link from "next/link";
+import LegalLinks from "./LegalLinks";
 
 const NAV_ITEMS = [
   { label: "Our vision", href: "/about" },
-  { label: "Boat",       href: "/boat" },
-  { label: "Book",       href: "/book" },
-  { label: "Buy",        href: "/buy" },
-  { label: "Contact",    href: "/contact" },
-]
+  { label: "Boat", href: "/boat" },
+  { label: "Book", href: "/book" },
+  { label: "Buy", href: "/buy" },
+  { label: "Contact", href: "/contact" },
+];
 
 export default function NavBox() {
   return (
@@ -30,11 +30,10 @@ export default function NavBox() {
           >
             {label}
           </Link>
-           
         ))}
         {/* bottom legal links */}
         <LegalLinks />
       </nav>
     </div>
-  )
+  );
 }
