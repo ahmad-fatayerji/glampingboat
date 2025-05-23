@@ -2,9 +2,11 @@
 
 import { useState } from "react";
 import NavBox from "./NavBox";
+import BookingForm from "../Booking/BookingForm";
 
 export default function WaveToggle() {
   const [open, setOpen] = useState(false);
+  const [bookingOpen, setBookingOpen] = useState(false);
 
   return (
     <>
@@ -45,7 +47,27 @@ export default function WaveToggle() {
           ${open ? "translate-x-0" : "-translate-x-full"}
         `}
       >
-        <NavBox />
+        <NavBox onBookClick={() => setBookingOpen(true)} />
+      </div>
+
+      {/* slide-in BookingForm from right */}
+      <div
+        className={`
+          fixed top-0 right-0 h-full w-full max-w-md
+          bg-blue-900 bg-opacity-50 backdrop-filter backdrop-blur-lg
+          p-8 text-gray-100
+          transform transition-transform duration-300 ease-in-out
+          ${bookingOpen ? "translate-x-0" : "translate-x-full"}
+          z-50
+        `}
+      >
+        <button
+          onClick={() => setBookingOpen(false)}
+          className="mb-4 text-white hover:text-indigo-300"
+        >
+          Close ✕
+        </button>
+        <BookingForm />
       </div>
     </>
   );

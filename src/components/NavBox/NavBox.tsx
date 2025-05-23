@@ -4,33 +4,47 @@ import LanguagePicker from "./LanguagePicker";
 import Link from "next/link";
 import LegalLinks from "./LegalLinks";
 
+interface NavBoxProps {
+  onBookClick: () => void;
+}
+
 const NAV_ITEMS = [
   { label: "Our vision", href: "/about" },
   { label: "Boat", href: "/boat" },
-  { label: "Book", href: "/book" },
+  { label: "Book", href: "/book" }, // we intercept this one
   { label: "Buy", href: "/buy" },
   { label: "Contact", href: "/contact" },
 ];
 
-export default function NavBox() {
+export default function NavBox({ onBookClick }: NavBoxProps) {
   return (
     <div className="max-w-sm bg-white p-6 rounded-2xl shadow-lg">
-      {/* Tear‑drop language picker */}
+      {/* Tear-drop language picker */}
       <div className="flex justify-center">
         <LanguagePicker />
       </div>
 
       {/* Navigation links */}
       <nav className="mt-6 flex flex-col space-y-3">
-        {NAV_ITEMS.map(({ label, href }) => (
-          <Link
-            key={href}
-            href={href}
-            className="text-[#002038] text-lg font-medium hover:text-blue-600 hover:underline"
-          >
-            {label}
-          </Link>
-        ))}
+        {NAV_ITEMS.map(({ label, href }) =>
+          label === "Book" ? (
+            <button
+              key={href}
+              onClick={onBookClick}
+              className="w-full text-left text-[#002038] text-lg font-medium hover:text-blue-600 hover:underline"
+            >
+              {label}
+            </button>
+          ) : (
+            <Link
+              key={href}
+              href={href}
+              className="text-[#002038] text-lg font-medium hover:text-blue-600 hover:underline"
+            >
+              {label}
+            </Link>
+          )
+        )}
         {/* bottom legal links */}
         <LegalLinks />
       </nav>
