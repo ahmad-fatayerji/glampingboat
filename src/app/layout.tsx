@@ -1,21 +1,19 @@
+import "./globals.css";
 import { SessionProvider } from "next-auth/react";
 import { Marcellus, Outfit } from "next/font/google";
 import Logo from "@/components/Logo";
-import "./globals.css";
 import AppShell from "@/components/AppShell";
 
-//Import of fonts
+// Import of fonts
 const marcellus = Marcellus({
   subsets: ["latin"],
   weight: "400",
 });
-
 const outfit = Outfit({
   subsets: ["latin"],
   weight: ["100", "300"],
 });
 
-//Metadata setup
 export const metadata = {
   title: "Glamping Boat",
   description: "Site de vente et location de bateaux fluviaux",

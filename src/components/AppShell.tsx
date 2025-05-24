@@ -1,40 +1,30 @@
 "use client";
 
 import React, { ReactNode, useState } from "react";
-import WaveToggle from "./NavBox/WaveToggle";
-import NavBox from "./NavBox/NavBox";
+import WaveToggle from "@/components/NavBox/WaveToggle";
+import NavBox from "@/components/NavBox/NavBox";
 import MonthCalendar from "@/components/MonthCalendar";
-import BookingForm from "./Booking/BookingForm";
+import BookingForm from "@/components/Booking/BookingForm";
+
 interface AppShellProps {
   children: ReactNode;
-  serverToday: string;
+  serverToday: string; // ISO‐string “today” in Paris
 }
 
 type Stage = "calendar" | "form";
 
 const AppShell: React.FC<AppShellProps> = ({ children, serverToday }) => {
-  const [navOpen, setNavOpen] = useState<boolean>(false);
-  const [drawerOpen, setDrawerOpen] = useState<boolean>(false);
+  const [navOpen, setNavOpen] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const [stage, setStage] = useState<Stage>("calendar");
-
-  // Range selection dates
   const [rangeStart, setRangeStart] = useState<Date | null>(null);
   const [rangeEnd, setRangeEnd] = useState<Date | null>(null);
 
   const handleBookClick = () => {
-    if (!drawerOpen) {
-      // open and reset to calendar
-      setStage("calendar");
-      setRangeStart(null);
-      setRangeEnd(null);
-      setDrawerOpen(true);
-    } else {
-      // close drawer
-      setDrawerOpen(false);
-      setStage("calendar");
-      setRangeStart(null);
-      setRangeEnd(null);
-    }
+    setStage("calendar");
+    setRangeStart(null);
+    setRangeEnd(null);
+    setDrawerOpen((o) => !o);
   };
 
   const handleRangeSelect = (start: Date, end: Date) => {
@@ -42,10 +32,7 @@ const AppShell: React.FC<AppShellProps> = ({ children, serverToday }) => {
     setRangeEnd(end);
   };
 
-  const handleNext = () => {
-    setStage("form");
-  };
-
+  const handleNext = () => setStage("form");
   const closeDrawer = () => {
     setDrawerOpen(false);
     setStage("calendar");
@@ -67,7 +54,7 @@ const AppShell: React.FC<AppShellProps> = ({ children, serverToday }) => {
         <NavBox onBookClick={handleBookClick} />
       </div>
 
-      {/* Right-side drawer */}
+      {/* Right-side booking drawer */}
       <div
         className={`fixed inset-y-0 right-0 z-50 bg-blue-900 bg-opacity-50 backdrop-filter backdrop-blur-lg p-6 md:p-8 text-gray-100 overflow-y-auto transform transition-transform duration-300 ease-in-out ${
           drawerOpen ? "translate-x-0" : "translate-x-full"
@@ -81,19 +68,17 @@ const AppShell: React.FC<AppShellProps> = ({ children, serverToday }) => {
         </button>
 
         {stage === "calendar" && (
-          <div>
+          <>
             <MonthCalendar
               availableDates={Array.from({ length: 31 }, (_, i) => i + 1)}
               serverToday={serverToday}
               onSelectRange={handleRangeSelect}
             />
-
             {rangeStart && rangeEnd && (
               <div className="mt-4 flex justify-between items-center">
                 <div className="text-sm">
-                  From: {rangeStart.toLocaleDateString()}
-                  <br />
-                  To: {rangeEnd.toLocaleDateString()}
+                  <p>From: {rangeStart.toLocaleDateString()}</p>
+                  <p>To: {rangeEnd.toLocaleDateString()}</p>
                 </div>
                 <button
                   onClick={handleNext}
@@ -103,7 +88,7 @@ const AppShell: React.FC<AppShellProps> = ({ children, serverToday }) => {
                 </button>
               </div>
             )}
-          </div>
+          </>
         )}
 
         {stage === "form" && rangeStart && rangeEnd && (
