@@ -9,7 +9,7 @@ interface NavBoxProps {
 }
 
 const NAV_ITEMS = [
-  { label: "Our vision", href: "/about" },
+  { label: "About", href: "/about" },
   { label: "Boat", href: "/boat" },
   { label: "Book", href: "/book" }, // intercepted
   { label: "Buy", href: "/buy" },
