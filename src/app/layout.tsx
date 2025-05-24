@@ -2,7 +2,6 @@ import { SessionProvider } from "next-auth/react";
 import { Marcellus, Outfit } from "next/font/google";
 import Logo from "@/components/Logo";
 import "./globals.css";
-import WaveToggle from "@/components/NavBox/WaveToggle";
 import AppShell from "@/components/AppShell";
 
 //Import of fonts
@@ -32,18 +31,24 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  // Compute “today” in Paris at midnight server‐side
+  const parisNow = new Date(
+    new Date().toLocaleString("en-US", { timeZone: "Europe/Paris" })
+  );
+  parisNow.setHours(0, 0, 0, 0);
+  const serverToday = parisNow.toISOString();
+
   return (
     <html lang="en" className={`${marcellus.className} ${outfit.className}`}>
       <body>
-        {/* wrap everything in SessionProvider */}
         <SessionProvider>
-          {/* fixed logo directly under the waves button (left-4, just below top-4) */}
+          {/* fixed logo under wave toggle */}
           <div className="fixed top-12 left-4 z-40 pointer-events-none">
             <Logo />
           </div>
 
-          {/* AppShell now assumes session is already provided */}
-          <AppShell>{children}</AppShell>
+          {/* pass serverToday into AppShell */}
+          <AppShell serverToday={serverToday}>{children}</AppShell>
         </SessionProvider>
       </body>
     </html>
