@@ -1,4 +1,3 @@
-// auth.ts
 import NextAuth from "next-auth"
 import type { NextAuthConfig } from "next-auth"
 import GoogleProvider from "next-auth/providers/google"
@@ -14,14 +13,14 @@ export const authOptions = {
     CredentialsProvider({
       name: "Email & Password",
       credentials: {
-        email:    { label: "Email",    type: "email"    },
+        email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
       },
       async authorize(creds) {
         // 1) Validate input
         if (
           !creds ||
-          typeof creds.email    !== "string" ||
+          typeof creds.email !== "string" ||
           typeof creds.password !== "string"
         ) {
           throw new Error("Missing email or password")
@@ -53,7 +52,7 @@ export const authOptions = {
     }),
 
     GoogleProvider({
-      clientId:     process.env.GOOGLE_CLIENT_ID!,
+      clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     }),
   ],
@@ -65,14 +64,14 @@ export const authOptions = {
         const email = profile?.email
         if (!email) throw new Error("No email from Google")
         await prisma.user.upsert({
-          where:  { email },
+          where: { email },
           create: {
             email,
-            name:   profile.name ?? "",
+            name: profile.name ?? "",
             avatar: (profile as any).picture ?? "",
           },
           update: {
-            name:   profile.name ?? "",
+            name: profile.name ?? "",
             avatar: (profile as any).picture ?? "",
           },
         })
