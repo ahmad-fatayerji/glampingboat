@@ -1,3 +1,4 @@
+// src/components/NavBox/NavBox.tsx
 "use client";
 
 import LanguagePicker from "./LanguagePicker";
@@ -9,7 +10,7 @@ interface NavBoxProps {
 }
 
 const NAV_ITEMS = [
-  { label: "About", href: "/about" },
+  { label: "Our Vision", href: "/" },
   { label: "Boat", href: "/boat" },
   { label: "Book", href: "/book" }, // intercepted
   { label: "Buy", href: "/buy" },
@@ -18,7 +19,10 @@ const NAV_ITEMS = [
 
 export default function NavBox({ onBookClick }: NavBoxProps) {
   return (
-    <div className="max-w-sm bg-white p-6 rounded-2xl shadow-lg">
+    <div
+      className="max-w-sm p-6 rounded-2xl shadow-lg"
+      style={{ backgroundColor: "#E4DBCE" }}
+    >
       <div className="flex justify-center">
         <LanguagePicker />
       </div>
@@ -26,17 +30,17 @@ export default function NavBox({ onBookClick }: NavBoxProps) {
         {NAV_ITEMS.map(({ label, href }) =>
           label === "Book" ? (
             <button
-              key={href}
+              key={label}
               onClick={onBookClick}
-              className="w-full text-left text-[#002038] text-lg font-medium hover:text-blue-600 hover:underline"
+              className="w-full text-left text-[#002038] text-lg font-medium hover:text-[#002038] hover:underline"
             >
               {label}
             </button>
           ) : (
             <Link
-              key={href}
+              key={label}
               href={href}
-              className="text-[#002038] text-lg font-medium hover:text-blue-600 hover:underline"
+              className="text-[#002038] text-lg font-medium hover:text-[#002038] hover:underline"
             >
               {label}
             </Link>
