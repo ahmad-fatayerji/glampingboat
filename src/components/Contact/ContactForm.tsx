@@ -178,7 +178,9 @@ export default function ContactForm() {
           </button>
 
           {status === "error" && (
-            <p className="mt-2 text-red-400">Failed to send. Try again.</p>
+            <p className="mt-2 text-red-400">
+              Too many requests. Try again later.
+            </p>
           )}
         </div>
       </form>
