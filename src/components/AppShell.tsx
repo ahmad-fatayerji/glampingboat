@@ -5,6 +5,7 @@ import WaveToggle from "@/components/NavBox/WaveToggle";
 import NavBox from "@/components/NavBox/NavBox";
 import MonthCalendar from "@/components/MonthCalendar";
 import BookingForm from "@/components/Booking/BookingForm";
+import ContactForm from "@/components/Contact/ContactForm";
 import { AudioToggle } from "@/components/Audio/AudioToggle";
 
 interface AppShellProps {
@@ -12,16 +13,7 @@ interface AppShellProps {
   serverToday: string;
 }
 
-type Stage = "boat" | "calendar" | "form";
-
-const boatImages = [
-  "/boat/1.jpg",
-  "/boat/2.jpg",
-  "/boat/3.jpg",
-  "/boat/4.jpg",
-  "/boat/5.jpg",
-  "/boat/6.jpg",
-];
+type Stage = "boat" | "calendar" | "form" | "contact";
 
 const AppShell: React.FC<AppShellProps> = ({ children, serverToday }) => {
   const [navOpen, setNavOpen] = useState(false);
@@ -34,12 +26,17 @@ const AppShell: React.FC<AppShellProps> = ({ children, serverToday }) => {
     setStage("calendar");
     setRangeStart(null);
     setRangeEnd(null);
-    setDrawerOpen(true);
+    setDrawerOpen((o) => !o);
   };
 
   const handleBoatClick = () => {
     setStage("boat");
-    setDrawerOpen(true);
+    setDrawerOpen((o) => !o);
+  };
+
+  const handleContactClick = () => {
+    setStage("contact");
+    setDrawerOpen((o) => !o);
   };
 
   const handleRangeSelect = (start: Date, end: Date) => {
@@ -52,22 +49,26 @@ const AppShell: React.FC<AppShellProps> = ({ children, serverToday }) => {
 
   return (
     <>
-      {/* always‐visible mute toggle */}
+      {/* always‐on mute toggle */}
       <AudioToggle />
 
       {/* wave menu toggle */}
       <WaveToggle open={navOpen} toggle={() => setNavOpen((o) => !o)} />
 
-      {/* slide‐in navbox on left */}
+      {/* left nav */}
       <div
         className={`fixed bottom-4 left-4 z-40 transform transition-transform duration-300 ease-in-out ${
           navOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        <NavBox onBookClick={handleBookClick} onBoatClick={handleBoatClick} />
+        <NavBox
+          onBookClick={handleBookClick}
+          onBoatClick={handleBoatClick}
+          onContactClick={handleContactClick}
+        />
       </div>
 
-      {/* slide‐in drawer on right */}
+      {/* right drawer */}
       <div
         className={`fixed inset-y-0 right-0 z-50 bg-blue-900 bg-opacity-50 backdrop-blur-lg p-6 md:p-8 text-gray-100 overflow-y-auto transform transition-transform duration-300 ease-in-out ${
           drawerOpen ? "translate-x-0" : "translate-x-full"
@@ -80,21 +81,14 @@ const AppShell: React.FC<AppShellProps> = ({ children, serverToday }) => {
           Close ✕
         </button>
 
-        {/* —————— BOAT GALLERY —————— */}
+        {/* Boat gallery (if stage === "boat") */}
         {stage === "boat" && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
-            {boatImages.map((src, i) => (
-              <img
-                key={i}
-                src={src}
-                alt={`Boat image ${i + 1}`}
-                className="w-full h-40 object-cover rounded-lg"
-              />
-            ))}
-          </div>
+          <p className="text-center text-lg text-white">
+            {/* …your boat gallery goes here… */}
+          </p>
         )}
 
-        {/* —————— DATE PICKER —————— */}
+        {/* Booking calendar/form */}
         {stage === "calendar" && (
           <>
             <MonthCalendar
@@ -118,11 +112,12 @@ const AppShell: React.FC<AppShellProps> = ({ children, serverToday }) => {
             )}
           </>
         )}
-
-        {/* —————— BOOKING FORM —————— */}
         {stage === "form" && rangeStart && rangeEnd && (
           <BookingForm arrivalDate={rangeStart} departureDate={rangeEnd} />
         )}
+
+        {/* Contact form */}
+        {stage === "contact" && <ContactForm />}
       </div>
 
       {/* page content */}

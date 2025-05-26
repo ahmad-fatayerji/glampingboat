@@ -7,6 +7,7 @@ import LegalLinks from "./LegalLinks";
 interface NavBoxProps {
   onBookClick: () => void;
   onBoatClick: () => void;
+  onContactClick: () => void;
 }
 
 const NAV_ITEMS = [
@@ -14,10 +15,14 @@ const NAV_ITEMS = [
   { label: "Boat", href: "/" }, // intercepted
   { label: "Book", href: "/book" }, // intercepted
   { label: "Buy", href: "/buy" },
-  { label: "Contact", href: "/contact" },
+  { label: "Contact", href: "/contact" }, // intercepted
 ];
 
-export default function NavBox({ onBookClick, onBoatClick }: NavBoxProps) {
+export default function NavBox({
+  onBookClick,
+  onBoatClick,
+  onContactClick,
+}: NavBoxProps) {
   return (
     <div
       className="max-w-sm p-6 rounded-2xl shadow-lg"
@@ -29,7 +34,17 @@ export default function NavBox({ onBookClick, onBoatClick }: NavBoxProps) {
 
       <nav className="mt-6 flex flex-col space-y-3">
         {NAV_ITEMS.map(({ label, href }) => {
-          if (label === "Book") {
+          if (label === "Boat") {
+            return (
+              <button
+                key="boat"
+                onClick={onBoatClick}
+                className="w-full text-left text-[#002038] text-lg font-medium hover:text-blue-600 hover:underline"
+              >
+                Boat
+              </button>
+            );
+          } else if (label === "Book") {
             return (
               <button
                 key="book"
@@ -39,14 +54,14 @@ export default function NavBox({ onBookClick, onBoatClick }: NavBoxProps) {
                 Book
               </button>
             );
-          } else if (label === "Boat") {
+          } else if (label === "Contact") {
             return (
               <button
-                key="boat"
-                onClick={onBoatClick}
+                key="contact"
+                onClick={onContactClick}
                 className="w-full text-left text-[#002038] text-lg font-medium hover:text-blue-600 hover:underline"
               >
-                Boat
+                Contact
               </button>
             );
           } else {
