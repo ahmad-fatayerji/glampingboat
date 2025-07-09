@@ -1,3 +1,4 @@
+// src/components/AppShell.tsx
 "use client";
 
 import React, { ReactNode, useState } from "react";
@@ -15,6 +16,16 @@ interface AppShellProps {
 
 type Stage = "boat" | "calendar" | "form" | "contact";
 
+// put your boat images in public/boat/1.jpg, 2.jpg, etc.
+const boatImages = [
+  "/boat/1.jpg",
+  "/boat/2.jpg",
+  "/boat/3.jpg",
+  "/boat/4.jpg",
+  "/boat/5.jpg",
+  "/boat/6.jpg",
+];
+
 const AppShell: React.FC<AppShellProps> = ({ children, serverToday }) => {
   const [navOpen, setNavOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -22,21 +33,36 @@ const AppShell: React.FC<AppShellProps> = ({ children, serverToday }) => {
   const [rangeStart, setRangeStart] = useState<Date | null>(null);
   const [rangeEnd, setRangeEnd] = useState<Date | null>(null);
 
+  // Toggle drawer for BOOK
   const handleBookClick = () => {
-    setStage("calendar");
-    setRangeStart(null);
-    setRangeEnd(null);
-    setDrawerOpen((o) => !o);
+    if (drawerOpen && stage === "calendar") {
+      setDrawerOpen(false);
+    } else {
+      setStage("calendar");
+      setRangeStart(null);
+      setRangeEnd(null);
+      setDrawerOpen(true);
+    }
   };
 
+  // Toggle drawer for BOAT
   const handleBoatClick = () => {
-    setStage("boat");
-    setDrawerOpen((o) => !o);
+    if (drawerOpen && stage === "boat") {
+      setDrawerOpen(false);
+    } else {
+      setStage("boat");
+      setDrawerOpen(true);
+    }
   };
 
+  // Toggle drawer for CONTACT
   const handleContactClick = () => {
-    setStage("contact");
-    setDrawerOpen((o) => !o);
+    if (drawerOpen && stage === "contact") {
+      setDrawerOpen(false);
+    } else {
+      setStage("contact");
+      setDrawerOpen(true);
+    }
   };
 
   const handleRangeSelect = (start: Date, end: Date) => {
@@ -49,13 +75,13 @@ const AppShell: React.FC<AppShellProps> = ({ children, serverToday }) => {
 
   return (
     <>
-      {/* always‐on mute toggle */}
+      {/* Mute/unmute */}
       <AudioToggle />
 
-      {/* wave menu toggle */}
+      {/* Wave menu button */}
       <WaveToggle open={navOpen} toggle={() => setNavOpen((o) => !o)} />
 
-      {/* left nav */}
+      {/* Left NavBox */}
       <div
         className={`fixed bottom-4 left-4 z-40 transform transition-transform duration-300 ease-in-out ${
           navOpen ? "translate-x-0" : "-translate-x-full"
@@ -68,7 +94,7 @@ const AppShell: React.FC<AppShellProps> = ({ children, serverToday }) => {
         />
       </div>
 
-      {/* right drawer */}
+      {/* Right Drawer */}
       <div
         className={`fixed inset-y-0 right-0 z-50 bg-blue-900 bg-opacity-50 backdrop-blur-lg p-6 md:p-8 text-gray-100 overflow-y-auto transform transition-transform duration-300 ease-in-out ${
           drawerOpen ? "translate-x-0" : "translate-x-full"
@@ -81,14 +107,21 @@ const AppShell: React.FC<AppShellProps> = ({ children, serverToday }) => {
           Close ✕
         </button>
 
-        {/* Boat gallery (if stage === "boat") */}
+        {/* BOAT GALLERY */}
         {stage === "boat" && (
-          <p className="text-center text-lg text-white">
-            {/* …your boat gallery goes here… */}
-          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            {boatImages.map((src, i) => (
+              <img
+                key={i}
+                src={src}
+                alt={`Boat image ${i + 1}`}
+                className="w-full h-48 object-cover rounded-lg"
+              />
+            ))}
+          </div>
         )}
 
-        {/* Booking calendar/form */}
+        {/* BOOKING CALENDAR & FORM */}
         {stage === "calendar" && (
           <>
             <MonthCalendar
@@ -116,11 +149,11 @@ const AppShell: React.FC<AppShellProps> = ({ children, serverToday }) => {
           <BookingForm arrivalDate={rangeStart} departureDate={rangeEnd} />
         )}
 
-        {/* Contact form */}
+        {/* CONTACT FORM */}
         {stage === "contact" && <ContactForm />}
       </div>
 
-      {/* page content */}
+      {/* Page content */}
       {children}
     </>
   );
