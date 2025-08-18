@@ -112,9 +112,7 @@ const AppShell: React.FC<AppShellProps> = ({ children, serverToday }) => {
         </button>
 
         {/* BOAT GALLERY */}
-        {stage === "boat" && (
-          <BoatSlideshow images={boatImages} />
-        )}
+        {stage === "boat" && <BoatSlideshow images={boatImages} />}
 
         {/* BOOKING CALENDAR & FORM */}
         {stage === "calendar" && (
@@ -148,7 +146,7 @@ const AppShell: React.FC<AppShellProps> = ({ children, serverToday }) => {
         {stage === "contact" && <ContactForm />}
       </div>
 
-  {/* Page content */}
+      {/* Page content */}
       {children}
     </>
   );
