@@ -4,6 +4,7 @@ import { Marcellus, Outfit } from "next/font/google";
 import Logo from "@/components/Logo";
 import AppShell from "@/components/AppShell";
 import { AudioProvider } from "@/components/Audio/AudioContext";
+import CookieBanner from "@/components/Legal/CookieBanner";
 
 const marcellus = Marcellus({ subsets: ["latin"], weight: "400" });
 const outfit = Outfit({ subsets: ["latin"], weight: ["100", "300"] });
@@ -43,6 +44,8 @@ export default function RootLayout({
 
             {/* Your shell (nav menu, drawer, booking flow) */}
             <AppShell serverToday={serverToday}>{children}</AppShell>
+            {/* Cookie consent banner */}
+            <CookieBanner />
           </AudioProvider>
         </SessionProvider>
       </body>
