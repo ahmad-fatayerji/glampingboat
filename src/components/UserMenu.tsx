@@ -28,14 +28,28 @@ export default function UserMenu() {
         onClick={() => setOpen((o) => !o)}
         aria-haspopup="menu"
         aria-expanded={open}
-        className="w-11 h-11 rounded-full bg-[#E4DBCE] text-[#002038] flex items-center justify-center shadow-lg ring-1 ring-[#002038]/10 hover:shadow-xl transition"
+        className="w-11 h-11 rounded-full bg-[var(--color-beige)] text-[var(--color-blue)] flex items-center justify-center shadow-lg ring-1 ring-[var(--color-blue)]/10 hover:shadow-xl transition"
       >
         {session?.user?.email ? (
           <span className="font-semibold text-sm">
             {session.user.email[0]?.toUpperCase()}
           </span>
         ) : (
-          <span className="text-xl">👤</span>
+          <svg
+            width="22"
+            height="22"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+            className="opacity-90"
+          >
+            <circle cx="12" cy="8" r="4" />
+            <path d="M4 19c1.5-3.5 4.5-5 8-5s6.5 1.5 8 5" />
+          </svg>
         )}
       </button>
       {open && (
@@ -69,7 +83,7 @@ export default function UserMenu() {
               </p>
               <button
                 onClick={() => signIn(undefined, { callbackUrl: "/account" })}
-                className="w-full px-3 py-2 rounded bg-indigo-600 hover:bg-indigo-500 text-white font-medium"
+                className="w-full px-3 py-2 rounded-md bg-[var(--color-blue)] text-[var(--color-beige)] font-semibold shadow hover:bg-[#06324d] focus:outline-none focus:ring-2 focus:ring-[var(--color-blue)]/40 transition"
               >
                 Sign in / Create account
               </button>
