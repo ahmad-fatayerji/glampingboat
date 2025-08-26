@@ -7,6 +7,7 @@ import WaveToggle from "@/components/NavBox/WaveToggle";
 import NavBox from "@/components/NavBox/NavBox";
 import MonthCalendar from "@/components/MonthCalendar";
 import BookingForm from "@/components/Booking/BookingForm";
+import { useSession } from "next-auth/react";
 import BoatSlideshow from "@/components/Boat/BoatSlideshow";
 import ContactForm from "@/components/Contact/ContactForm";
 import { AudioToggle } from "@/components/Audio/AudioToggle";
@@ -37,6 +38,7 @@ const AppShell: React.FC<AppShellProps> = ({ children, serverToday }) => {
   const [rangeEnd, setRangeEnd] = useState<Date | null>(null);
   const pathname = usePathname();
   const t = useT();
+  const { data: session } = useSession();
   const touchStartX = useRef<number | null>(null);
   const touchStartY = useRef<number | null>(null);
 
@@ -101,11 +103,22 @@ const AppShell: React.FC<AppShellProps> = ({ children, serverToday }) => {
   };
 
   const handleRangeSelect = (start: Date, end: Date) => {
+    if (!session) {
+      // redirect to account for auth, keep drawer open
+      window.location.href = "/account";
+      return;
+    }
     setRangeStart(start);
     setRangeEnd(end);
   };
 
-  const handleNext = () => setStage("form");
+  const handleNext = () => {
+    if (!session) {
+      window.location.href = "/account";
+      return;
+    }
+    setStage("form");
+  };
   const closeDrawer = () => setDrawerOpen(false);
 
   // Expose drawer state via data attribute for other fixed elements (e.g., UserMenu) to shift.

@@ -85,7 +85,21 @@ export const authOptions = {
 
     // Embed user.id into the token
     async jwt({ token, user }) {
-      if (user) token.id = user.id
+      // Credentials flow already passes the correct prisma user.id
+      if (user) {
+        // For Google OAuth, ensure we attach the Prisma user's id (cuid) not the Google sub
+        if (user.email) {
+          const dbUser = await prisma.user.findUnique({ where: { email: user.email } })
+          if (dbUser) token.id = dbUser.id
+          else token.id = (user as any).id // fallback
+        } else if ((user as any).id) {
+          token.id = (user as any).id
+        }
+      } else if (!token.id && token.email) {
+        // Subsequent calls (or legacy tokens) without id: hydrate
+        const dbUser = await prisma.user.findUnique({ where: { email: token.email as string } })
+        if (dbUser) token.id = dbUser.id
+      }
       return token
     },
 
