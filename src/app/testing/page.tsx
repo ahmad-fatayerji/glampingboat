@@ -1,17 +1,20 @@
-import { auth }                   from "@auth"                    // NextAuth server fn
-import Link                       from "next/link"
-import CredentialsPanel           from "@/components/auth/CredentialsPanel"
-import GoogleSignInButton         from "@/components/auth/GoogleSignInButton"
-import LogoutButton               from "@/components/auth/LogoutButton"
+import { auth } from "@auth"; // NextAuth server fn
+import Link from "next/link";
+import CredentialsPanel from "@/components/auth/CredentialsPanel";
+import GoogleSignInButton from "@/components/auth/GoogleSignInButton";
+import LogoutButton from "@/components/auth/LogoutButton";
 
 export default async function TestingPage() {
-  const session = await auth()  // purely server‑side
+  // Deprecated page: redirecting users to /account in future cleanup.
+  const session = await auth(); // purely server‑side
 
   return (
     <div className="max-w-md mx-auto mt-12 bg-white shadow-lg rounded-lg overflow-hidden">
       {/* Header */}
       <div className="bg-blue-600 p-4 text-center">
-        <h1 className="text-white text-xl font-semibold">GlampingBoat LoginSystem</h1>
+        <h1 className="text-white text-xl font-semibold">
+          GlampingBoat LoginSystem
+        </h1>
       </div>
 
       <div className="p-6 space-y-8">
@@ -53,5 +56,5 @@ export default async function TestingPage() {
         <GoogleSignInButton />
       </div>
     </div>
-  )
+  );
 }

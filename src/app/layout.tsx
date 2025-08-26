@@ -1,4 +1,5 @@
 import "./globals.css";
+import UserMenu from "@/components/UserMenu";
 import { SessionProvider } from "next-auth/react";
 import { Marcellus, Outfit } from "next/font/google";
 import Logo from "@/components/Logo";
@@ -46,6 +47,7 @@ export default function RootLayout({
 
               {/* Your shell (nav menu, drawer, booking flow) */}
               <AppShell serverToday={serverToday}>{children}</AppShell>
+              <UserMenu />
               {/* Cookie consent banner */}
               <CookieBanner />
             </AudioProvider>

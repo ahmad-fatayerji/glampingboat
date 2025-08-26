@@ -24,28 +24,40 @@ export default function CredentialsSignUp() {
 
   return (
     <form onSubmit={handleSignup} className="space-y-4">
-      {error && <p className="text-red-600">{error}</p>}
-      <div>
-        <label>Email</label>
+      {error && (
+        <p className="text-sm text-red-500 bg-red-500/10 border border-red-500/30 px-3 py-2 rounded">
+          {error}
+        </p>
+      )}
+      <div className="space-y-1">
+        <label className="text-xs font-medium tracking-wide text-[var(--color-blue)]/80">
+          Email
+        </label>
         <input
           type="email"
           required
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="w-full border p-2"
+          className="w-full rounded-md bg-[var(--color-beige)]/35 border border-[var(--color-blue)]/15 focus:border-[var(--color-blue)] focus:ring-2 focus:ring-[var(--color-blue)]/25 px-3 py-2 text-sm placeholder-gray-500 outline-none transition"
+          placeholder="you@example.com"
         />
       </div>
-      <div>
-        <label>Password</label>
+      <div className="space-y-1">
+        <label className="text-xs font-medium tracking-wide text-[var(--color-blue)]/80">
+          Password
+        </label>
         <input
           type="password"
           required
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="w-full border p-2"
+          className="w-full rounded-md bg-[var(--color-beige)]/35 border border-[var(--color-blue)]/15 focus:border-[var(--color-blue)] focus:ring-2 focus:ring-[var(--color-blue)]/25 px-3 py-2 text-sm placeholder-gray-500 outline-none transition"
+          placeholder="Choose a secure password"
         />
       </div>
-      <button className="w-full bg-blue-600 text-white p-2">Sign Up</button>
+      <button className="w-full relative overflow-hidden rounded-md bg-[var(--color-blue)] text-[var(--color-beige)] font-semibold text-sm py-2 shadow hover:bg-[#042c49] focus:outline-none focus:ring-2 focus:ring-[var(--color-blue)]/40 transition">
+        <span className="relative z-10">Create account</span>
+      </button>
     </form>
   );
 }
