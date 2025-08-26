@@ -10,7 +10,7 @@ import AccountTabs from "@/components/account/AccountTabs";
 export default async function AccountPage({
   searchParams,
 }: {
-  searchParams: { [key: string]: string | string[] | undefined };
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   const session = await auth();
   if (!session) {
@@ -40,7 +40,8 @@ export default async function AccountPage({
   }));
 
   // Simpler: parse from request URL via referer not reliable; instead show both toggles using search params available client-side
-  const tabRaw = searchParams.tab;
+  const resolvedSearchParams = await searchParams;
+  const tabRaw = resolvedSearchParams.tab;
   const initialTab =
     (Array.isArray(tabRaw) ? tabRaw[0] : tabRaw) === "profile"
       ? "profile"

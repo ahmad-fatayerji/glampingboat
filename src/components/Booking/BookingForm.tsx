@@ -61,6 +61,29 @@ const BookingForm: React.FC<BookingFormProps> = ({
   >([]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [profileError, setProfileError] = useState<string | null>(null);
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [savingProfile, setSavingProfile] = useState(false);
+  const REQUIRED_PROFILE_FIELDS: { key: string; label: string }[] = [
+    { key: "firstName", label: t("firstName") || "First name" },
+    { key: "lastName", label: t("lastName") || "Last name" },
+    { key: "phone", label: t("phone") || "Phone" },
+    { key: "address.street", label: t("street") || "Street" },
+    { key: "address.city", label: t("city") || "City" },
+  ];
+
+  const getFieldValue = (path: string) => {
+    if (path.startsWith("address.")) {
+      const p = path.split(".")[1] as keyof Address;
+      return form.address[p];
+    }
+    return (form as any)[path];
+  };
+
+  const missingRequiredProfileFields = () =>
+    REQUIRED_PROFILE_FIELDS.filter(
+      (f) => !getFieldValue(f.key)?.toString().trim()
+    ).map((f) => f.key);
   const { data: session } = useSession();
   // Fetch options once
   useEffect(() => {
@@ -155,12 +178,7 @@ const BookingForm: React.FC<BookingFormProps> = ({
   const deposit = (total * 0.3).toFixed(2);
   const balance = (total - parseFloat(deposit)).toFixed(2);
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    if (!session) {
-      window.location.href = "/account";
-      return;
-    }
+  const performReservation = async () => {
     setSubmitting(true);
     setError(null);
     try {
@@ -186,6 +204,17 @@ const BookingForm: React.FC<BookingFormProps> = ({
           },
         }),
       });
+      if (res.status === 400) {
+        // Possibly profile incomplete
+        let msg = "";
+        try {
+          msg = (await res.json()).error || "";
+        } catch {}
+        if (/profile incomplete/i.test(msg)) {
+          setShowProfileModal(true);
+          return; // don't redirect
+        }
+      }
       if (!res.ok) throw new Error("Failed to create reservation");
       window.location.href = "/account";
     } catch (err: any) {
@@ -193,6 +222,53 @@ const BookingForm: React.FC<BookingFormProps> = ({
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const saveProfileAndContinue = async () => {
+    setProfileError(null);
+    const missing = missingRequiredProfileFields();
+    if (missing.length) {
+      setProfileError("Please fill all required fields.");
+      return;
+    }
+    setSavingProfile(true);
+    try {
+      const payload: any = {
+        firstName: form.firstName || undefined,
+        lastName: form.lastName || undefined,
+        phone: form.phone || undefined,
+        addressStreet: form.address.street || undefined,
+        addressCity: form.address.city || undefined,
+        addressNumber: form.address.number || undefined,
+        addressState: form.address.state || undefined,
+      };
+      const res = await fetch("/api/account/profile", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) throw new Error("Profile save failed");
+      setShowProfileModal(false);
+      await performReservation();
+    } catch (e: any) {
+      setProfileError(e.message || "Error saving profile");
+    } finally {
+      setSavingProfile(false);
+    }
+  };
+
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!session) {
+      window.location.href = "/account";
+      return;
+    }
+    const missing = missingRequiredProfileFields();
+    if (missing.length) {
+      setShowProfileModal(true);
+      return;
+    }
+    await performReservation();
   };
 
   return (
@@ -431,6 +507,70 @@ const BookingForm: React.FC<BookingFormProps> = ({
           </div>
         </div>
       </form>
+      {showProfileModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
+          <div className="bg-blue-900 border border-blue-700 rounded-lg w-full max-w-lg p-6 relative">
+            <button
+              type="button"
+              onClick={() => setShowProfileModal(false)}
+              className="absolute top-2 right-2 text-xs px-2 py-1 bg-blue-700/40 rounded hover:bg-blue-600/60"
+            >
+              ✕
+            </button>
+            <h3 className="text-lg font-semibold mb-2">
+              Complete your profile
+            </h3>
+            <p className="text-xs mb-4 opacity-80">
+              We need a few details before confirming your reservation.
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {REQUIRED_PROFILE_FIELDS.map((f) => {
+                const missing = !getFieldValue(f.key)?.toString().trim();
+                const baseName = f.key.includes("address.")
+                  ? f.key.split(".")[1]
+                  : f.key;
+                return (
+                  <div key={f.key} className="flex flex-col">
+                    <label className="text-xs mb-1">
+                      {f.label}
+                      <span className="text-red-300 ml-1">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      name={baseName}
+                      value={getFieldValue(f.key) || ""}
+                      onChange={handleChange}
+                      className={`p-2 rounded bg-blue-800 border text-sm focus:outline-none focus:border-indigo-400 ${
+                        missing ? "border-red-500" : "border-blue-700"
+                      }`}
+                    />
+                  </div>
+                );
+              })}
+            </div>
+            {profileError && (
+              <div className="mt-3 text-xs text-red-300">{profileError}</div>
+            )}
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setShowProfileModal(false)}
+                className="px-4 py-2 text-sm rounded bg-blue-800 border border-blue-700 hover:bg-blue-700"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={saveProfileAndContinue}
+                disabled={savingProfile}
+                className="px-4 py-2 text-sm rounded bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50"
+              >
+                {savingProfile ? "Saving…" : "Save & Continue"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
