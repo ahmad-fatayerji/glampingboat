@@ -63,11 +63,18 @@ export default function UserMenu() {
                 {session.user?.email}
               </div>
               <Link
-                href="/account"
+                href="/account?tab=bookings"
                 className="block px-3 py-2 rounded hover:bg-[#E4DBCE] font-medium"
                 onClick={() => setOpen(false)}
               >
-                Manage bookings
+                Bookings
+              </Link>
+              <Link
+                href="/account?tab=profile"
+                className="block px-3 py-2 rounded hover:bg-[#E4DBCE] font-medium"
+                onClick={() => setOpen(false)}
+              >
+                Profile
               </Link>
               <button
                 onClick={() => signOut({ callbackUrl: "/" })}

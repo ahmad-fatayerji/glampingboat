@@ -20,6 +20,15 @@ model User {
   name                String?
   avatar              String?
   password            String?
+  firstName           String?
+  lastName            String?
+  phone               String?
+  mobile              String?
+  birthDate           DateTime?
+  addressNumber       String?
+  addressStreet       String?
+  addressCity         String?
+  addressState        String?
   resetToken          String?
   resetTokenExpiresAt DateTime?
   createdAt           DateTime  @default(now())

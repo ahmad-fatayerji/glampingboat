@@ -165,6 +165,21 @@ const AppShell: React.FC<AppShellProps> = ({ children, serverToday }) => {
         {/* BOOKING CALENDAR & FORM */}
         {stage === "calendar" && (
           <>
+            {!session && (
+              <div className="mb-4 rounded-xl bg-[var(--color-beige)]/80 text-[var(--color-blue)] p-4 text-sm leading-relaxed border border-[var(--color-blue)]/10">
+                <p className="font-medium mb-1">Sign in required to book</p>
+                <p className="opacity-80 mb-3">
+                  Create an account or sign in before selecting dates and
+                  completing your reservation.
+                </p>
+                <a
+                  href="/account"
+                  className="inline-flex items-center gap-1 rounded-full px-4 py-1.5 text-xs font-semibold tracking-wide bg-[var(--color-blue)] text-[var(--color-beige)] hover:bg-[#06324d] focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[var(--color-blue)]/40 transition"
+                >
+                  Go to account ➜
+                </a>
+              </div>
+            )}
             <MonthCalendar
               availableDates={Array.from({ length: 31 }, (_, i) => i + 1)}
               serverToday={serverToday}

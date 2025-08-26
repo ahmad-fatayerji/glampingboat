@@ -73,11 +73,18 @@ export const authOptions = {
             email,
             name: profile.name ?? "",
             avatar: (profile as any).picture ?? "",
-          },
+          } as any,
           update: {
             name: profile.name ?? "",
             avatar: (profile as any).picture ?? "",
-          },
+          } as any,
+        })
+        // Follow-up update for name fields (avoid TS mismatch until client regenerated)
+        await prisma.user.update({
+          where: { email }, data: {
+            firstName: (profile as any).given_name || undefined,
+            lastName: (profile as any).family_name || undefined,
+          } as any
         })
       }
       return true

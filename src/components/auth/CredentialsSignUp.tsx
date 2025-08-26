@@ -15,7 +15,6 @@ export default function CredentialsSignUp() {
       redirect: false,
       email,
       password,
-      isSignup: "true",
     });
 
     if (res?.error) setError(res.error);

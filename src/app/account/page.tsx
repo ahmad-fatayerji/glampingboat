@@ -4,9 +4,14 @@ import GoogleSignInButton from "@/components/auth/GoogleSignInButton";
 import LogoutButton from "@/components/auth/LogoutButton";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
-import ReservationList from "../../components/account/ReservationList";
+import ReservationList from "../../components/account/ReservationList"; // only for typing reference
+import AccountTabs from "@/components/account/AccountTabs";
 
-export default async function AccountPage() {
+export default async function AccountPage({
+  searchParams,
+}: {
+  searchParams: { [key: string]: string | string[] | undefined };
+}) {
   const session = await auth();
   if (!session) {
     return (
@@ -34,11 +39,17 @@ export default async function AccountPage() {
     })),
   }));
 
+  // Simpler: parse from request URL via referer not reliable; instead show both toggles using search params available client-side
+  const tabRaw = searchParams.tab;
+  const initialTab =
+    (Array.isArray(tabRaw) ? tabRaw[0] : tabRaw) === "profile"
+      ? "profile"
+      : "bookings";
   return (
     <div className="min-h-screen bg-[var(--color-white)] px-4 pt-40 pb-24 flex flex-col items-center">
       <div className="w-full max-w-5xl space-y-8">
         <AccountHeader email={session.user?.email || ""} />
-        <ReservationList reservations={serialized} />
+        <AccountTabs reservations={serialized} initialTab={initialTab} />
       </div>
     </div>
   );
@@ -57,7 +68,7 @@ function AccountHeader({ email }: { email: string }) {
         </div>
       </div>
       <p className="text-xs text-[var(--color-blue)]/60">
-        Manage your reservations below. Upcoming stays appear first.
+        Use the tabs below to manage bookings or update your profile.
       </p>
     </div>
   );
