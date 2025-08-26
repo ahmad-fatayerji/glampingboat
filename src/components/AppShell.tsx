@@ -1,7 +1,7 @@
 // src/components/AppShell.tsx
 "use client";
 
-import React, { ReactNode, useState, useEffect } from "react";
+import React, { ReactNode, useState, useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import WaveToggle from "@/components/NavBox/WaveToggle";
 import NavBox from "@/components/NavBox/NavBox";
@@ -37,6 +37,29 @@ const AppShell: React.FC<AppShellProps> = ({ children, serverToday }) => {
   const [rangeEnd, setRangeEnd] = useState<Date | null>(null);
   const pathname = usePathname();
   const t = useT();
+  const touchStartX = useRef<number | null>(null);
+  const touchStartY = useRef<number | null>(null);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    const touch = e.touches[0];
+    touchStartX.current = touch.clientX;
+    touchStartY.current = touch.clientY;
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX.current == null || touchStartY.current == null) return;
+    const touch = e.changedTouches[0];
+    const dx = touch.clientX - touchStartX.current; // positive if swiped right
+    const dy = touch.clientY - touchStartY.current;
+    const absDx = Math.abs(dx);
+    const absDy = Math.abs(dy);
+    // Close if horizontal swipe right dominant & sufficient distance
+    if (dx > 60 && absDx > absDy * 1.2) {
+      setDrawerOpen(false);
+    }
+    touchStartX.current = null;
+    touchStartY.current = null;
+  };
 
   // Close drawer automatically on legal pages
   useEffect(() => {
@@ -106,22 +129,14 @@ const AppShell: React.FC<AppShellProps> = ({ children, serverToday }) => {
         />
       </div>
 
-      {/* Right Drawer with brand background (#002038) and side chevron toggle */}
+      {/* Right Drawer */}
       <div
         className={`fixed inset-y-0 right-0 z-50 bg-[#002038]/95 backdrop-blur-sm p-6 md:p-8 text-gray-100 overflow-y-auto transform transition-transform duration-300 ease-in-out ${
           drawerOpen ? "translate-x-0" : "translate-x-full"
         } w-full sm:w-3/4 md:w-2/3 lg:w-1/2 xl:w-2/5`}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
       >
-        {/* Side chevron to close */}
-        <button
-          aria-label={drawerOpen ? "Fermer" : "Ouvrir"}
-          onClick={closeDrawer}
-          className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-full bg-[#002038] text-white rounded-l-full shadow-lg ring-1 ring-white/10 px-2 py-3"
-          style={{ writingMode: "horizontal-tb" }}
-        >
-          ⟨
-        </button>
-
         {/* BOAT GALLERY */}
         {stage === "boat" && <BoatSlideshow images={boatImages} />}
 

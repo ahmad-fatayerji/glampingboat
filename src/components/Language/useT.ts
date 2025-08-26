@@ -73,6 +73,7 @@ const dictionaries: Record<string, Dict> = {
         heroEmbrace: "Embrace",
         heroASlow: "a slow",
         heroLifestyle: "lifestyle",
+        close: "Close",
     },
     fr: {
         ourVision: "Notre vision",
@@ -139,6 +140,7 @@ const dictionaries: Record<string, Dict> = {
         heroEmbrace: "Adoptez",
         heroASlow: "un rythme",
         heroLifestyle: "paisible",
+        close: "Fermer",
     },
     de: {
         ourVision: "Unsere Vision",
@@ -205,6 +207,7 @@ const dictionaries: Record<string, Dict> = {
         heroEmbrace: "Genieße",
         heroASlow: "ein langsames",
         heroLifestyle: "Leben",
+        close: "Schließen",
     },
     nl: {
         ourVision: "Onze visie",
@@ -271,6 +274,7 @@ const dictionaries: Record<string, Dict> = {
         heroEmbrace: "Omarm",
         heroASlow: "een traag",
         heroLifestyle: "leven",
+        close: "Sluiten",
     },
     ru: {
         ourVision: "Наша концепция",
@@ -337,6 +341,7 @@ const dictionaries: Record<string, Dict> = {
         heroEmbrace: "Прими",
         heroASlow: "медленный",
         heroLifestyle: "ритм",
+        close: "Закрыть",
     },
     es: {
         ourVision: "Nuestra visión",
@@ -403,6 +408,7 @@ const dictionaries: Record<string, Dict> = {
         heroEmbrace: "Abraza",
         heroASlow: "un estilo",
         heroLifestyle: "de vida lento",
+        close: "Cerrar",
     },
     it: {
         ourVision: "La nostra visione",
@@ -469,6 +475,7 @@ const dictionaries: Record<string, Dict> = {
         heroEmbrace: "Abbraccia",
         heroASlow: "uno stile",
         heroLifestyle: "di vita lento",
+        close: "Chiudi",
     },
 };
 
