@@ -2,6 +2,7 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
+import { useT } from "@/components/Language/useT";
 import {
   subMonths,
   addMonths,
@@ -37,6 +38,7 @@ const MonthCalendar: React.FC<MonthCalendarProps> = ({
   const [rangeStart, setRangeStart] = useState<Date | null>(null);
   const [rangeEnd, setRangeEnd] = useState<Date | null>(null);
   const [hoverDate, setHoverDate] = useState<Date | null>(null);
+  const t = useT();
 
   // Helpers for month navigation
   const prevMonth = () => setCurrent((d) => subMonths(d, 1));
@@ -99,45 +101,51 @@ const MonthCalendar: React.FC<MonthCalendarProps> = ({
     const isHoverEnd = hoverDate?.getTime() === date.getTime();
 
     // Build classes for pill/circle effect
-    let classes = ["w-8 h-8 flex items-center justify-center text-sm"];
+    let classes = [
+      "w-8 h-8 flex items-center justify-center text-sm transition-colors duration-150",
+    ];
 
     // Disabled days
     if (!isAvailable) {
-      classes.push("text-gray-400");
+      classes.push(
+        "text-[#8d8478] rounded-full cursor-not-allowed relative overflow-hidden"
+      );
     } else {
       // Confirmed range endpoints
       if (isStart || isEnd) {
-        classes.push("bg-indigo-600 text-white", "rounded-full");
+    classes.push("bg-purple-500 text-white", "rounded-full");
       }
       // Confirmed in-between
       else if (inSelected) {
-        classes.push(
-          "bg-indigo-600 text-white",
-          // flat pill: full width of cell but no rounding
-          "rounded-none"
-        );
+    classes.push("bg-purple-500 text-white", "rounded-none");
       }
       // Hover preview endpoints
       else if (isHoverEnd) {
-        classes.push("bg-indigo-300 text-white", "rounded-full");
+    classes.push("bg-purple-300 text-white", "rounded-full");
       }
       // Hover preview in-between
       else if (inHover) {
-        classes.push("bg-indigo-300 text-white", "rounded-none");
+    classes.push("bg-purple-300 text-white", "rounded-none");
       }
       // Normal available
       else {
-        classes.push("hover:bg-indigo-200", "cursor-pointer", "rounded-full");
+        classes.push(
+          "bg-indigo-600 text-white hover:bg-indigo-500",
+          "cursor-pointer",
+          "rounded-full"
+        );
       }
     }
 
-    // Hatching for past/unavailable
-    const style = !isAvailable
-      ? {
-          backgroundImage:
-            "repeating-linear-gradient(45deg, rgba(0,0,0,0.05) 0, rgba(0,0,0,0.05) 1px, transparent 1px, transparent 8px)",
-        }
-      : {};
+    // Style for unavailable (hatched beige) vs available (handled by classes)
+    let style: React.CSSProperties = {};
+    if (!isAvailable) {
+      style = {
+        backgroundColor: "#E4DBCE",
+        backgroundImage:
+          "repeating-linear-gradient(45deg,#cbbfae 0 2px,transparent 2px 6px)",
+      };
+    }
 
     return (
       <div
@@ -199,6 +207,29 @@ const MonthCalendar: React.FC<MonthCalendarProps> = ({
             </div>
           );
         })}
+      </div>
+      {/* Legend */}
+      <div className="flex flex-wrap items-center gap-6 text-xs text-gray-300">
+        <span className="font-medium text-gray-200">{t("legend")}:</span>
+        <span className="inline-flex items-center gap-1">
+          <span className="inline-block w-4 h-4 rounded-full bg-indigo-600" />
+          {t("available")}
+        </span>
+        <span className="inline-flex items-center gap-1">
+          <span
+            className="inline-block w-4 h-4 rounded-full"
+            style={{
+              backgroundColor: "#E4DBCE",
+              backgroundImage:
+                "repeating-linear-gradient(45deg,#cbbfae 0 2px,transparent 2px 6px)",
+            }}
+          />
+          {t("unavailable")}
+        </span>
+        <span className="inline-flex items-center gap-1">
+          <span className="inline-block w-4 h-4 rounded-full bg-purple-500" />
+          {t("selectedRange")}
+        </span>
       </div>
     </div>
   );

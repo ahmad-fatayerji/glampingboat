@@ -1,7 +1,8 @@
 // src/components/AppShell.tsx
 "use client";
 
-import React, { ReactNode, useState } from "react";
+import React, { ReactNode, useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import WaveToggle from "@/components/NavBox/WaveToggle";
 import NavBox from "@/components/NavBox/NavBox";
 import MonthCalendar from "@/components/MonthCalendar";
@@ -33,6 +34,14 @@ const AppShell: React.FC<AppShellProps> = ({ children, serverToday }) => {
   const [stage, setStage] = useState<Stage>("calendar");
   const [rangeStart, setRangeStart] = useState<Date | null>(null);
   const [rangeEnd, setRangeEnd] = useState<Date | null>(null);
+  const pathname = usePathname();
+
+  // Close drawer automatically on legal pages
+  useEffect(() => {
+    if (["/legal-notices", "/cookies", "/terms"].includes(pathname)) {
+      setDrawerOpen(false);
+    }
+  }, [pathname]);
 
   // Toggle drawer for BOOK
   const handleBookClick = () => {
