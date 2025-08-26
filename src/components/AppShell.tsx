@@ -10,6 +10,7 @@ import BookingForm from "@/components/Booking/BookingForm";
 import BoatSlideshow from "@/components/Boat/BoatSlideshow";
 import ContactForm from "@/components/Contact/ContactForm";
 import { AudioToggle } from "@/components/Audio/AudioToggle";
+import { useT } from "@/components/Language/useT";
 
 interface AppShellProps {
   children: ReactNode;
@@ -35,6 +36,7 @@ const AppShell: React.FC<AppShellProps> = ({ children, serverToday }) => {
   const [rangeStart, setRangeStart] = useState<Date | null>(null);
   const [rangeEnd, setRangeEnd] = useState<Date | null>(null);
   const pathname = usePathname();
+  const t = useT();
 
   // Close drawer automatically on legal pages
   useEffect(() => {
@@ -134,14 +136,23 @@ const AppShell: React.FC<AppShellProps> = ({ children, serverToday }) => {
             {rangeStart && rangeEnd && (
               <div className="mt-4 flex justify-between items-center">
                 <div className="text-sm">
-                  <p>From: {rangeStart.toLocaleDateString()}</p>
-                  <p>To: {rangeEnd.toLocaleDateString()}</p>
+                  <p>
+                    {t("arrival")}: {rangeStart.toLocaleDateString()}
+                  </p>
+                  <p>
+                    {t("departure")}: {rangeEnd.toLocaleDateString()}
+                  </p>
                 </div>
                 <button
+                  type="button"
                   onClick={handleNext}
-                  className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded"
+                  className="group relative inline-flex items-center gap-2 rounded-full px-6 py-2 font-semibold text-white bg-gradient-to-r from-indigo-600 via-blue-700 to-indigo-600 shadow-lg shadow-indigo-900/30 hover:from-indigo-500 hover:via-blue-600 hover:to-indigo-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-400 transition-colors"
                 >
-                  Next
+                  <span>{t("next")}</span>
+                  <span className="transition-transform group-hover:translate-x-1">
+                    ➜
+                  </span>
+                  <span className="absolute inset-0 rounded-full ring-1 ring-white/10 pointer-events-none" />
                 </button>
               </div>
             )}

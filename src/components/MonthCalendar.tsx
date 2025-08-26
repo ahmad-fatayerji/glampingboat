@@ -9,7 +9,6 @@ import {
   startOfMonth,
   getDay,
   getDaysInMonth,
-  format,
 } from "date-fns";
 
 interface MonthCalendarProps {
@@ -49,9 +48,20 @@ const MonthCalendar: React.FC<MonthCalendarProps> = ({
   const months = [current, nextMonthDate];
 
   // Picker dropdown data
-  const monthNames = Array.from({ length: 12 }, (_, i) =>
-    format(new Date(2000, i, 1), "LLLL")
-  );
+  const monthNames = [
+    t("monthJan"),
+    t("monthFeb"),
+    t("monthMar"),
+    t("monthApr"),
+    t("monthMay"),
+    t("monthJun"),
+    t("monthJul"),
+    t("monthAug"),
+    t("monthSep"),
+    t("monthOct"),
+    t("monthNov"),
+    t("monthDec"),
+  ];
   const thisYear = current.getFullYear();
   const years = Array.from({ length: 11 }, (_, i) => thisYear - 5 + i);
 
@@ -113,19 +123,19 @@ const MonthCalendar: React.FC<MonthCalendarProps> = ({
     } else {
       // Confirmed range endpoints
       if (isStart || isEnd) {
-    classes.push("bg-purple-500 text-white", "rounded-full");
+        classes.push("bg-purple-500 text-white", "rounded-full");
       }
       // Confirmed in-between
       else if (inSelected) {
-    classes.push("bg-purple-500 text-white", "rounded-none");
+        classes.push("bg-purple-500 text-white", "rounded-none");
       }
       // Hover preview endpoints
       else if (isHoverEnd) {
-    classes.push("bg-purple-300 text-white", "rounded-full");
+        classes.push("bg-purple-300 text-white", "rounded-full");
       }
       // Hover preview in-between
       else if (inHover) {
-    classes.push("bg-purple-300 text-white", "rounded-none");
+        classes.push("bg-purple-300 text-white", "rounded-none");
       }
       // Normal available
       else {
@@ -177,7 +187,8 @@ const MonthCalendar: React.FC<MonthCalendarProps> = ({
           ‹
         </button>
         <h2 className="text-lg font-semibold">
-          {format(current, "LLLL yyyy")} – {format(nextMonthDate, "LLLL yyyy")}
+          {monthNames[current.getMonth()]} {current.getFullYear()} –{" "}
+          {monthNames[nextMonthDate.getMonth()]} {nextMonthDate.getFullYear()}
         </h2>
         <button onClick={nextMonth} className="p-1 rounded hover:bg-gray-200">
           ›
@@ -192,8 +203,16 @@ const MonthCalendar: React.FC<MonthCalendarProps> = ({
           return (
             <div key={mDate.getMonth()}>
               <div className="grid grid-cols-7 text-xs font-medium text-gray-500 mb-2">
-                {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map((d) => (
-                  <div key={d} className="flex items-center justify-center">
+                {[
+                  t("daySunShort"),
+                  t("dayMonShort"),
+                  t("dayTueShort"),
+                  t("dayWedShort"),
+                  t("dayThuShort"),
+                  t("dayFriShort"),
+                  t("daySatShort"),
+                ].map((d, idx) => (
+                  <div key={idx} className="flex items-center justify-center">
                     {d}
                   </div>
                 ))}
