@@ -30,9 +30,24 @@ export async function POST(req: NextRequest) {
         const balanceAmount = parseFloat((totalTtc - depositAmount).toFixed(2));
         const securityDeposit = 500; // placeholder
 
+        // Generate booking reference: YYYYMMDD-XXXX ensuring uniqueness
+        const datePart = new Date().toISOString().slice(0, 10).replace(/-/g, "");
+        let bookingRef = "";
+        for (let attempt = 0; attempt < 5; attempt++) {
+            const rand = Math.random().toString(36).toUpperCase().replace(/[^A-Z0-9]/g, "").slice(2, 6);
+            const candidate = `${datePart}-${rand}`;
+            const existing = await prisma.reservation.findUnique({ where: { bookingRef: candidate } as any }).catch(() => null);
+            if (!existing) { bookingRef = candidate; break; }
+        }
+        if (!bookingRef) {
+            // final fallback using uuid
+            bookingRef = `${datePart}-${crypto.randomUUID().slice(0, 4).toUpperCase()}`;
+        }
+
         const reservation = await prisma.reservation.create({
             data: {
                 userId: session.user.id,
+                bookingRef,
                 startDate: start,
                 endDate: end,
                 adults,
@@ -47,7 +62,7 @@ export async function POST(req: NextRequest) {
                 balanceAmount,
                 securityDeposit,
                 items: { create: optionIds.map((id: string) => ({ optionId: id, quantity: 1, totalPriceHt: 0 })) },
-            },
+            } as any,
             include: { items: true }
         });
 

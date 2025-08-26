@@ -30,6 +30,7 @@ export default async function AccountPage({
   // Serialize dates for client component
   const serialized = reservations.map((r) => ({
     ...r,
+    bookingRef: (r as any).bookingRef,
     startDate: r.startDate.toISOString(),
     endDate: r.endDate.toISOString(),
     createdAt: r.createdAt.toISOString(),

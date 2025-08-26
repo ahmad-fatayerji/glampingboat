@@ -27,6 +27,7 @@ interface ReservationOptionSerialized {
 export interface ReservationSerialized {
   id: string;
   userId: string;
+  bookingRef?: string;
   startDate: string; // ISO
   endDate: string; // ISO
   adults: number;
@@ -131,8 +132,15 @@ export default function ReservationList({ reservations }: Props) {
                           year: "numeric",
                         })}
                       </span>
-                      <span className="text-[10px] uppercase tracking-wider text-[var(--color-blue)]/50 mt-1 sm:mt-0">
-                        {nights} night{nights !== 1 ? "s" : ""}
+                      <span className="text-[10px] uppercase tracking-wider text-[var(--color-blue)]/50 mt-1 sm:mt-0 flex flex-col sm:flex-row sm:items-center sm:gap-2">
+                        <span>
+                          {nights} night{nights !== 1 ? "s" : ""}
+                        </span>
+                        {r.bookingRef && (
+                          <span className="font-mono text-[9px] tracking-tight bg-[var(--color-blue)]/5 px-2 py-0.5 rounded border border-[var(--color-blue)]/10">
+                            {r.bookingRef}
+                          </span>
+                        )}
                       </span>
                     </div>
                     <StatusBadge status={status} />
@@ -199,13 +207,20 @@ export default function ReservationList({ reservations }: Props) {
                         </div>
                       )}
                       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pt-3 border-t border-[var(--color-blue)]/10">
-                        <span className="text-[11px] text-[var(--color-blue)]/60">
-                          Created{" "}
-                          {fmt(r.createdAt, {
-                            day: "2-digit",
-                            month: "short",
-                            year: "numeric",
-                          })}
+                        <span className="text-[11px] text-[var(--color-blue)]/60 flex flex-col sm:flex-row sm:items-center sm:gap-3">
+                          <span>
+                            Created{" "}
+                            {fmt(r.createdAt, {
+                              day: "2-digit",
+                              month: "short",
+                              year: "numeric",
+                            })}
+                          </span>
+                          {r.bookingRef && (
+                            <span className="font-mono text-[10px] bg-[var(--color-blue)]/5 px-2 py-0.5 rounded border border-[var(--color-blue)]/10">
+                              Ref: {r.bookingRef}
+                            </span>
+                          )}
                         </span>
                         <button
                           onClick={() => setPendingCancel(r.id)}
