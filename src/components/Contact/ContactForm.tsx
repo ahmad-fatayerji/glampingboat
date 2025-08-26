@@ -2,6 +2,7 @@
 "use client";
 
 import React, { useState, ChangeEvent, FormEvent } from "react";
+import { useT } from "@/components/Language/useT";
 
 interface Address {
   number: string;
@@ -21,6 +22,7 @@ interface ContactState {
 }
 
 export default function ContactForm() {
+  const t = useT();
   const [form, setForm] = useState<ContactState>({
     firstName: "",
     lastName: "",
@@ -69,21 +71,22 @@ export default function ContactForm() {
   };
 
   return (
-    <div className="bg-blue-900 bg-opacity-50 backdrop-blur-lg p-4 md:p-8 rounded-lg text-gray-100 w-full">
+    // Wrapper: make background transparent so it blends with drawer (#002038) instead of a different blue panel
+    <div className="p-4 md:p-8 text-gray-100 w-full">
       <form
         onSubmit={handleSubmit}
         className="grid grid-cols-1 md:grid-cols-12 gap-6"
       >
         {/* Left / Contact details */}
         <div className="md:col-span-7">
-          <h2 className="text-xl font-semibold mb-4">Contact</h2>
+          <h2 className="text-xl font-semibold mb-4">{t("contact")}</h2>
 
           {/* First & Last Name */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
             {["firstName", "lastName"].map((field) => (
               <div key={field}>
                 <label htmlFor={field} className="block text-sm capitalize">
-                  {field.replace(/([A-Z])/g, " $1")}
+                  {t(field as any)}
                 </label>
                 <input
                   id={field}
@@ -99,13 +102,13 @@ export default function ContactForm() {
           </div>
 
           {/* Address */}
-          <label className="block text-sm mb-2">Address</label>
+          <label className="block text-sm mb-2">{t("address")}</label>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
             {["number", "street", "city", "state"].map((item) => (
               <input
                 key={item}
                 type="text"
-                placeholder={item.charAt(0).toUpperCase() + item.slice(1)}
+                placeholder={t(item as any)}
                 name={item}
                 value={form.address[item as keyof Address]}
                 onChange={handleChange}
@@ -120,7 +123,7 @@ export default function ContactForm() {
             {["phone", "mobile"].map((item) => (
               <div key={item}>
                 <label htmlFor={item} className="block text-sm capitalize">
-                  {item}
+                  {t(item as any)}
                 </label>
                 <input
                   id={item}
@@ -137,7 +140,7 @@ export default function ContactForm() {
           {/* Email */}
           <div className="mb-4">
             <label htmlFor="email" className="block text-sm">
-              Email
+              {t("email")}
             </label>
             <input
               id="email"
@@ -153,12 +156,12 @@ export default function ContactForm() {
 
         {/* Right / Message */}
         <div className="md:col-span-5 flex flex-col justify-between">
-          <h2 className="text-xl font-semibold mb-4">Message</h2>
+          <h2 className="text-xl font-semibold mb-4">{t("message")}</h2>
           <textarea
             name="message"
             value={form.message}
             onChange={handleChange}
-            placeholder="Your message..."
+            placeholder={t("messagePlaceholder")}
             className="w-full h-48 p-2 bg-blue-800 rounded border border-blue-700 focus:outline-none focus:border-indigo-400 text-gray-100"
             required
           />
@@ -166,21 +169,25 @@ export default function ContactForm() {
           <button
             type="submit"
             disabled={status === "sending"}
-            className="mt-4 self-end bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-semibold py-2 px-6 rounded"
+            className="group relative mt-4 self-end inline-flex items-center gap-2 rounded-full px-6 py-2 font-semibold text-white bg-gradient-to-r from-indigo-600 via-blue-700 to-indigo-600 shadow-lg shadow-indigo-900/30 hover:from-indigo-500 hover:via-blue-600 hover:to-indigo-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-400 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
-            {status === "sending"
-              ? "Sending…"
-              : status === "success"
-              ? "Sent!"
-              : status === "error"
-              ? "Retry"
-              : "Send >"}
+            <span>
+              {status === "sending"
+                ? t("sending")
+                : status === "success"
+                ? t("sent")
+                : status === "error"
+                ? t("retry")
+                : t("send")}
+            </span>
+            <span className="transition-transform group-hover:translate-x-1">
+              ➜
+            </span>
+            <span className="absolute inset-0 rounded-full ring-1 ring-white/10 pointer-events-none" />
           </button>
 
           {status === "error" && (
-            <p className="mt-2 text-red-400">
-              Too many requests. Try again later.
-            </p>
+            <p className="mt-2 text-red-400">{t("errorTooManyRequests")}</p>
           )}
         </div>
       </form>

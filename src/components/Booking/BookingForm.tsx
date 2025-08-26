@@ -1,4 +1,5 @@
 import React, { useState, ChangeEvent, FormEvent } from "react";
+import { useT } from "@/components/Language/useT";
 
 interface BookingFormProps {
   arrivalDate: Date;
@@ -32,6 +33,7 @@ const BookingForm: React.FC<BookingFormProps> = ({
   arrivalDate,
   departureDate,
 }) => {
+  const t = useT();
   const [form, setForm] = useState<FormState>({
     firstName: "",
     lastName: "",
@@ -74,7 +76,7 @@ const BookingForm: React.FC<BookingFormProps> = ({
   };
 
   return (
-    <div className="bg-blue-900 bg-opacity-50 backdrop-filter backdrop-blur-lg p-4 md:p-8 rounded-lg text-gray-100 w-full">
+    <div className="p-4 md:p-8 text-gray-100 w-full">
       <form
         onSubmit={handleSubmit}
         className="grid grid-cols-1 md:grid-cols-12 gap-6"
@@ -88,12 +90,12 @@ const BookingForm: React.FC<BookingFormProps> = ({
         </div>
         {/* Left / Contact details */}
         <div className="md:col-span-7">
-          <h2 className="text-xl font-semibold mb-4">Contact details</h2>
+          <h2 className="text-xl font-semibold mb-4">{t("contact")}</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
             {["firstName", "lastName"].map((field) => (
               <div key={field}>
                 <label htmlFor={field} className="block text-sm capitalize">
-                  {field.replace(/([A-Z])/g, " $1")}
+                  {t(field as any)}
                 </label>
                 <input
                   id={field}
@@ -107,13 +109,13 @@ const BookingForm: React.FC<BookingFormProps> = ({
             ))}
           </div>
 
-          <label className="block text-sm mb-2">Address</label>
+          <label className="block text-sm mb-2">{t("address")}</label>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
             {["number", "street", "city", "state"].map((item) => (
               <input
                 key={item}
                 type="text"
-                placeholder={item.charAt(0).toUpperCase() + item.slice(1)}
+                placeholder={t(item as any)}
                 name={item}
                 value={form.address[item as keyof Address]}
                 onChange={handleChange}
@@ -126,7 +128,7 @@ const BookingForm: React.FC<BookingFormProps> = ({
             {["phone", "mobile"].map((item) => (
               <div key={item}>
                 <label htmlFor={item} className="block text-sm capitalize">
-                  {item}
+                  {t(item as any)}
                 </label>
                 <input
                   id={item}
@@ -143,7 +145,7 @@ const BookingForm: React.FC<BookingFormProps> = ({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
             <div>
               <label htmlFor="email" className="block text-sm">
-                Email
+                {t("email")}
               </label>
               <input
                 id="email"
@@ -257,9 +259,13 @@ const BookingForm: React.FC<BookingFormProps> = ({
             <button
               type="submit"
               disabled={!form.acceptTerms}
-              className="mt-6 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-semibold py-2 px-6 rounded"
+              className="group relative mt-6 inline-flex items-center gap-2 rounded-full px-6 py-2 font-semibold text-white bg-gradient-to-r from-indigo-600 via-blue-700 to-indigo-600 shadow-lg shadow-indigo-900/30 hover:from-indigo-500 hover:via-blue-600 hover:to-indigo-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-400 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              Pay &gt;
+              <span>Pay &gt;</span>
+              <span className="transition-transform group-hover:translate-x-1">
+                ➜
+              </span>
+              <span className="absolute inset-0 rounded-full ring-1 ring-white/10 pointer-events-none" />
             </button>
           </div>
         </div>
