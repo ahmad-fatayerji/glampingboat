@@ -2,7 +2,7 @@
 
 /* Custom color variables */
 :root {
-  --color-beige: #E4DBCE;
+  --color-beige: #e4dbce;
   --color-blue: #002038;
   --color-white: #ffffff;
 }
@@ -16,7 +16,43 @@ body {
 
 /* Set a default font-family and styling */
 body {
-  font-family: 'Outfit', sans-serif; /* matches your next/font configuration */
+  font-family: "Outfit", sans-serif; /* matches your next/font configuration */
   background-color: var(--color-white);
   color: var(--color-blue);
+}
+
+/* Drawer push effect: position elements with class .shift-with-drawer just LEFT of the open drawer */
+.shift-with-drawer {
+  transition: right 0.3s ease, opacity 0.2s ease;
+}
+@media (min-width: 1280px) {
+  /* xl drawer = 40% */
+  html[data-drawer="open"] .shift-with-drawer {
+    right: calc(40vw + 1rem);
+  }
+}
+@media (min-width: 1024px) and (max-width: 1279px) {
+  /* lg drawer = 50% */
+  html[data-drawer="open"] .shift-with-drawer {
+    right: calc(50vw + 1rem);
+  }
+}
+@media (min-width: 768px) and (max-width: 1023px) {
+  /* md drawer = 66.666% */
+  html[data-drawer="open"] .shift-with-drawer {
+    right: calc(66.666vw + 1rem);
+  }
+}
+@media (min-width: 640px) and (max-width: 767px) {
+  /* sm drawer = 75% */
+  html[data-drawer="open"] .shift-with-drawer {
+    right: calc(75vw + 1rem);
+  }
+}
+@media (max-width: 639px) {
+  /* xs drawer full width -> hide */
+  html[data-drawer="open"] .shift-with-drawer {
+    opacity: 0;
+    pointer-events: none;
+  }
 }

@@ -23,7 +23,7 @@ export default function UserMenu() {
   if (pathname.startsWith("/account")) return null;
 
   return (
-    <div ref={ref} className="fixed top-4 right-4 z-50">
+    <div ref={ref} className="fixed top-4 right-4 z-50 shift-with-drawer">
       <button
         onClick={() => setOpen((o) => !o)}
         aria-haspopup="menu"

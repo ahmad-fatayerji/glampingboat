@@ -108,6 +108,15 @@ const AppShell: React.FC<AppShellProps> = ({ children, serverToday }) => {
   const handleNext = () => setStage("form");
   const closeDrawer = () => setDrawerOpen(false);
 
+  // Expose drawer state via data attribute for other fixed elements (e.g., UserMenu) to shift.
+  useEffect(() => {
+    if (typeof document !== "undefined") {
+      document.documentElement.dataset.drawer = drawerOpen ? "open" : "closed";
+    }
+  }, [drawerOpen]);
+
+  const drawerWidthClasses = "w-full sm:w-3/4 md:w-2/3 lg:w-1/2 xl:w-2/5";
+
   return (
     <>
       {/* Mute/unmute */}
@@ -133,7 +142,7 @@ const AppShell: React.FC<AppShellProps> = ({ children, serverToday }) => {
       <div
         className={`fixed inset-y-0 right-0 z-50 bg-[#002038]/95 backdrop-blur-sm p-6 md:p-8 text-gray-100 overflow-y-auto transform transition-transform duration-300 ease-in-out ${
           drawerOpen ? "translate-x-0" : "translate-x-full"
-        } w-full sm:w-3/4 md:w-2/3 lg:w-1/2 xl:w-2/5`}
+        } ${drawerWidthClasses}`}
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
       >
