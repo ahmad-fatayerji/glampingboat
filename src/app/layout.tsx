@@ -4,6 +4,8 @@ import { Marcellus, Outfit } from "next/font/google";
 import Logo from "@/components/Logo";
 import AppShell from "@/components/AppShell";
 import { AudioProvider } from "@/components/Audio/AudioContext";
+import CookieBanner from "@/components/Legal/CookieBanner";
+import { LanguageProvider } from "@/components/Language/LanguageContext";
 
 const marcellus = Marcellus({ subsets: ["latin"], weight: "400" });
 const outfit = Outfit({ subsets: ["latin"], weight: ["100", "300"] });
@@ -34,16 +36,20 @@ export default function RootLayout({
     <html lang="en" className={`${marcellus.className} ${outfit.className}`}>
       <body>
         <SessionProvider>
-          {/* AudioProvider mounted once here → audio persists across pages */}
-          <AudioProvider src="/audio/bg-music.mp3">
-            {/* fixed logo */}
-            <div className="fixed top-12 left-4 z-40 pointer-events-none">
-              <Logo />
-            </div>
+          <LanguageProvider>
+            {/* AudioProvider mounted once here → audio persists across pages */}
+            <AudioProvider src="/audio/bg-music.mp3">
+              {/* fixed logo */}
+              <div className="fixed top-12 left-4 z-40 pointer-events-none">
+                <Logo />
+              </div>
 
-            {/* Your shell (nav menu, drawer, booking flow) */}
-            <AppShell serverToday={serverToday}>{children}</AppShell>
-          </AudioProvider>
+              {/* Your shell (nav menu, drawer, booking flow) */}
+              <AppShell serverToday={serverToday}>{children}</AppShell>
+              {/* Cookie consent banner */}
+              <CookieBanner />
+            </AudioProvider>
+          </LanguageProvider>
         </SessionProvider>
       </body>
     </html>

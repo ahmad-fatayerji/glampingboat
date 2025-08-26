@@ -6,6 +6,7 @@ import WaveToggle from "@/components/NavBox/WaveToggle";
 import NavBox from "@/components/NavBox/NavBox";
 import MonthCalendar from "@/components/MonthCalendar";
 import BookingForm from "@/components/Booking/BookingForm";
+import BoatSlideshow from "@/components/Boat/BoatSlideshow";
 import ContactForm from "@/components/Contact/ContactForm";
 import { AudioToggle } from "@/components/Audio/AudioToggle";
 
@@ -94,32 +95,24 @@ const AppShell: React.FC<AppShellProps> = ({ children, serverToday }) => {
         />
       </div>
 
-      {/* Right Drawer */}
+      {/* Right Drawer with brand background (#002038) and side chevron toggle */}
       <div
-        className={`fixed inset-y-0 right-0 z-50 bg-blue-900 bg-opacity-50 backdrop-blur-lg p-6 md:p-8 text-gray-100 overflow-y-auto transform transition-transform duration-300 ease-in-out ${
+        className={`fixed inset-y-0 right-0 z-50 bg-[#002038]/95 backdrop-blur-sm p-6 md:p-8 text-gray-100 overflow-y-auto transform transition-transform duration-300 ease-in-out ${
           drawerOpen ? "translate-x-0" : "translate-x-full"
         } w-full sm:w-3/4 md:w-2/3 lg:w-1/2 xl:w-2/5`}
       >
+        {/* Side chevron to close */}
         <button
+          aria-label={drawerOpen ? "Fermer" : "Ouvrir"}
           onClick={closeDrawer}
-          className="mb-4 text-white hover:text-indigo-300"
+          className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-full bg-[#002038] text-white rounded-l-full shadow-lg ring-1 ring-white/10 px-2 py-3"
+          style={{ writingMode: "horizontal-tb" }}
         >
-          Close ✕
+          ⟨
         </button>
 
         {/* BOAT GALLERY */}
-        {stage === "boat" && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            {boatImages.map((src, i) => (
-              <img
-                key={i}
-                src={src}
-                alt={`Boat image ${i + 1}`}
-                className="w-full h-48 object-cover rounded-lg"
-              />
-            ))}
-          </div>
-        )}
+        {stage === "boat" && <BoatSlideshow images={boatImages} />}
 
         {/* BOOKING CALENDAR & FORM */}
         {stage === "calendar" && (

@@ -1,5 +1,10 @@
 import React, { useState, ChangeEvent, FormEvent } from "react";
 
+interface BookingFormProps {
+  arrivalDate: Date;
+  departureDate: Date;
+}
+
 interface Address {
   number: string;
   street: string;
@@ -23,7 +28,10 @@ interface FormState {
   payFullNow: boolean;
 }
 
-const BookingForm: React.FC = () => {
+const BookingForm: React.FC<BookingFormProps> = ({
+  arrivalDate,
+  departureDate,
+}) => {
   const [form, setForm] = useState<FormState>({
     firstName: "",
     lastName: "",
@@ -71,6 +79,13 @@ const BookingForm: React.FC = () => {
         onSubmit={handleSubmit}
         className="grid grid-cols-1 md:grid-cols-12 gap-6"
       >
+        {/* Selected dates summary */}
+        <div className="md:col-span-12 mb-2 text-sm opacity-80">
+          <p>
+            Arrival: {arrivalDate.toLocaleDateString()} — Departure:{" "}
+            {departureDate.toLocaleDateString()}
+          </p>
+        </div>
         {/* Left / Contact details */}
         <div className="md:col-span-7">
           <h2 className="text-xl font-semibold mb-4">Contact details</h2>
