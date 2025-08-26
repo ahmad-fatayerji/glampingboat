@@ -12,12 +12,12 @@ export default function WaveToggle({ open, toggle }: WaveToggleProps) {
       <button
         onClick={toggle}
         aria-label={open ? "Close menu" : "Open menu"}
-        className="fixed top-4 left-4 z-50 p-1 bg-transparent"
+        className="fixed top-5 left-5 z-50 p-2 bg-transparent scale-125"
       >
         {/* The actual waves.svg */}
         <svg
           viewBox="0 0 24 24"
-          className="w-8 h-8"
+          className="w-10 h-10"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
         >

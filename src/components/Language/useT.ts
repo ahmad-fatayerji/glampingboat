@@ -70,6 +70,9 @@ const dictionaries: Record<string, Dict> = {
         pay: "Pay",
         birthDate: "Birth Date",
         next: "Next",
+        heroEmbrace: "Embrace",
+        heroASlow: "a slow",
+        heroLifestyle: "lifestyle",
     },
     fr: {
         ourVision: "Notre vision",
@@ -133,6 +136,9 @@ const dictionaries: Record<string, Dict> = {
         pay: "Payer",
         birthDate: "Date de naissance",
         next: "Suivant",
+        heroEmbrace: "Adoptez",
+        heroASlow: "un rythme",
+        heroLifestyle: "paisible",
     },
     de: {
         ourVision: "Unsere Vision",
@@ -196,6 +202,9 @@ const dictionaries: Record<string, Dict> = {
         pay: "Bezahlen",
         birthDate: "Geburtsdatum",
         next: "Weiter",
+        heroEmbrace: "Genieße",
+        heroASlow: "ein langsames",
+        heroLifestyle: "Leben",
     },
     nl: {
         ourVision: "Onze visie",
@@ -259,6 +268,9 @@ const dictionaries: Record<string, Dict> = {
         pay: "Betalen",
         birthDate: "Geboortedatum",
         next: "Volgende",
+        heroEmbrace: "Omarm",
+        heroASlow: "een traag",
+        heroLifestyle: "leven",
     },
     ru: {
         ourVision: "Наша концепция",
@@ -322,6 +334,9 @@ const dictionaries: Record<string, Dict> = {
         pay: "Оплатить",
         birthDate: "Дата рождения",
         next: "Далее",
+        heroEmbrace: "Прими",
+        heroASlow: "медленный",
+        heroLifestyle: "ритм",
     },
     es: {
         ourVision: "Nuestra visión",
@@ -385,6 +400,9 @@ const dictionaries: Record<string, Dict> = {
         pay: "Pagar",
         birthDate: "Fecha de nacimiento",
         next: "Siguiente",
+        heroEmbrace: "Abraza",
+        heroASlow: "un estilo",
+        heroLifestyle: "de vida lento",
     },
     it: {
         ourVision: "La nostra visione",
@@ -448,6 +466,9 @@ const dictionaries: Record<string, Dict> = {
         pay: "Paga",
         birthDate: "Data di nascita",
         next: "Avanti",
+        heroEmbrace: "Abbraccia",
+        heroASlow: "uno stile",
+        heroLifestyle: "di vita lento",
     },
 };
 
