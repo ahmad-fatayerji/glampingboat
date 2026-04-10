@@ -213,6 +213,27 @@ function DropMarker({
   );
 }
 
+function AccessibilityBadge({ className }: { className: string }) {
+  return (
+    <div className={`absolute ${className}`} aria-hidden="true">
+      <svg viewBox="0 0 120 120" className="h-full w-full">
+        <circle
+          cx="60"
+          cy="60"
+          r="50"
+          fill="rgba(245, 241, 231, 0.08)"
+          stroke="rgba(245, 241, 231, 0.6)"
+          strokeWidth="5"
+        />
+        <path
+          d="M62 24a7 7 0 1 1 0 14a7 7 0 0 1 0-14Zm-7 19h15v9h-7v18c0 3 2 5 5 5h9c10 0 18 8 18 18c0 1-1 2-2 2h-7c-1 0-2-1-2-2c0-4-3-8-8-8h-9c-8 0-14-6-14-14V58h-8c-2 0-4-2-4-4s2-4 4-4h10V43Zm-4 36c7 12 20 19 34 19c5 0 9-1 14-3c1-1 3 0 3 1l3 6c1 1 0 3-1 4c-6 3-13 5-20 5c-18 0-34-10-43-26c-1-1 0-3 1-4l6-3c1-1 2 0 3 1Z"
+          fill="rgba(245, 241, 231, 0.78)"
+        />
+      </svg>
+    </div>
+  );
+}
+
 function PlanPage({
   slide,
   onPrev,
@@ -255,7 +276,7 @@ function PlanPage({
       nextLabel={nextLabel}
       closeLabel={closeLabel}
     >
-      <div className="flex h-full min-h-[calc(100vh-4rem)] items-start justify-center bg-[rgba(255,255,255,0.12)] sm:min-h-[calc(100vh-5rem)]">
+      <div className="flex h-full min-h-[calc(100vh-4rem)] items-start justify-center bg-[rgba(255,255,255,0.08)] sm:min-h-[calc(100vh-5rem)]">
         <div className="relative w-full max-w-[1701px]">
           <div className="relative aspect-[1701/1134] w-full">
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -265,34 +286,40 @@ function PlanPage({
               className="absolute inset-0 h-full w-full object-cover"
             />
 
-            <DropMarker number="1" className="left-[15.5%] top-[49%] h-[12%] w-[8.3%]" />
-            <DropMarker number="2" className="left-[40.5%] top-[48%] h-[12%] w-[8.3%]" />
-            <DropMarker number="3" className="left-[72.5%] top-[47%] h-[12%] w-[8.3%]" />
+            <DropMarker number="1" className="left-[14.6%] top-[53.5%] h-[12%] w-[8.3%]" />
+            <DropMarker number="2" className="left-[41%] top-[53.5%] h-[12%] w-[8.3%]" />
+            <DropMarker number="3" className="left-[72.8%] top-[53.5%] h-[12%] w-[8.3%]" />
+            <AccessibilityBadge className="left-[45.1%] top-[49.7%] h-[16.5%] w-[11.3%]" />
 
-            <div className="absolute inset-x-0 bottom-0 bg-[rgba(31,61,84,0.82)] px-4 py-4 text-[var(--color-beige)] backdrop-blur-[1px] sm:px-6 sm:py-5">
-              <div className="grid gap-5 lg:grid-cols-[1fr_auto] lg:items-end">
-                <div className="text-lg font-light leading-[1.45] sm:text-[1.15rem]">
-                  <p>1 {sleepingText}</p>
-                  <p>2 {kitchenetteText}</p>
-                  <p>3 {deckText}</p>
-                </div>
+            <div className="absolute inset-x-0 top-[62.5%] bottom-0 flex bg-[rgba(31,61,84,0.84)] text-[var(--color-beige)] backdrop-blur-[1px]">
+              <div className="grid min-h-0 w-full grid-rows-[auto_1fr_auto] gap-3 px-[clamp(1rem,2vw,2rem)] py-[clamp(0.9rem,1.7vw,1.4rem)]">
+                <div className="grid gap-3 md:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] md:items-start">
+                  <div className="min-w-0 text-[clamp(0.8rem,1vw,1.08rem)] font-light leading-[1.35]">
+                    <p>1 {sleepingText}</p>
+                    <p>2 {kitchenetteText}</p>
+                    <p>3 {deckText}</p>
+                  </div>
 
-                <div className="text-left font-light leading-[1.1] lg:text-right">
-                  <p className="text-[2rem] sm:text-[2.65rem]">{electricMotorText}</p>
-                  <p className="mt-2 text-[1.2rem] sm:text-[1.85rem]">
-                    {clearWaterText}
-                  </p>
-                  <p className="mt-1 text-[1.2rem] sm:text-[1.85rem]">
-                    {blackWaterText}
-                  </p>
-                  <div className="mt-4 flex flex-col gap-2 text-[#001f38] sm:flex-row sm:items-end sm:justify-end sm:gap-6">
-                    <p className="text-[3rem] leading-none sm:text-[4.4rem]">
-                      {noChoresText}
+                  <div className="min-w-0 text-left font-light leading-[1.08] md:text-right">
+                    <p className="text-[clamp(1.2rem,2vw,2.25rem)]">{electricMotorText}</p>
+                    <p className="mt-1 text-[clamp(0.95rem,1.55vw,1.55rem)]">
+                      {clearWaterText}
                     </p>
-                    <p className="text-[2rem] leading-none sm:text-[3rem]">
-                      {noLicenceBoatText}
+                    <p className="mt-1 text-[clamp(0.95rem,1.55vw,1.55rem)]">
+                      {blackWaterText}
                     </p>
                   </div>
+                </div>
+
+                <div />
+
+                <div className="flex flex-col gap-1 text-[#001f38] md:flex-row md:items-end md:justify-between md:gap-5">
+                  <p className="min-w-0 text-[clamp(2rem,4.7vw,4.25rem)] font-light leading-none tracking-[0.02em]">
+                    {noChoresText}
+                  </p>
+                  <p className="min-w-0 text-[clamp(1.2rem,2.7vw,2.9rem)] font-light leading-none md:text-right">
+                    {noLicenceBoatText}
+                  </p>
                 </div>
               </div>
             </div>
