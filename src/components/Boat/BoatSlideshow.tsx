@@ -33,6 +33,9 @@ export default function BoatSlideshow({
     <div className="relative w-full">
       <div className="relative w-full h-72 sm:h-80 md:h-96 overflow-hidden rounded-xl ring-1 ring-white/10">
         {images.map((src, idx) => (
+          // The slideshow relies on fully-overlayed images with opacity fades.
+          // Using a plain img keeps the existing rendering behavior intact.
+          // eslint-disable-next-line @next/next/no-img-element
           <img
             key={src}
             src={src}

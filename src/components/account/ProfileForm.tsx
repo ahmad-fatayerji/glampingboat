@@ -1,21 +1,16 @@
 "use client";
-import React, { useEffect, useState } from "react";
 
-interface ProfileData {
-  firstName?: string;
-  lastName?: string;
-  phone?: string;
-  mobile?: string;
-  birthDate?: string;
-  addressNumber?: string;
-  addressStreet?: string;
-  addressCity?: string;
-  addressState?: string;
-  email?: string;
-}
+import { useEffect, useState } from "react";
+import { readJsonResponse, getErrorMessage } from "@/lib/http";
+import {
+  createEmptyProfileFormData,
+  toProfileFormData,
+  toProfileUpdatePayload,
+} from "@/lib/profile";
+import type { ProfileFormData, ProfileResponse } from "@/lib/types";
 
 export default function ProfileForm() {
-  const [data, setData] = useState<ProfileData>({});
+  const [data, setData] = useState<ProfileFormData>(createEmptyProfileFormData);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -23,77 +18,79 @@ export default function ProfileForm() {
 
   useEffect(() => {
     let active = true;
-    fetch("/api/account/profile")
-      .then(async (r) => {
-        if (!r.ok) throw new Error("HTTP " + r.status);
-        const text = await r.text();
-        if (!text) return {};
-        try {
-          return JSON.parse(text);
-        } catch {
-          return {};
+
+    async function loadProfile() {
+      try {
+        const response = await fetch("/api/account/profile");
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
         }
-      })
-      .then((json) => {
-        if (!active) return;
-        if (json.user) {
-          const u = json.user;
-          setData({
-            firstName: u.firstName || "",
-            lastName: u.lastName || "",
-            phone: u.phone || "",
-            mobile: u.mobile || "",
-            birthDate: u.birthDate ? u.birthDate.substring(0, 10) : "",
-            addressNumber: u.addressNumber || "",
-            addressStreet: u.addressStreet || "",
-            addressCity: u.addressCity || "",
-            addressState: u.addressState || "",
-            email: u.email,
-          });
+
+        const json = await readJsonResponse<ProfileResponse>(response, { user: null });
+        if (active) {
+          setData(toProfileFormData(json.user));
         }
-      })
-      .catch(() => {
-        /* swallow */
-      })
-      .finally(() => {
-        if (active) setLoading(false);
-      });
+      } catch {
+        if (active) {
+          setData(createEmptyProfileFormData());
+        }
+      } finally {
+        if (active) {
+          setLoading(false);
+        }
+      }
+    }
+
+    loadProfile();
+
     return () => {
       active = false;
     };
   }, []);
 
-  const update = (field: keyof ProfileData, value: string) =>
-    setData((d) => ({ ...d, [field]: value }));
+  const update = <K extends keyof ProfileFormData>(
+    field: K,
+    value: ProfileFormData[K]
+  ) => {
+    setData((current) => ({ ...current, [field]: value }));
+  };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
     setSaving(true);
     setMessage(null);
     setError(null);
+
     try {
-      const payload: any = { ...data };
-      if (payload.birthDate) payload.birthDate = payload.birthDate;
-      const res = await fetch("/api/account/profile", {
+      const response = await fetch("/api/account/profile", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(toProfileUpdatePayload(data)),
       });
-      if (!res.ok) throw new Error("Failed");
+      if (!response.ok) {
+        throw new Error("Failed");
+      }
+
+      const json = await readJsonResponse<ProfileResponse & { ok?: boolean }>(
+        response,
+        { user: null }
+      );
+      setData(toProfileFormData(json.user));
       setMessage("Profile saved");
-    } catch (err: any) {
-      setError(err.message || "Error");
+    } catch (submissionError) {
+      setError(getErrorMessage(submissionError, "Error"));
     } finally {
       setSaving(false);
     }
   };
 
-  if (loading)
+  if (loading) {
     return (
       <div className="w-full bg-white rounded-2xl p-6 shadow border border-[var(--color-blue)]/10 text-sm text-[var(--color-blue)]">
-        Loading profile…
+        Loading profileâ€¦
       </div>
     );
+  }
 
   return (
     <form
@@ -110,59 +107,59 @@ export default function ProfileForm() {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Field
           label="First Name"
-          value={data.firstName || ""}
-          onChange={(v) => update("firstName", v)}
+          value={data.firstName}
+          onChange={(value) => update("firstName", value)}
         />
         <Field
           label="Last Name"
-          value={data.lastName || ""}
-          onChange={(v) => update("lastName", v)}
+          value={data.lastName}
+          onChange={(value) => update("lastName", value)}
         />
         <Field
           label="Phone"
-          value={data.phone || ""}
-          onChange={(v) => update("phone", v)}
+          value={data.phone}
+          onChange={(value) => update("phone", value)}
         />
         <Field
           label="Mobile"
-          value={data.mobile || ""}
-          onChange={(v) => update("mobile", v)}
+          value={data.mobile}
+          onChange={(value) => update("mobile", value)}
         />
         <Field
           label="Birth Date"
           type="date"
-          value={data.birthDate || ""}
-          onChange={(v) => update("birthDate", v)}
+          value={data.birthDate}
+          onChange={(value) => update("birthDate", value)}
         />
         <div className="hidden sm:block" />
         <Field
           label="Address Number"
-          value={data.addressNumber || ""}
-          onChange={(v) => update("addressNumber", v)}
+          value={data.addressNumber}
+          onChange={(value) => update("addressNumber", value)}
         />
         <Field
           label="Street"
-          value={data.addressStreet || ""}
-          onChange={(v) => update("addressStreet", v)}
+          value={data.addressStreet}
+          onChange={(value) => update("addressStreet", value)}
         />
         <Field
           label="City"
-          value={data.addressCity || ""}
-          onChange={(v) => update("addressCity", v)}
+          value={data.addressCity}
+          onChange={(value) => update("addressCity", value)}
         />
         <Field
           label="State"
-          value={data.addressState || ""}
-          onChange={(v) => update("addressState", v)}
+          value={data.addressState}
+          onChange={(value) => update("addressState", value)}
         />
-        <Field label="Email" value={data.email || ""} disabled />
+        <Field label="Email" value={data.email} disabled />
       </div>
       <div className="pt-2">
         <button
           disabled={saving}
           className="rounded-md bg-[var(--color-blue)] text-[var(--color-beige)] font-semibold text-sm px-5 py-2 shadow hover:bg-[#042c49] focus:outline-none focus:ring-2 focus:ring-[var(--color-blue)]/40 disabled:opacity-50"
         >
-          {saving ? "Saving…" : "Save Profile"}
+          {saving ? "Savingâ€¦" : "Save Profile"}
         </button>
       </div>
     </form>
@@ -178,7 +175,7 @@ function Field({
 }: {
   label: string;
   value: string;
-  onChange?: (v: string) => void;
+  onChange?: (value: string) => void;
   type?: string;
   disabled?: boolean;
 }) {
@@ -189,7 +186,7 @@ function Field({
         type={type}
         value={value}
         disabled={disabled}
-        onChange={(e) => onChange && onChange(e.target.value)}
+        onChange={(event) => onChange?.(event.target.value)}
         className="w-full rounded-md bg-[var(--color-beige)]/35 border border-[var(--color-blue)]/15 focus:border-[var(--color-blue)] focus:ring-2 focus:ring-[var(--color-blue)]/25 px-3 py-2 text-sm placeholder-gray-500 outline-none disabled:opacity-60 transition"
       />
     </label>

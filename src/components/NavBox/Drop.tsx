@@ -1,14 +1,13 @@
-// src/components/Drop.tsx
 import * as React from "react";
 
-interface DropProps extends React.SVGProps<SVGSVGElement> {}
+type DropProps = React.SVGProps<SVGSVGElement>;
 
 const Drop: React.FC<DropProps> = (props) => (
   <svg
     viewBox="-1 -1 34 34"
     fill="none"
     stroke="#002038"
-    strokeWidth={0.55} // <-- a clear, single outline
+    strokeWidth={0.55}
     xmlns="http://www.w3.org/2000/svg"
     {...props}
   >

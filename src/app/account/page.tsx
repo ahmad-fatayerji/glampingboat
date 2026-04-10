@@ -1,11 +1,12 @@
-import { auth } from "@/../auth";
+import { auth } from "@auth";
+import Link from "next/link";
 import CredentialsTabs from "../../components/auth/CredentialsTabs";
 import GoogleSignInButton from "@/components/auth/GoogleSignInButton";
 import LogoutButton from "@/components/auth/LogoutButton";
-import Link from "next/link";
-import { prisma } from "@/lib/prisma";
-import ReservationList from "../../components/account/ReservationList"; // only for typing reference
 import AccountTabs from "@/components/account/AccountTabs";
+import { prisma } from "@/lib/prisma";
+import { RESERVATION_WITH_ITEMS_INCLUDE, serializeReservation } from "@/lib/reservations";
+import type { AccountTab } from "@/lib/types";
 
 export default async function AccountPage({
   searchParams,
@@ -13,6 +14,7 @@ export default async function AccountPage({
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   const session = await auth();
+
   if (!session) {
     return (
       <div className="min-h-screen bg-[var(--color-white)] flex items-center justify-center px-4 pt-40 pb-12">
@@ -21,36 +23,24 @@ export default async function AccountPage({
     );
   }
 
-  // Fetch reservations for this user (newest first)
   const reservations = await prisma.reservation.findMany({
-    where: { userId: session.user?.id || "" },
+    where: { userId: session.user.id },
     orderBy: { startDate: "desc" },
-    include: { items: { include: { option: true } } },
+    include: RESERVATION_WITH_ITEMS_INCLUDE,
   });
-  // Serialize dates for client component
-  const serialized = reservations.map((r) => ({
-    ...r,
-    bookingRef: (r as any).bookingRef,
-    startDate: r.startDate.toISOString(),
-    endDate: r.endDate.toISOString(),
-    createdAt: r.createdAt.toISOString(),
-    items: r.items.map((it) => ({
-      ...it,
-      option: { ...it.option },
-    })),
-  }));
+  const serialized = reservations.map(serializeReservation);
 
-  // Simpler: parse from request URL via referer not reliable; instead show both toggles using search params available client-side
   const resolvedSearchParams = await searchParams;
   const tabRaw = resolvedSearchParams.tab;
-  const initialTab =
+  const initialTab: AccountTab =
     (Array.isArray(tabRaw) ? tabRaw[0] : tabRaw) === "profile"
       ? "profile"
       : "bookings";
+
   return (
     <div className="min-h-screen bg-[var(--color-white)] px-4 pt-40 pb-24 flex flex-col items-center">
       <div className="w-full max-w-5xl space-y-8">
-        <AccountHeader email={session.user?.email || ""} />
+        <AccountHeader email={session.user.email || ""} />
         <AccountTabs reservations={serialized} initialTab={initialTab} />
       </div>
     </div>

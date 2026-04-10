@@ -1,98 +1,104 @@
-// src/components/Contact/ContactForm.tsx
 "use client";
 
-import React, { useState, ChangeEvent, FormEvent } from "react";
+import { useState, type ChangeEvent, type FormEvent } from "react";
 import { useT } from "@/components/Language/useT";
+import type { AddressField, ContactFormData } from "@/lib/types";
+import { ADDRESS_FIELDS, NAME_FIELDS, PHONE_FIELDS } from "@/lib/types";
 
-interface Address {
-  number: string;
-  street: string;
-  city: string;
-  state: string;
+type ContactField = "firstName" | "lastName" | "phone" | "mobile" | "email" | "message";
+
+const INITIAL_FORM: ContactFormData = {
+  firstName: "",
+  lastName: "",
+  address: { number: "", street: "", city: "", state: "" },
+  phone: "",
+  mobile: "",
+  email: "",
+  message: "",
+};
+
+function isAddressField(name: string): name is AddressField {
+  return (ADDRESS_FIELDS as readonly string[]).includes(name);
 }
 
-interface ContactState {
-  firstName: string;
-  lastName: string;
-  address: Address;
-  phone: string;
-  mobile: string;
-  email: string;
-  message: string;
+function isContactField(name: string): name is ContactField {
+  return (
+    ["firstName", "lastName", "phone", "mobile", "email", "message"] as const
+  ).includes(name as ContactField);
 }
 
 export default function ContactForm() {
   const t = useT();
-  const [form, setForm] = useState<ContactState>({
-    firstName: "",
-    lastName: "",
-    address: { number: "", street: "", city: "", state: "" },
-    phone: "",
-    mobile: "",
-    email: "",
-    message: "",
-  });
+  const [form, setForm] = useState<ContactFormData>(INITIAL_FORM);
+  const [status, setStatus] = useState<"idle" | "sending" | "success" | "error">(
+    "idle"
+  );
 
-  const [status, setStatus] = useState<
-    "idle" | "sending" | "success" | "error"
-  >("idle");
+  const updateAddressField = (field: AddressField, value: string) => {
+    setForm((current) => ({
+      ...current,
+      address: { ...current.address, [field]: value },
+    }));
+  };
+
+  const updateField = <K extends ContactField>(field: K, value: ContactFormData[K]) => {
+    setForm((current) => ({ ...current, [field]: value }));
+  };
 
   const handleChange = (
-    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
-    const { name, value } = e.target;
-    if (["number", "street", "city", "state"].includes(name)) {
-      setForm((prev) => ({
-        ...prev,
-        address: { ...prev.address, [name]: value },
-      }));
-    } else {
-      setForm((prev) => ({ ...prev, [name]: value } as ContactState));
+    const { name, value } = event.target;
+    if (isAddressField(name)) {
+      updateAddressField(name, value);
+      return;
+    }
+
+    if (isContactField(name)) {
+      updateField(name, value);
     }
   };
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (event: FormEvent) => {
+    event.preventDefault();
     setStatus("sending");
+
     try {
-      const res = await fetch("/api/contact", {
+      const response = await fetch("/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
       });
-      if (!res.ok) throw new Error("Failed to send");
+      if (!response.ok) {
+        throw new Error("Failed to send");
+      }
+
       setStatus("success");
-      // Optionally clear form:
-      // setForm({ firstName: "", lastName: "", address: { number: "", street: "", city: "", state: "" }, phone: "", mobile: "", email: "", message: "" });
-    } catch (err) {
-      console.error(err);
+    } catch (error) {
+      console.error(error);
       setStatus("error");
     }
   };
 
   return (
-    // Wrapper: make background transparent so it blends with drawer (#002038) instead of a different blue panel
     <div className="p-4 md:p-8 text-gray-100 w-full">
       <form
         onSubmit={handleSubmit}
         className="grid grid-cols-1 md:grid-cols-12 gap-6"
       >
-        {/* Left / Contact details */}
         <div className="md:col-span-7">
           <h2 className="text-xl font-semibold mb-4">{t("contact")}</h2>
-
-          {/* First & Last Name */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-            {["firstName", "lastName"].map((field) => (
+            {NAME_FIELDS.map((field) => (
               <div key={field}>
                 <label htmlFor={field} className="block text-sm capitalize">
-                  {t(field as any)}
+                  {t(field)}
                 </label>
                 <input
                   id={field}
                   name={field}
                   type="text"
-                  value={(form as any)[field]}
+                  value={form[field]}
                   onChange={handleChange}
                   className="mt-1 w-full p-2 bg-blue-800 rounded border border-blue-700 focus:outline-none focus:border-indigo-400"
                   required
@@ -101,16 +107,15 @@ export default function ContactForm() {
             ))}
           </div>
 
-          {/* Address */}
           <label className="block text-sm mb-2">{t("address")}</label>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-            {["number", "street", "city", "state"].map((item) => (
+            {ADDRESS_FIELDS.map((field) => (
               <input
-                key={item}
+                key={field}
                 type="text"
-                placeholder={t(item as any)}
-                name={item}
-                value={form.address[item as keyof Address]}
+                placeholder={t(field)}
+                name={field}
+                value={form.address[field]}
                 onChange={handleChange}
                 className="w-full p-2 bg-blue-800 rounded border border-blue-700 focus:outline-none focus:border-indigo-400"
                 required
@@ -118,18 +123,17 @@ export default function ContactForm() {
             ))}
           </div>
 
-          {/* Phone & Mobile */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-            {["phone", "mobile"].map((item) => (
-              <div key={item}>
-                <label htmlFor={item} className="block text-sm capitalize">
-                  {t(item as any)}
+            {PHONE_FIELDS.map((field) => (
+              <div key={field}>
+                <label htmlFor={field} className="block text-sm capitalize">
+                  {t(field)}
                 </label>
                 <input
-                  id={item}
+                  id={field}
                   type="tel"
-                  name={item}
-                  value={(form as any)[item]}
+                  name={field}
+                  value={form[field]}
                   onChange={handleChange}
                   className="mt-1 w-full p-2 bg-blue-800 rounded border border-blue-700 focus:outline-none focus:border-indigo-400"
                 />
@@ -137,7 +141,6 @@ export default function ContactForm() {
             ))}
           </div>
 
-          {/* Email */}
           <div className="mb-4">
             <label htmlFor="email" className="block text-sm">
               {t("email")}
@@ -154,7 +157,6 @@ export default function ContactForm() {
           </div>
         </div>
 
-        {/* Right / Message */}
         <div className="md:col-span-5 flex flex-col justify-between">
           <h2 className="text-xl font-semibold mb-4">{t("message")}</h2>
           <textarea
@@ -175,13 +177,13 @@ export default function ContactForm() {
               {status === "sending"
                 ? t("sending")
                 : status === "success"
-                ? t("sent")
-                : status === "error"
-                ? t("retry")
-                : t("send")}
+                  ? t("sent")
+                  : status === "error"
+                    ? t("retry")
+                    : t("send")}
             </span>
             <span className="transition-transform group-hover:translate-x-1">
-              ➜
+              âžœ
             </span>
             <span className="absolute inset-0 rounded-full ring-1 ring-white/10 pointer-events-none" />
           </button>

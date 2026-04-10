@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { startTransition, useEffect, useState } from "react";
 import Link from "next/link";
 
 type Preferences = {
@@ -42,7 +42,9 @@ export default function CookieBanner() {
   useEffect(() => {
     const existing = loadPrefs();
     if (!existing) {
-      setOpen(true);
+      startTransition(() => {
+        setOpen(true);
+      });
     }
   }, []);
 
@@ -137,10 +139,10 @@ export default function CookieBanner() {
                     htmlFor="analytics"
                     className="font-medium cursor-pointer"
                   >
-                    Mesure d'audience
+                    Mesure d&apos;audience
                   </label>
                   <p className="text-gray-300">
-                    Aide à comprendre l'utilisation du site (statistiques
+                    Aide à comprendre l&apos;utilisation du site (statistiques
                     anonymisées).
                   </p>
                 </div>
@@ -162,7 +164,7 @@ export default function CookieBanner() {
                     Confort & performance
                   </label>
                   <p className="text-gray-300">
-                    Enregistre vos préférences pour améliorer l'expérience.
+                    Enregistre vos préférences pour améliorer l&apos;expérience.
                   </p>
                 </div>
               </div>

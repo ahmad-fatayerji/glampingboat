@@ -105,6 +105,7 @@ async function main() {
     const reservation = await prisma.reservation.create({
       data: {
         userId: gmailUser.id,
+        bookingRef: `SEED-${startDate.toISOString().slice(0, 10).replace(/-/g, "")}`,
         startDate,
         endDate,
         adults,

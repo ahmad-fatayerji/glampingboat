@@ -1,224 +1,317 @@
-import React, { useState, ChangeEvent, FormEvent, useEffect } from "react";
-import { useT } from "@/components/Language/useT";
+"use client";
+
+import {
+  useEffect,
+  useMemo,
+  useState,
+  type ChangeEvent,
+  type FormEvent,
+} from "react";
 import { useSession } from "next-auth/react";
+import { useT } from "@/components/Language/useT";
+import {
+  getMissingProfileFields,
+  getProfileFieldValue,
+  PROFILE_REQUIRED_FIELDS,
+  toProfileUpdatePayload,
+} from "@/lib/profile";
+import { calculateReservationPricingSummary } from "@/lib/reservations";
+import { getErrorMessage, readJsonResponse } from "@/lib/http";
+import type {
+  AddressField,
+  ApiErrorResponse,
+  BookingFormState,
+  OptionRecord,
+  ProfileResponse,
+  ReservationCreatePayload,
+} from "@/lib/types";
+import { ADDRESS_FIELDS, NAME_FIELDS, PHONE_FIELDS } from "@/lib/types";
 
 interface BookingFormProps {
   arrivalDate: Date;
   departureDate: Date;
 }
 
-interface Address {
-  number: string;
-  street: string;
-  city: string;
-  state: string;
+type BookingTextField =
+  | "firstName"
+  | "lastName"
+  | "phone"
+  | "mobile"
+  | "email"
+  | "birthDate"
+  | "comments"
+  | "discountCode";
+
+type BookingCheckboxField =
+  | "specialOffers"
+  | "cancellation"
+  | "acceptTerms"
+  | "payFullNow";
+
+type BookingInputEvent = ChangeEvent<
+  HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+>;
+
+const INITIAL_FORM: BookingFormState = {
+  firstName: "",
+  lastName: "",
+  address: { number: "", street: "", city: "", state: "" },
+  phone: "",
+  mobile: "",
+  email: "",
+  birthDate: "",
+  comments: "",
+  discountCode: "",
+  specialOffers: false,
+  cancellation: false,
+  acceptTerms: false,
+  payFullNow: false,
+  adults: 2,
+  children: 0,
+  options: {},
+};
+
+const BOOKING_OPTION_PREFIX = "opt_";
+const TEXT_FIELDS: readonly BookingTextField[] = [
+  "firstName",
+  "lastName",
+  "phone",
+  "mobile",
+  "email",
+  "birthDate",
+  "comments",
+  "discountCode",
+];
+const CHECKBOX_FIELDS: readonly BookingCheckboxField[] = [
+  "specialOffers",
+  "cancellation",
+  "acceptTerms",
+  "payFullNow",
+];
+
+function isAddressField(name: string): name is AddressField {
+  return (ADDRESS_FIELDS as readonly string[]).includes(name);
 }
 
-interface FormState {
-  firstName: string;
-  lastName: string;
-  address: Address;
-  phone: string;
-  mobile: string;
-  email: string;
-  birthDate: string;
-  comments: string;
-  discountCode: string;
-  specialOffers: boolean;
-  cancellation: boolean;
-  acceptTerms: boolean;
-  payFullNow: boolean;
-  adults: number;
-  children: number;
-  options: Record<string, boolean>; // optionId -> selected
+function isBookingTextField(name: string): name is BookingTextField {
+  return (TEXT_FIELDS as readonly string[]).includes(name);
 }
 
-const BookingForm: React.FC<BookingFormProps> = ({
+function isBookingCheckboxField(name: string): name is BookingCheckboxField {
+  return (CHECKBOX_FIELDS as readonly string[]).includes(name);
+}
+
+export default function BookingForm({
   arrivalDate,
   departureDate,
-}) => {
+}: BookingFormProps) {
   const t = useT();
-  const [form, setForm] = useState<FormState>({
-    firstName: "",
-    lastName: "",
-    address: { number: "", street: "", city: "", state: "" },
-    phone: "",
-    mobile: "",
-    email: "",
-    birthDate: "",
-    comments: "",
-    discountCode: "",
-    specialOffers: false,
-    cancellation: false,
-    acceptTerms: false,
-    payFullNow: false,
-    adults: 2,
-    children: 0,
-    options: {},
-  });
-  const [options, setOptions] = useState<
-    { id: string; name: string; priceHt: number }[]
-  >([]);
+  const { data: session } = useSession();
+  const [form, setForm] = useState<BookingFormState>(INITIAL_FORM);
+  const [options, setOptions] = useState<OptionRecord[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [profileError, setProfileError] = useState<string | null>(null);
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [savingProfile, setSavingProfile] = useState(false);
-  const REQUIRED_PROFILE_FIELDS: { key: string; label: string }[] = [
-    { key: "firstName", label: t("firstName") || "First name" },
-    { key: "lastName", label: t("lastName") || "Last name" },
-    { key: "phone", label: t("phone") || "Phone" },
-    { key: "address.street", label: t("street") || "Street" },
-    { key: "address.city", label: t("city") || "City" },
-  ];
 
-  const getFieldValue = (path: string) => {
-    if (path.startsWith("address.")) {
-      const p = path.split(".")[1] as keyof Address;
-      return form.address[p];
-    }
-    return (form as any)[path];
-  };
-
-  const missingRequiredProfileFields = () =>
-    REQUIRED_PROFILE_FIELDS.filter(
-      (f) => !getFieldValue(f.key)?.toString().trim()
-    ).map((f) => f.key);
-  const { data: session } = useSession();
-  // Fetch options once
   useEffect(() => {
-    fetch("/api/options")
-      .then((r) => r.json())
-      .then((d) => {
-        if (Array.isArray(d)) setOptions(d);
-      })
-      .catch(() => {});
+    let active = true;
+
+    async function loadOptions() {
+      try {
+        const response = await fetch("/api/options");
+        const data = await readJsonResponse<OptionRecord[]>(response, []);
+
+        if (active && Array.isArray(data)) {
+          setOptions(data);
+        }
+      } catch {
+        if (active) {
+          setOptions([]);
+        }
+      }
+    }
+
+    loadOptions();
+
+    return () => {
+      active = false;
+    };
   }, []);
 
-  // Prefill profile when session available
   useEffect(() => {
-    if (!session) return;
-    fetch("/api/account/profile")
-      .then(async (r) => {
-        if (!r.ok) throw new Error("HTTP " + r.status);
-        const txt = await r.text();
-        if (!txt) return {};
-        try {
-          return JSON.parse(txt);
-        } catch {
-          return {};
+    if (!session) {
+      return;
+    }
+
+    let active = true;
+
+    async function loadProfile() {
+      try {
+        const response = await fetch("/api/account/profile");
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
         }
-      })
-      .then((j) => {
-        if (j.user) {
-          setForm((prev) => ({
-            ...prev,
-            firstName: j.user.firstName || prev.firstName,
-            lastName: j.user.lastName || prev.lastName,
+
+        const json = await readJsonResponse<ProfileResponse>(response, {
+          user: null,
+        });
+        const user = json.user;
+
+        if (active && user) {
+          setForm((current) => ({
+            ...current,
+            firstName: user.firstName ?? current.firstName,
+            lastName: user.lastName ?? current.lastName,
             address: {
-              number: j.user.addressNumber || prev.address.number,
-              street: j.user.addressStreet || prev.address.street,
-              city: j.user.addressCity || prev.address.city,
-              state: j.user.addressState || prev.address.state,
+              number: user.addressNumber ?? current.address.number,
+              street: user.addressStreet ?? current.address.street,
+              city: user.addressCity ?? current.address.city,
+              state: user.addressState ?? current.address.state,
             },
-            phone: j.user.phone || prev.phone,
-            mobile: j.user.mobile || prev.mobile,
-            email: j.user.email || prev.email,
-            birthDate: j.user.birthDate
-              ? j.user.birthDate.substring(0, 10)
-              : prev.birthDate,
+            phone: user.phone ?? current.phone,
+            mobile: user.mobile ?? current.mobile,
+            email: user.email ?? current.email,
+            birthDate: user.birthDate
+              ? user.birthDate.substring(0, 10)
+              : current.birthDate,
           }));
         }
-      })
-      .catch(() => {});
+      } catch {
+        // Keep the empty form when the profile request fails.
+      }
+    }
+
+    loadProfile();
+
+    return () => {
+      active = false;
+    };
   }, [session]);
 
-  const handleChange = (
-    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
-  ) => {
-    const { name, value, type, checked } = e.target as HTMLInputElement;
-    if (["number", "street", "city", "state"].includes(name)) {
-      setForm((prev) => ({
-        ...prev,
-        address: { ...prev.address, [name]: value },
+  const pricing = useMemo(
+    () =>
+      calculateReservationPricingSummary({
+        arrivalDate,
+        departureDate,
+        adults: form.adults,
+        children: form.children,
+        selectedOptions: options.filter((option) => form.options[option.id]),
+      }),
+    [arrivalDate, departureDate, form.adults, form.children, form.options, options]
+  );
+
+  const requiredProfileFields = useMemo(
+    () =>
+      PROFILE_REQUIRED_FIELDS.map((field) => ({
+        ...field,
+        label: t(field.labelKey),
+      })),
+    [t]
+  );
+
+  const updateAddressField = (field: AddressField, value: string) => {
+    setForm((current) => ({
+      ...current,
+      address: { ...current.address, [field]: value },
+    }));
+  };
+
+  const updateTextField = (field: BookingTextField, value: string) => {
+    setForm((current) => ({ ...current, [field]: value }));
+  };
+
+  const updateCheckboxField = (field: BookingCheckboxField, value: boolean) => {
+    setForm((current) => ({ ...current, [field]: value }));
+  };
+
+  const handleChange = (event: BookingInputEvent) => {
+    const target = event.target as HTMLInputElement;
+    const { name, value, type, checked } = target;
+
+    if (isAddressField(name)) {
+      updateAddressField(name, value);
+      return;
+    }
+
+    if (name === "adults" || name === "children") {
+      setForm((current) => ({
+        ...current,
+        [name]: Number.parseInt(value, 10) || 0,
       }));
-    } else if (name === "adults" || name === "children") {
-      setForm((prev) => ({ ...prev, [name]: parseInt(value, 10) || 0 }));
-    } else if (type === "checkbox") {
-      if (name.startsWith("opt_")) {
-        const id = name.replace("opt_", "");
-        setForm((prev) => ({
-          ...prev,
-          options: { ...prev.options, [id]: checked },
+      return;
+    }
+
+    if (type === "checkbox") {
+      if (name.startsWith(BOOKING_OPTION_PREFIX)) {
+        const id = name.replace(BOOKING_OPTION_PREFIX, "");
+        setForm((current) => ({
+          ...current,
+          options: { ...current.options, [id]: checked },
         }));
-      } else {
-        setForm((prev) => ({ ...prev, [name]: checked } as FormState));
+        return;
       }
-    } else {
-      setForm((prev) => ({ ...prev, [name]: value } as FormState));
+
+      if (isBookingCheckboxField(name)) {
+        updateCheckboxField(name, checked);
+      }
+      return;
+    }
+
+    if (isBookingTextField(name)) {
+      updateTextField(name, value);
     }
   };
 
-  // simple pricing: base nightly 180, plus each selected option price * (adults+children if linen)
-  const nights = Math.round(
-    (departureDate.getTime() - arrivalDate.getTime()) / 86400000
-  );
-  const basePriceHt = 180 * nights;
-  const optionSumHt = options.reduce((sum, o) => {
-    if (!form.options[o.id]) return sum;
-    // heuristic: if name includes 'linge' assume per person
-    const perPerson = /linge|lit/i.test(o.name);
-    const qty = perPerson ? form.adults + form.children : 1;
-    return sum + o.priceHt * qty;
-  }, 0);
-  const subtotalHt = basePriceHt + optionSumHt;
-  const tvaHt = subtotalHt * 0.2;
-  const taxSejourTtc = 1.5 * nights * (form.adults + form.children);
-  const total = subtotalHt + tvaHt + taxSejourTtc;
-  const deposit = (total * 0.3).toFixed(2);
-  const balance = (total - parseFloat(deposit)).toFixed(2);
+  const selectedOptionIds = Object.entries(form.options)
+    .filter(([, selected]) => selected)
+    .map(([id]) => id);
 
   const performReservation = async () => {
     setSubmitting(true);
     setError(null);
+
     try {
-      const selectedOptions = Object.entries(form.options)
-        .filter(([, v]) => v)
-        .map(([id]) => id);
-      const res = await fetch("/api/reservations", {
+      const payload: ReservationCreatePayload = {
+        startDate: arrivalDate.toISOString(),
+        endDate: departureDate.toISOString(),
+        adults: form.adults,
+        children: form.children,
+        optionIds: selectedOptionIds,
+        pricing: {
+          basePriceHt: pricing.basePriceHt,
+          optionSumHt: pricing.optionSumHt,
+          subtotalHt: pricing.subtotalHt,
+          tvaHt: pricing.tvaHt,
+          taxSejourTtc: pricing.taxSejourTtc,
+          total: pricing.total,
+        },
+      };
+
+      const response = await fetch("/api/reservations", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          startDate: arrivalDate.toISOString(),
-          endDate: departureDate.toISOString(),
-          adults: form.adults,
-          children: form.children,
-          optionIds: selectedOptions,
-          pricing: {
-            basePriceHt,
-            optionSumHt,
-            subtotalHt,
-            tvaHt,
-            taxSejourTtc,
-            total,
-          },
-        }),
+        body: JSON.stringify(payload),
       });
-      if (res.status === 400) {
-        // Possibly profile incomplete
-        let msg = "";
-        try {
-          msg = (await res.json()).error || "";
-        } catch {}
-        if (/profile incomplete/i.test(msg)) {
+
+      if (response.status === 400) {
+        const json = await readJsonResponse<ApiErrorResponse>(response, {
+          error: "",
+        });
+        if (/profile incomplete/i.test(json.error)) {
           setShowProfileModal(true);
-          return; // don't redirect
+          return;
         }
       }
-      if (!res.ok) throw new Error("Failed to create reservation");
+
+      if (!response.ok) {
+        throw new Error("Failed to create reservation");
+      }
+
       window.location.href = "/account";
-    } catch (err: any) {
-      setError(err.message || "Error");
+    } catch (reservationError) {
+      setError(getErrorMessage(reservationError, "Error"));
     } finally {
       setSubmitting(false);
     }
@@ -226,48 +319,58 @@ const BookingForm: React.FC<BookingFormProps> = ({
 
   const saveProfileAndContinue = async () => {
     setProfileError(null);
-    const missing = missingRequiredProfileFields();
+    const missing = getMissingProfileFields(form);
     if (missing.length) {
       setProfileError("Please fill all required fields.");
       return;
     }
+
     setSavingProfile(true);
+
     try {
-      const payload: any = {
-        firstName: form.firstName || undefined,
-        lastName: form.lastName || undefined,
-        phone: form.phone || undefined,
-        addressStreet: form.address.street || undefined,
-        addressCity: form.address.city || undefined,
-        addressNumber: form.address.number || undefined,
-        addressState: form.address.state || undefined,
-      };
-      const res = await fetch("/api/account/profile", {
+      const response = await fetch("/api/account/profile", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(
+          toProfileUpdatePayload({
+            firstName: form.firstName,
+            lastName: form.lastName,
+            phone: form.phone,
+            mobile: form.mobile,
+            birthDate: form.birthDate,
+            addressNumber: form.address.number,
+            addressStreet: form.address.street,
+            addressCity: form.address.city,
+            addressState: form.address.state,
+          })
+        ),
       });
-      if (!res.ok) throw new Error("Profile save failed");
+      if (!response.ok) {
+        throw new Error("Profile save failed");
+      }
+
       setShowProfileModal(false);
       await performReservation();
-    } catch (e: any) {
-      setProfileError(e.message || "Error saving profile");
+    } catch (profileSaveError) {
+      setProfileError(getErrorMessage(profileSaveError, "Error saving profile"));
     } finally {
       setSavingProfile(false);
     }
   };
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (event: FormEvent) => {
+    event.preventDefault();
     if (!session) {
       window.location.href = "/account";
       return;
     }
-    const missing = missingRequiredProfileFields();
+
+    const missing = getMissingProfileFields(form);
     if (missing.length) {
       setShowProfileModal(true);
       return;
     }
+
     await performReservation();
   };
 
@@ -279,8 +382,8 @@ const BookingForm: React.FC<BookingFormProps> = ({
       >
         <div className="md:col-span-12 mb-2 text-sm opacity-80">
           <p>
-            {t("arrival")}: {arrivalDate.toLocaleDateString()} —{" "}
-            {t("departure")}: {departureDate.toLocaleDateString()}
+            {t("arrival")}: {arrivalDate.toLocaleDateString()} â€” {t("departure")}
+            : {departureDate.toLocaleDateString()}
           </p>
         </div>
         <div className="md:col-span-7">
@@ -292,16 +395,16 @@ const BookingForm: React.FC<BookingFormProps> = ({
             </p>
           )}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-            {["firstName", "lastName"].map((field) => (
+            {NAME_FIELDS.map((field) => (
               <div key={field}>
                 <label htmlFor={field} className="block text-sm capitalize">
-                  {t(field as any)}
+                  {t(field)}
                 </label>
                 <input
                   id={field}
                   name={field}
                   type="text"
-                  value={(form as any)[field]}
+                  value={form[field]}
                   onChange={handleChange}
                   className="mt-1 w-full p-2 bg-blue-800 rounded border border-blue-700 focus:outline-none focus:border-indigo-400"
                 />
@@ -310,29 +413,29 @@ const BookingForm: React.FC<BookingFormProps> = ({
           </div>
           <label className="block text-sm mb-2">{t("address")}</label>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-            {["number", "street", "city", "state"].map((item) => (
+            {ADDRESS_FIELDS.map((field) => (
               <input
-                key={item}
+                key={field}
                 type="text"
-                placeholder={t(item as any)}
-                name={item}
-                value={form.address[item as keyof Address]}
+                placeholder={t(field)}
+                name={field}
+                value={form.address[field]}
                 onChange={handleChange}
                 className="w-full p-2 bg-blue-800 rounded border border-blue-700 focus:outline-none focus:border-indigo-400"
               />
             ))}
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-            {["phone", "mobile"].map((item) => (
-              <div key={item}>
-                <label htmlFor={item} className="block text-sm capitalize">
-                  {t(item as any)}
+            {PHONE_FIELDS.map((field) => (
+              <div key={field}>
+                <label htmlFor={field} className="block text-sm capitalize">
+                  {t(field)}
                 </label>
                 <input
-                  id={item}
+                  id={field}
                   type="tel"
-                  name={item}
-                  value={(form as any)[item]}
+                  name={field}
+                  value={form[field]}
                   onChange={handleChange}
                   className="mt-1 w-full p-2 bg-blue-800 rounded border border-blue-700 focus:outline-none focus:border-indigo-400"
                 />
@@ -407,18 +510,21 @@ const BookingForm: React.FC<BookingFormProps> = ({
             <div className="mt-4">
               <h3 className="text-sm font-semibold mb-2">Options</h3>
               <div className="space-y-2">
-                {options.map((o) => (
-                  <label key={o.id} className="flex items-center gap-2 text-sm">
+                {options.map((option) => (
+                  <label
+                    key={option.id}
+                    className="flex items-center gap-2 text-sm"
+                  >
                     <input
                       type="checkbox"
-                      name={`opt_${o.id}`}
-                      checked={!!form.options[o.id]}
+                      name={`${BOOKING_OPTION_PREFIX}${option.id}`}
+                      checked={!!form.options[option.id]}
                       onChange={handleChange}
                       className="h-4 w-4"
                     />
-                    <span className="flex-1">{o.name}</span>
+                    <span className="flex-1">{option.name}</span>
                     <span className="text-xs opacity-70">
-                      €{o.priceHt.toFixed(2)}
+                      â‚¬{option.priceHt.toFixed(2)}
                     </span>
                   </label>
                 ))}
@@ -449,15 +555,15 @@ const BookingForm: React.FC<BookingFormProps> = ({
                 className="w-full p-2 bg-blue-800 rounded border border-blue-700 focus:outline-none focus:border-indigo-400"
               />
             </div>
-            <div className="mt-6 text-sm space-y-1">
-              <p>Base HT €{basePriceHt.toFixed(2)}</p>
-              <p>Options HT €{optionSumHt.toFixed(2)}</p>
-              <p>TVA HT €{tvaHt.toFixed(2)}</p>
-              <p>Taxe séjour €{taxSejourTtc.toFixed(2)}</p>
-              <p className="font-medium">Total €{total.toFixed(2)}</p>
-              <p>Deposit €{deposit}</p>
-              <p>Balance €{balance}</p>
-            </div>
+            <PriceSummary
+              basePriceHt={pricing.basePriceHt}
+              optionSumHt={pricing.optionSumHt}
+              tvaHt={pricing.tvaHt}
+              taxSejourTtc={pricing.taxSejourTtc}
+              total={pricing.total}
+              deposit={pricing.deposit}
+              balance={pricing.balance}
+            />
             <label className="inline-flex items-center mt-4">
               <input
                 type="checkbox"
@@ -498,81 +604,145 @@ const BookingForm: React.FC<BookingFormProps> = ({
               disabled={!form.acceptTerms || submitting}
               className="group relative mt-6 inline-flex items-center gap-2 rounded-full px-6 py-2 font-semibold text-white bg-gradient-to-r from-indigo-600 via-blue-700 to-indigo-600 shadow-lg shadow-indigo-900/30 hover:from-indigo-500 hover:via-blue-600 hover:to-indigo-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-400 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              <span>{submitting ? "Saving…" : t("pay")}</span>
+              <span>{submitting ? "Savingâ€¦" : t("pay")}</span>
               <span className="transition-transform group-hover:translate-x-1">
-                ➜
+                âžœ
               </span>
               <span className="absolute inset-0 rounded-full ring-1 ring-white/10 pointer-events-none" />
             </button>
           </div>
         </div>
       </form>
-      {showProfileModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
-          <div className="bg-blue-900 border border-blue-700 rounded-lg w-full max-w-lg p-6 relative">
-            <button
-              type="button"
-              onClick={() => setShowProfileModal(false)}
-              className="absolute top-2 right-2 text-xs px-2 py-1 bg-blue-700/40 rounded hover:bg-blue-600/60"
-            >
-              ✕
-            </button>
-            <h3 className="text-lg font-semibold mb-2">
-              Complete your profile
-            </h3>
-            <p className="text-xs mb-4 opacity-80">
-              We need a few details before confirming your reservation.
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {REQUIRED_PROFILE_FIELDS.map((f) => {
-                const missing = !getFieldValue(f.key)?.toString().trim();
-                const baseName = f.key.includes("address.")
-                  ? f.key.split(".")[1]
-                  : f.key;
-                return (
-                  <div key={f.key} className="flex flex-col">
-                    <label className="text-xs mb-1">
-                      {f.label}
-                      <span className="text-red-300 ml-1">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      name={baseName}
-                      value={getFieldValue(f.key) || ""}
-                      onChange={handleChange}
-                      className={`p-2 rounded bg-blue-800 border text-sm focus:outline-none focus:border-indigo-400 ${
-                        missing ? "border-red-500" : "border-blue-700"
-                      }`}
-                    />
-                  </div>
-                );
-              })}
-            </div>
-            {profileError && (
-              <div className="mt-3 text-xs text-red-300">{profileError}</div>
-            )}
-            <div className="mt-6 flex justify-end gap-3">
-              <button
-                type="button"
-                onClick={() => setShowProfileModal(false)}
-                className="px-4 py-2 text-sm rounded bg-blue-800 border border-blue-700 hover:bg-blue-700"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={saveProfileAndContinue}
-                disabled={savingProfile}
-                className="px-4 py-2 text-sm rounded bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50"
-              >
-                {savingProfile ? "Saving…" : "Save & Continue"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ProfileCompletionModal
+        open={showProfileModal}
+        form={form}
+        requiredFields={requiredProfileFields}
+        onChange={handleChange}
+        onClose={() => setShowProfileModal(false)}
+        onSave={saveProfileAndContinue}
+        savingProfile={savingProfile}
+        profileError={profileError}
+      />
     </div>
   );
-};
+}
 
-export default BookingForm;
+function PriceSummary({
+  basePriceHt,
+  optionSumHt,
+  tvaHt,
+  taxSejourTtc,
+  total,
+  deposit,
+  balance,
+}: {
+  basePriceHt: number;
+  optionSumHt: number;
+  tvaHt: number;
+  taxSejourTtc: number;
+  total: number;
+  deposit: number;
+  balance: number;
+}) {
+  return (
+    <div className="mt-6 text-sm space-y-1">
+      <p>Base HT â‚¬{basePriceHt.toFixed(2)}</p>
+      <p>Options HT â‚¬{optionSumHt.toFixed(2)}</p>
+      <p>TVA HT â‚¬{tvaHt.toFixed(2)}</p>
+      <p>Taxe sÃ©jour â‚¬{taxSejourTtc.toFixed(2)}</p>
+      <p className="font-medium">Total â‚¬{total.toFixed(2)}</p>
+      <p>Deposit â‚¬{deposit.toFixed(2)}</p>
+      <p>Balance â‚¬{balance.toFixed(2)}</p>
+    </div>
+  );
+}
+
+function ProfileCompletionModal({
+  open,
+  form,
+  requiredFields,
+  onChange,
+  onClose,
+  onSave,
+  savingProfile,
+  profileError,
+}: {
+  open: boolean;
+  form: BookingFormState;
+  requiredFields: Array<
+    (typeof PROFILE_REQUIRED_FIELDS)[number] & { label: string }
+  >;
+  onChange: (event: BookingInputEvent) => void;
+  onClose: () => void;
+  onSave: () => void;
+  savingProfile: boolean;
+  profileError: string | null;
+}) {
+  if (!open) {
+    return null;
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
+      <div className="bg-blue-900 border border-blue-700 rounded-lg w-full max-w-lg p-6 relative">
+        <button
+          type="button"
+          onClick={onClose}
+          className="absolute top-2 right-2 text-xs px-2 py-1 bg-blue-700/40 rounded hover:bg-blue-600/60"
+        >
+          âœ•
+        </button>
+        <h3 className="text-lg font-semibold mb-2">Complete your profile</h3>
+        <p className="text-xs mb-4 opacity-80">
+          We need a few details before confirming your reservation.
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {requiredFields.map((field) => {
+            const missing = !getProfileFieldValue(form, field.key).trim();
+            const baseName = field.key.includes("address.")
+              ? field.key.split(".")[1]
+              : field.key;
+
+            return (
+              <div key={field.key} className="flex flex-col">
+                <label className="text-xs mb-1">
+                  {field.label}
+                  <span className="text-red-300 ml-1">*</span>
+                </label>
+                <input
+                  type="text"
+                  name={baseName}
+                  value={getProfileFieldValue(form, field.key)}
+                  onChange={onChange}
+                  className={`p-2 rounded bg-blue-800 border text-sm focus:outline-none focus:border-indigo-400 ${
+                    missing ? "border-red-500" : "border-blue-700"
+                  }`}
+                />
+              </div>
+            );
+          })}
+        </div>
+        {profileError && (
+          <div className="mt-3 text-xs text-red-300">{profileError}</div>
+        )}
+        <div className="mt-6 flex justify-end gap-3">
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-4 py-2 text-sm rounded bg-blue-800 border border-blue-700 hover:bg-blue-700"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={onSave}
+            disabled={savingProfile}
+            className="px-4 py-2 text-sm rounded bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50"
+          >
+            {savingProfile ? "Savingâ€¦" : "Save & Continue"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}

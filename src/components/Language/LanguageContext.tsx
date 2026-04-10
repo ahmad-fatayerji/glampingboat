@@ -2,13 +2,13 @@
 
 import React, {
   createContext,
+  startTransition,
   useContext,
   useEffect,
   useMemo,
   useState,
 } from "react";
-
-export type Locale = "en" | "fr" | "de" | "nl" | "ru" | "es" | "it";
+import { LOCALES, type Locale } from "./dictionaries";
 
 type LanguageContextValue = {
   locale: Locale;
@@ -26,7 +26,11 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY) as Locale | null;
-      if (saved) setLocale(saved);
+      if (saved && LOCALES.includes(saved)) {
+        startTransition(() => {
+          setLocale(saved);
+        });
+      }
     } catch {}
   }, []);
 

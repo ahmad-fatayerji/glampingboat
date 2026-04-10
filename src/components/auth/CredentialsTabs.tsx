@@ -38,5 +38,3 @@ export default function CredentialsTabs() {
     </div>
   );
 }
-
-export type {};

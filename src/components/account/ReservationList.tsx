@@ -1,49 +1,19 @@
 "use client";
-import { useState, useMemo } from "react";
-// Lightweight date helpers (avoid adding a dependency)
+
+import { useState } from "react";
+import { getErrorMessage, readJsonResponse } from "@/lib/http";
+import type { ApiErrorResponse, ReservationSerialized } from "@/lib/types";
+
 function fmt(dateIso: string, opts?: Intl.DateTimeFormatOptions) {
   return new Date(dateIso).toLocaleDateString(undefined, opts);
 }
+
 function nightsBetween(startIso: string, endIso: string) {
   const ms = new Date(endIso).getTime() - new Date(startIso).getTime();
   return Math.round(ms / 86400000);
 }
-const euro = (n: number) => `€${n.toFixed(2)}`;
 
-interface ReservationOptionSerialized {
-  id: string;
-  optionId: string;
-  reservationId: string;
-  quantity: number;
-  totalPriceHt: number;
-  option: {
-    id: string;
-    name: string;
-    priceHt: number;
-    description: string | null;
-  };
-}
-
-export interface ReservationSerialized {
-  id: string;
-  userId: string;
-  bookingRef?: string;
-  startDate: string; // ISO
-  endDate: string; // ISO
-  adults: number;
-  children: number;
-  basePriceHt: number;
-  optionsPriceHt: number;
-  subtotalHt: number;
-  tvaHt: number;
-  taxSejourTtc: number;
-  totalTtc: number;
-  depositAmount: number;
-  balanceAmount: number;
-  securityDeposit: number;
-  createdAt: string;
-  items: ReservationOptionSerialized[];
-}
+const euro = (value: number) => `â‚¬${value.toFixed(2)}`;
 
 interface Props {
   reservations: ReservationSerialized[];
@@ -58,15 +28,13 @@ export default function ReservationList({ reservations }: Props) {
   const [error, setError] = useState<string | null>(null);
 
   const now = Date.now();
-  const filtered = useMemo(() => {
-    return list.filter((r) => {
-      const end = new Date(r.endDate).getTime();
-      const upcoming = end >= now - 86400000; // treat current & future as upcoming
-      if (filter === "all") return true;
-      if (filter === "upcoming") return upcoming;
-      return !upcoming;
-    });
-  }, [list, filter, now]);
+  const filtered = list.filter((reservation) => {
+    const end = new Date(reservation.endDate).getTime();
+    const upcoming = end >= now - 86400000;
+    if (filter === "all") return true;
+    if (filter === "upcoming") return upcoming;
+    return !upcoming;
+  });
 
   if (!list.length) {
     return (
@@ -78,6 +46,28 @@ export default function ReservationList({ reservations }: Props) {
     );
   }
 
+  async function handleCancel(id: string) {
+    setBusy(true);
+    setError(null);
+
+    try {
+      const response = await fetch(`/api/reservations/${id}`, { method: "DELETE" });
+      if (!response.ok) {
+        const json = await readJsonResponse<ApiErrorResponse>(response, {
+          error: "Failed to cancel",
+        });
+        throw new Error(json.error || "Failed to cancel");
+      }
+
+      setList((current) => current.filter((reservation) => reservation.id !== id));
+      setPendingCancel(null);
+    } catch (cancelError) {
+      setError(getErrorMessage(cancelError, "Unexpected error"));
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
@@ -85,48 +75,47 @@ export default function ReservationList({ reservations }: Props) {
           Reservations
         </h2>
         <div className="inline-flex rounded-full bg-[var(--color-beige)]/60 p-1 shadow-inner ring-1 ring-[var(--color-blue)]/10 text-[11px] font-medium uppercase tracking-wider">
-          {(["upcoming", "past", "all"] as const).map((f) => (
+          {(["upcoming", "past", "all"] as const).map((value) => (
             <button
-              key={f}
-              onClick={() => setFilter(f)}
+              key={value}
+              onClick={() => setFilter(value)}
               className={`px-4 py-1.5 rounded-full transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-blue)]/40 ${
-                filter === f
+                filter === value
                   ? "bg-[var(--color-blue)] text-[var(--color-beige)] shadow"
                   : "text-[var(--color-blue)]/60 hover:text-[var(--color-blue)]"
               }`}
-              aria-pressed={filter === f}
+              aria-pressed={filter === value}
             >
-              {f}
+              {value}
             </button>
           ))}
         </div>
       </div>
       <ul className="space-y-4">
-        {filtered.map((r) => {
-          const nights = nightsBetween(r.startDate, r.endDate);
-          const isExpanded = expanded === r.id;
-          const endPast = new Date(r.endDate).getTime() < now - 86400000;
+        {filtered.map((reservation) => {
+          const nights = nightsBetween(reservation.startDate, reservation.endDate);
+          const isExpanded = expanded === reservation.id;
+          const endPast = new Date(reservation.endDate).getTime() < now - 86400000;
           const status = endPast ? "past" : "upcoming";
+
           return (
-            <li key={r.id} className="group">
+            <li key={reservation.id} className="group">
               <div className="rounded-2xl border border-[var(--color-blue)]/10 bg-white shadow-sm overflow-hidden ring-1 ring-transparent group-hover:ring-[var(--color-blue)]/10 transition">
                 <button
-                  onClick={() => setExpanded(isExpanded ? null : r.id)}
+                  onClick={() => setExpanded(isExpanded ? null : reservation.id)}
                   className="w-full flex flex-col gap-3 text-left px-5 py-4 md:flex-row md:items-center md:gap-6"
                   aria-expanded={isExpanded}
                 >
                   <div className="flex-1 flex flex-col md:flex-row md:items-center md:gap-5">
                     <div className="flex flex-col sm:flex-row sm:items-baseline sm:gap-3">
                       <span className="font-medium tracking-wide text-[var(--color-blue)]">
-                        {fmt(r.startDate, {
+                        {fmt(reservation.startDate, {
                           day: "2-digit",
                           month: "short",
                           year: "numeric",
                         })}
-                        <span className="mx-1 text-[var(--color-blue)]/40">
-                          —
-                        </span>
-                        {fmt(r.endDate, {
+                        <span className="mx-1 text-[var(--color-blue)]/40">â€”</span>
+                        {fmt(reservation.endDate, {
                           day: "2-digit",
                           month: "short",
                           year: "numeric",
@@ -136,9 +125,9 @@ export default function ReservationList({ reservations }: Props) {
                         <span>
                           {nights} night{nights !== 1 ? "s" : ""}
                         </span>
-                        {r.bookingRef && (
+                        {reservation.bookingRef && (
                           <span className="font-mono text-[9px] tracking-tight bg-[var(--color-blue)]/5 px-2 py-0.5 rounded border border-[var(--color-blue)]/10">
-                            {r.bookingRef}
+                            {reservation.bookingRef}
                           </span>
                         )}
                       </span>
@@ -147,10 +136,11 @@ export default function ReservationList({ reservations }: Props) {
                   </div>
                   <div className="flex items-center gap-8 text-sm pr-1">
                     <span className="font-semibold text-[var(--color-blue)] tabular-nums">
-                      {euro(r.totalTtc)}
+                      {euro(reservation.totalTtc)}
                     </span>
                     <span className="text-[var(--color-blue)]/60 text-xs">
-                      {r.adults}A{r.children > 0 ? `+${r.children}C` : ""}
+                      {reservation.adults}A
+                      {reservation.children > 0 ? `+${reservation.children}C` : ""}
                     </span>
                     <svg
                       className={`w-4 h-4 text-[var(--color-blue)]/70 transition-transform ${
@@ -174,32 +164,41 @@ export default function ReservationList({ reservations }: Props) {
                   <div className="overflow-hidden">
                     <div className="px-6 pb-6 pt-1 bg-white text-sm space-y-5">
                       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-5">
-                        <Info label="Base HT" value={euro(r.basePriceHt)} />
+                        <Info label="Base HT" value={euro(reservation.basePriceHt)} />
                         <Info
                           label="Options HT"
-                          value={euro(r.optionsPriceHt)}
+                          value={euro(reservation.optionsPriceHt)}
                         />
-                        <Info label="TVA HT" value={euro(r.tvaHt)} />
+                        <Info label="TVA HT" value={euro(reservation.tvaHt)} />
                         <Info
-                          label="Taxe séjour"
-                          value={euro(r.taxSejourTtc)}
+                          label="Taxe sÃ©jour"
+                          value={euro(reservation.taxSejourTtc)}
                         />
-                        <Info label="Deposit" value={euro(r.depositAmount)} />
-                        <Info label="Balance" value={euro(r.balanceAmount)} />
+                        <Info
+                          label="Deposit"
+                          value={euro(reservation.depositAmount)}
+                        />
+                        <Info
+                          label="Balance"
+                          value={euro(reservation.balanceAmount)}
+                        />
                       </div>
-                      {r.items.length > 0 && (
+                      {reservation.items.length > 0 && (
                         <div>
                           <h3 className="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-blue)]/60 mb-2">
                             Options
                           </h3>
                           <ul className="space-y-1">
-                            {r.items.map((it) => (
-                              <li key={it.id} className="flex justify-between">
+                            {reservation.items.map((item) => (
+                              <li
+                                key={item.id}
+                                className="flex justify-between"
+                              >
                                 <span>
-                                  {it.option.name} × {it.quantity}
+                                  {item.option.name} Ã— {item.quantity}
                                 </span>
                                 <span className="tabular-nums">
-                                  {euro(it.totalPriceHt)}
+                                  {euro(item.totalPriceHt)}
                                 </span>
                               </li>
                             ))}
@@ -210,20 +209,20 @@ export default function ReservationList({ reservations }: Props) {
                         <span className="text-[11px] text-[var(--color-blue)]/60 flex flex-col sm:flex-row sm:items-center sm:gap-3">
                           <span>
                             Created{" "}
-                            {fmt(r.createdAt, {
+                            {fmt(reservation.createdAt, {
                               day: "2-digit",
                               month: "short",
                               year: "numeric",
                             })}
                           </span>
-                          {r.bookingRef && (
+                          {reservation.bookingRef && (
                             <span className="font-mono text-[10px] bg-[var(--color-blue)]/5 px-2 py-0.5 rounded border border-[var(--color-blue)]/10">
-                              Ref: {r.bookingRef}
+                              Ref: {reservation.bookingRef}
                             </span>
                           )}
                         </span>
                         <button
-                          onClick={() => setPendingCancel(r.id)}
+                          onClick={() => setPendingCancel(reservation.id)}
                           className="self-start sm:self-auto text-[11px] font-medium text-red-600 hover:text-red-700 underline underline-offset-2 disabled:opacity-40"
                           disabled={busy}
                         >
@@ -252,24 +251,6 @@ export default function ReservationList({ reservations }: Props) {
       />
     </div>
   );
-
-  async function handleCancel(id: string) {
-    setBusy(true);
-    setError(null);
-    try {
-      const res = await fetch(`/api/reservations/${id}`, { method: "DELETE" });
-      if (!res.ok) {
-        const j = await res.json().catch(() => ({}));
-        throw new Error(j.error || "Failed to cancel");
-      }
-      setList((prev) => prev.filter((r) => r.id !== id));
-      setPendingCancel(null);
-    } catch (e: any) {
-      setError(e.message || "Unexpected error");
-    } finally {
-      setBusy(false);
-    }
-  }
 }
 
 function Info({ label, value }: { label: string; value: string }) {
@@ -321,6 +302,7 @@ function CancelDialog({
   error,
 }: CancelDialogProps) {
   if (!open) return null;
+
   return (
     <div
       className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-[var(--color-blue)]/40 backdrop-blur-sm"
@@ -358,7 +340,7 @@ function CancelDialog({
               disabled={busy}
               className="relative px-5 py-2 text-sm font-semibold rounded-md bg-red-600 text-white shadow hover:bg-red-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-400 disabled:opacity-50"
             >
-              {busy ? "Cancelling…" : "Cancel"}
+              {busy ? "Cancellingâ€¦" : "Cancel"}
             </button>
           </div>
         </div>

@@ -1,26 +1,32 @@
-import { NextResponse } from "next/server"
-import { prisma }      from "@/lib/prisma"
-import bcrypt          from "bcryptjs"
+import bcrypt from "bcryptjs";
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { getString, isRecord } from "@/lib/type-guards";
 
 export async function POST(req: Request) {
-  const { token, password } = await req.json()
-  if (!token || typeof password !== "string") {
-    return NextResponse.json({ error: "Invalid input" }, { status: 400 })
+  const payload = await req.json();
+  const token = isRecord(payload) ? getString(payload, "token") : undefined;
+  const password = isRecord(payload) ? getString(payload, "password") : undefined;
+
+  if (!token || !password) {
+    return NextResponse.json({ error: "Invalid input" }, { status: 400 });
   }
 
-  // 1) find by token & ensure not expired
   const user = await prisma.user.findFirst({
     where: {
       resetToken: token,
       resetTokenExpiresAt: { gt: new Date() },
     },
-  })
+  });
+
   if (!user) {
-    return NextResponse.json({ error: "Token invalid or expired" }, { status: 400 })
+    return NextResponse.json(
+      { error: "Token invalid or expired" },
+      { status: 400 }
+    );
   }
 
-  // 2) hash new password & clear out the reset fields
-  const hash = await bcrypt.hash(password, 12)
+  const hash = await bcrypt.hash(password, 12);
   await prisma.user.update({
     where: { id: user.id },
     data: {
@@ -28,7 +34,7 @@ export async function POST(req: Request) {
       resetToken: null,
       resetTokenExpiresAt: null,
     },
-  })
+  });
 
-  return NextResponse.json({ ok: true })
+  return NextResponse.json({ ok: true });
 }

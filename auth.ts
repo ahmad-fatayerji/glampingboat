@@ -1,9 +1,32 @@
-import NextAuth from "next-auth"
-import type { NextAuthConfig } from "next-auth"
-import GoogleProvider from "next-auth/providers/google"
-import CredentialsProvider from "next-auth/providers/credentials"
-import { prisma } from "@/lib/prisma"
-import bcrypt from "bcryptjs"
+import NextAuth, { type NextAuthConfig } from "next-auth";
+import GoogleProvider from "next-auth/providers/google";
+import CredentialsProvider from "next-auth/providers/credentials";
+import { prisma } from "@/lib/prisma";
+import { getString, isRecord } from "@/lib/type-guards";
+import bcrypt from "bcryptjs";
+
+function readGoogleProfile(profile: unknown) {
+  if (!isRecord(profile)) {
+    return {};
+  }
+
+  return {
+    email: getString(profile, "email"),
+    name: getString(profile, "name"),
+    picture: getString(profile, "picture"),
+    firstName: getString(profile, "given_name"),
+    lastName: getString(profile, "family_name"),
+  };
+}
+
+async function getUserIdByEmail(email: string) {
+  const user = await prisma.user.findUnique({
+    where: { email },
+    select: { id: true },
+  });
+
+  return user?.id;
+}
 
 export const authOptions = {
   secret: process.env.NEXTAUTH_SECRET,
@@ -12,7 +35,6 @@ export const authOptions = {
     signIn: "/account",
     error: "/account",
   },
-
   providers: [
     CredentialsProvider({
       name: "Email & Password",
@@ -21,102 +43,96 @@ export const authOptions = {
         password: { label: "Password", type: "password" },
       },
       async authorize(creds) {
-        // 1) Validate input
         if (
           !creds ||
           typeof creds.email !== "string" ||
           typeof creds.password !== "string"
         ) {
-          throw new Error("Missing email or password")
+          throw new Error("Missing email or password");
         }
-        const { email, password } = creds
 
-        // 2) Look up user
-        const user = await prisma.user.findUnique({ where: { email } })
+        const { email, password } = creds;
+        const user = await prisma.user.findUnique({ where: { email } });
+
         if (user) {
-          // block credential login for OAuth‑only accounts
           if (!user.password) {
-            throw new Error("Please sign in with Google")
+            throw new Error("Please sign in with Google");
           }
-          // verify password
-          const ok = await bcrypt.compare(password, user.password)
+
+          const ok = await bcrypt.compare(password, user.password);
           if (!ok) {
-            throw new Error("Invalid email or password")
+            throw new Error("Invalid email or password");
           }
-          return { id: user.id, email: user.email, name: user.name ?? undefined }
+
+          return { id: user.id, email: user.email, name: user.name ?? undefined };
         }
 
-        // 3) First‑time signup
-        const hash = await bcrypt.hash(password, 12)
+        const hash = await bcrypt.hash(password, 12);
         const newUser = await prisma.user.create({
           data: { email, password: hash, name: "", avatar: "" },
-        })
-        return { id: newUser.id, email: newUser.email, name: newUser.name ?? undefined }
+        });
+
+        return {
+          id: newUser.id,
+          email: newUser.email,
+          name: newUser.name ?? undefined,
+        };
       },
     }),
-
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     }),
   ],
-
   callbacks: {
-    // On Google sign‑in, upsert their profile
     async signIn({ account, profile }) {
       if (account?.provider === "google") {
-        const email = profile?.email
-        if (!email) throw new Error("No email from Google")
-        await prisma.user.upsert({
-          where: { email },
-          create: {
-            email,
-            name: profile.name ?? "",
-            avatar: (profile as any).picture ?? "",
-          } as any,
-          update: {
-            name: profile.name ?? "",
-            avatar: (profile as any).picture ?? "",
-          } as any,
-        })
-        // Follow-up update for name fields (avoid TS mismatch until client regenerated)
-        await prisma.user.update({
-          where: { email }, data: {
-            firstName: (profile as any).given_name || undefined,
-            lastName: (profile as any).family_name || undefined,
-          } as any
-        })
-      }
-      return true
-    },
-
-    // Embed user.id into the token
-    async jwt({ token, user }) {
-      // Credentials flow already passes the correct prisma user.id
-      if (user) {
-        // For Google OAuth, ensure we attach the Prisma user's id (cuid) not the Google sub
-        if (user.email) {
-          const dbUser = await prisma.user.findUnique({ where: { email: user.email } })
-          if (dbUser) token.id = dbUser.id
-          else token.id = (user as any).id // fallback
-        } else if ((user as any).id) {
-          token.id = (user as any).id
+        const googleProfile = readGoogleProfile(profile);
+        if (!googleProfile.email) {
+          throw new Error("No email from Google");
         }
-      } else if (!token.id && token.email) {
-        // Subsequent calls (or legacy tokens) without id: hydrate
-        const dbUser = await prisma.user.findUnique({ where: { email: token.email as string } })
-        if (dbUser) token.id = dbUser.id
-      }
-      return token
-    },
 
-    // Expose user.id on the client session
+        await prisma.user.upsert({
+          where: { email: googleProfile.email },
+          create: {
+            email: googleProfile.email,
+            name: googleProfile.name ?? "",
+            avatar: googleProfile.picture ?? "",
+            firstName: googleProfile.firstName,
+            lastName: googleProfile.lastName,
+          },
+          update: {
+            name: googleProfile.name ?? "",
+            avatar: googleProfile.picture ?? "",
+            firstName: googleProfile.firstName,
+            lastName: googleProfile.lastName,
+          },
+        });
+      }
+
+      return true;
+    },
+    async jwt({ token, user }) {
+      if (user) {
+        if (user.email) {
+          token.id = (await getUserIdByEmail(user.email)) ?? user.id;
+        } else {
+          token.id = user.id;
+        }
+      } else if (!token.id && typeof token.email === "string") {
+        token.id = await getUserIdByEmail(token.email);
+      }
+
+      return token;
+    },
     async session({ session, token }) {
-      if (session.user) session.user.id = token.id as string
-      return session
+      if (session.user && typeof token.id === "string") {
+        session.user.id = token.id;
+      }
+
+      return session;
     },
   },
-} satisfies NextAuthConfig
+} satisfies NextAuthConfig;
 
-// Finally spin up NextAuth and export the two helpers:
-export const { handlers, auth } = NextAuth(authOptions)
+export const { handlers, auth } = NextAuth(authOptions);

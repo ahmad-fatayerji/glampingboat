@@ -1,29 +1,33 @@
 "use client";
-import React, { useState, useEffect } from "react";
+
+import { startTransition, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import ReservationList from "./ReservationList";
 import ProfileForm from "./ProfileForm";
-import { useRouter, useSearchParams } from "next/navigation";
+import type { AccountTab, ReservationSerialized } from "@/lib/types";
 
 interface Props {
-  reservations: any[];
-  initialTab: "bookings" | "profile";
+  reservations: ReservationSerialized[];
+  initialTab: AccountTab;
 }
 
 export default function AccountTabs({ reservations, initialTab }: Props) {
   const search = useSearchParams();
   const router = useRouter();
-  const [tab, setTab] = useState<"bookings" | "profile">(initialTab);
+  const [tab, setTab] = useState<AccountTab>(initialTab);
 
-  // sync with URL changes
   useEffect(() => {
-    const t = search.get("tab") === "profile" ? "profile" : "bookings";
-    setTab(t);
+    const nextTab: AccountTab =
+      search.get("tab") === "profile" ? "profile" : "bookings";
+    startTransition(() => {
+      setTab(nextTab);
+    });
   }, [search]);
 
-  const switchTab = (t: "bookings" | "profile") => {
+  const switchTab = (nextTab: AccountTab) => {
     const url = new URL(window.location.href);
-    url.searchParams.set("tab", t);
-    router.push(url.pathname + "?" + url.searchParams.toString());
+    url.searchParams.set("tab", nextTab);
+    router.push(`${url.pathname}?${url.searchParams.toString()}`);
   };
 
   return (

@@ -98,7 +98,8 @@ const content = {
           <p>[Nom/raison sociale], [adresse], contact: [email].</p>
           <h2>Cookies utilisés</h2>
           <p>
-            Indispensables, mesure d'audience, confort & performance, marketing.
+            Indispensables, mesure d&apos;audience, confort & performance,
+            marketing.
           </p>
         </>
       ),
@@ -130,7 +131,7 @@ const content = {
             Maquette de CGU/CGV. Adaptez selon vente / location / prestations.
           </p>
           <h2>Objet</h2>
-          <p>Règles d'utilisation du site et des services/produits.</p>
+          <p>Règles d&apos;utilisation du site et des services/produits.</p>
         </>
       ),
     },
