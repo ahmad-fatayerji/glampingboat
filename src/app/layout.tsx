@@ -4,6 +4,7 @@ import { SessionProvider } from "next-auth/react";
 import { Marcellus, Outfit } from "next/font/google";
 import Logo from "@/components/Logo";
 import AppShell from "@/components/AppShell";
+import BackgroundVideo from "@/components/BackgroundVideo";
 import { AudioProvider } from "@/components/Audio/AudioContext";
 import CookieBanner from "@/components/Legal/CookieBanner";
 import { LanguageProvider } from "@/components/Language/LanguageContext";
@@ -36,6 +37,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${marcellus.className} ${outfit.className}`}>
       <body>
+        <BackgroundVideo />
         <SessionProvider>
           <LanguageProvider>
             {/* AudioProvider mounted once here → audio persists across pages */}

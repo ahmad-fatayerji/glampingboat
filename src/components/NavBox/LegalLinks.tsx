@@ -15,13 +15,17 @@ export default function LegalLinks() {
   const t = useT();
 
   return (
-    <div className="mt-6 text-sm text-gray-600 flex justify-center space-x-2">
+    <div className="mt-6 flex flex-wrap items-center justify-center gap-y-1 text-center text-xs leading-snug text-gray-600 sm:text-sm">
       {LINKS.map((item, index) => (
         <React.Fragment key={item.href}>
           <Link href={item.href} className="hover:underline">
             {t(item.key)}
           </Link>
-          {index < LINKS.length - 1 && <span className="text-gray-400">Â·</span>}
+          {index < LINKS.length - 1 && (
+            <span className="px-2 text-gray-400" aria-hidden="true">
+              {"\u00B7"}
+            </span>
+          )}
         </React.Fragment>
       ))}
     </div>

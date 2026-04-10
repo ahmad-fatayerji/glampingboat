@@ -10,10 +10,10 @@ export default function Logo() {
     >
       {/* “glampingboat” in Marcellus, blue */}
       <span
-        className="text-5xl font-bold transition-colors group-hover:text-[var(--color-blue)] group-focus-visible:text-[var(--color-blue)]"
+        className="text-5xl font-bold transition-colors group-hover:text-white group-focus-visible:text-white"
         style={{
           fontFamily: "Marcellus, serif",
-          color: "#002038",
+          color: "var(--color-beige)",
         }}
       >
         glampingboat
@@ -23,7 +23,7 @@ export default function Logo() {
         className="leading-none transition-transform group-hover:scale-105 group-focus-visible:scale-105"
         style={{
           fontFamily: "Outfit, sans-serif",
-          color: "#002038",
+          color: "var(--color-beige)",
           fontSize: "1.65rem",
           transform: "translateY(-0.95rem)",
           letterSpacing: "4px",

@@ -12,12 +12,13 @@ html,
 body {
   margin: 0;
   padding: 0;
+  min-height: 100%;
 }
 
 /* Set a default font-family and styling */
 body {
   font-family: "Outfit", sans-serif; /* matches your next/font configuration */
-  background-color: var(--color-white);
+  background-color: transparent;
   color: var(--color-blue);
 }
 
