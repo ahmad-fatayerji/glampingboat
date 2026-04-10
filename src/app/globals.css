@@ -22,6 +22,29 @@ body {
   color: var(--color-blue);
 }
 
+.contact-message-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 32, 56, 0.35) transparent;
+}
+
+.contact-message-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.contact-message-scrollbar::-webkit-scrollbar-track {
+  margin: 12px 0;
+  background: transparent;
+}
+
+.contact-message-scrollbar::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgba(0, 32, 56, 0.35);
+}
+
+.contact-message-scrollbar::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
 /* Drawer push effect: position elements with class .shift-with-drawer just LEFT of the open drawer */
 .shift-with-drawer {
   transition: right 0.3s ease, opacity 0.2s ease;

@@ -116,10 +116,6 @@ export default function AppShell({ children, serverToday }: AppShellProps) {
     setDrawerOpen(true);
   };
 
-  const handleCloseDrawer = () => {
-    setDrawerOpen(false);
-  };
-
   const handleRangeSelect = (start: Date, end: Date) => {
     if (!session) {
       window.location.href = "/account";
@@ -233,9 +229,7 @@ export default function AppShell({ children, serverToday }: AppShellProps) {
           <BookingForm arrivalDate={rangeStart} departureDate={rangeEnd} />
         )}
 
-        {stage === "contact" && (
-          <ContactForm onClose={handleCloseDrawer} onBack={handleCloseDrawer} />
-        )}
+        {stage === "contact" && <ContactForm />}
       </div>
 
       {children}

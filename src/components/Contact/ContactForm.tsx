@@ -13,11 +13,6 @@ type ContactField =
   | "email"
   | "message";
 
-interface ContactFormProps {
-  onClose?: () => void;
-  onBack?: () => void;
-}
-
 const INITIAL_FORM: ContactFormData = {
   firstName: "",
   lastName: "",
@@ -42,10 +37,7 @@ function fieldLabel(value: string) {
   return value.toLowerCase();
 }
 
-export default function ContactForm({
-  onClose,
-  onBack,
-}: ContactFormProps = {}) {
+export default function ContactForm() {
   const t = useT();
   const [form, setForm] = useState<ContactFormData>(INITIAL_FORM);
   const [status, setStatus] = useState<"idle" | "sending" | "success" | "error">(
@@ -145,28 +137,6 @@ export default function ContactForm({
         onSubmit={handleSubmit}
         className="mx-auto flex min-h-[calc(100vh-1.5rem)] w-full max-w-6xl flex-col border border-white/15 bg-[#3f5666]/82 px-5 py-4 text-[var(--color-beige)] shadow-[0_18px_55px_rgba(0,0,0,0.35)] backdrop-blur-sm sm:min-h-[calc(100vh-3rem)] sm:px-10 sm:py-7"
       >
-        <div className="mb-4 grid grid-cols-[1fr_auto_1fr] items-center gap-4 text-white">
-          <button
-            type="button"
-            onClick={onBack ?? onClose}
-            className="justify-self-start text-4xl font-semibold leading-none transition hover:opacity-80"
-            aria-label="Back"
-          >
-            {"<"}
-          </button>
-          <button
-            type="button"
-            onClick={onClose}
-            className="justify-self-center text-5xl font-semibold leading-none transition hover:opacity-80"
-            aria-label={t("close")}
-          >
-            {"\u00D7"}
-          </button>
-          <div className="justify-self-end text-5xl font-semibold leading-none opacity-95">
-            {">"}
-          </div>
-        </div>
-
         <div className="mb-5 grid grid-cols-[1fr_auto_1fr] items-end gap-4 border-b border-[#173c59] pb-2">
           <h2 className="text-[1.05rem] lowercase tracking-wide text-[var(--color-beige)]">
             {fieldLabel(t("contact"))}
@@ -221,14 +191,18 @@ export default function ContactForm({
           </div>
 
           <div className="flex min-h-[28rem] flex-col">
-            <textarea
-              name="message"
-              value={form.message}
-              onChange={handleChange}
-              placeholder={t("messagePlaceholder")}
-              className="min-h-[22rem] flex-1 rounded-[2.8rem] border-[3px] border-[#0d3350] bg-[var(--color-beige)] px-5 py-5 text-[var(--color-blue)] outline-none transition placeholder:text-[var(--color-blue)]/45 focus:border-[#234d69]"
-              required
-            />
+            <div className="min-h-[22rem] flex-1 overflow-hidden rounded-[2.8rem] border-[3px] border-[#0d3350] bg-[var(--color-beige)] transition focus-within:border-[#234d69]">
+              <div className="h-full px-5 py-5 pr-3">
+                <textarea
+                  name="message"
+                  value={form.message}
+                  onChange={handleChange}
+                  placeholder={t("messagePlaceholder")}
+                  className="contact-message-scrollbar h-full w-full resize-none overflow-y-auto bg-transparent pr-3 text-[var(--color-blue)] outline-none placeholder:text-[var(--color-blue)]/45"
+                  required
+                />
+              </div>
+            </div>
 
             <div className="mt-5 flex items-center justify-between gap-4">
               {status === "error" ? (
@@ -242,9 +216,30 @@ export default function ContactForm({
               <button
                 type="submit"
                 disabled={status === "sending"}
-                className="rounded-xl bg-[#0d3350] px-6 py-2 text-2xl lowercase text-[var(--color-beige)] transition hover:bg-[#123f61] disabled:cursor-not-allowed disabled:opacity-60"
+                className="inline-flex items-center gap-3 rounded-xl bg-[#0d3350] px-6 py-2 text-2xl lowercase text-[var(--color-beige)] transition hover:bg-[#123f61] disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {fieldLabel(statusLabel)} {">"}
+                <span>{fieldLabel(statusLabel)}</span>
+                <svg
+                  aria-hidden="true"
+                  viewBox="0 0 20 20"
+                  className="h-5 w-5"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M3 10H15"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                  />
+                  <path
+                    d="M10 5L15 10L10 15"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
               </button>
             </div>
           </div>
