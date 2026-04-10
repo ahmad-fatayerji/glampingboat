@@ -5,7 +5,18 @@ import { useT } from "@/components/Language/useT";
 import type { AddressField, ContactFormData } from "@/lib/types";
 import { ADDRESS_FIELDS, NAME_FIELDS, PHONE_FIELDS } from "@/lib/types";
 
-type ContactField = "firstName" | "lastName" | "phone" | "mobile" | "email" | "message";
+type ContactField =
+  | "firstName"
+  | "lastName"
+  | "phone"
+  | "mobile"
+  | "email"
+  | "message";
+
+interface ContactFormProps {
+  onClose?: () => void;
+  onBack?: () => void;
+}
 
 const INITIAL_FORM: ContactFormData = {
   firstName: "",
@@ -27,7 +38,14 @@ function isContactField(name: string): name is ContactField {
   ).includes(name as ContactField);
 }
 
-export default function ContactForm() {
+function fieldLabel(value: string) {
+  return value.toLowerCase();
+}
+
+export default function ContactForm({
+  onClose,
+  onBack,
+}: ContactFormProps = {}) {
   const t = useT();
   const [form, setForm] = useState<ContactFormData>(INITIAL_FORM);
   const [status, setStatus] = useState<"idle" | "sending" | "success" | "error">(
@@ -41,7 +59,10 @@ export default function ContactForm() {
     }));
   };
 
-  const updateField = <K extends ContactField>(field: K, value: ContactFormData[K]) => {
+  const updateField = <K extends ContactField>(
+    field: K,
+    value: ContactFormData[K]
+  ) => {
     setForm((current) => ({ ...current, [field]: value }));
   };
 
@@ -80,117 +101,153 @@ export default function ContactForm() {
     }
   };
 
+  const statusLabel =
+    status === "sending"
+      ? t("sending")
+      : status === "success"
+        ? t("sent")
+        : status === "error"
+          ? t("retry")
+          : t("send");
+
+  const inputClassName =
+    "h-10 w-full rounded-md border-2 border-[#0d3350] bg-[var(--color-beige)] px-3 text-[var(--color-blue)] outline-none transition placeholder:text-[var(--color-blue)]/45 focus:border-[#234d69]";
+
+  const renderLabeledField = (
+    field: "firstName" | "lastName" | "phone" | "mobile" | "email",
+    type: "text" | "tel" | "email" = "text"
+  ) => (
+    <div
+      key={field}
+      className="grid grid-cols-1 items-center gap-2 sm:grid-cols-[10.5rem_minmax(0,1fr)]"
+    >
+      <label
+        htmlFor={field}
+        className="text-[1.15rem] lowercase leading-none text-[var(--color-beige)]"
+      >
+        {fieldLabel(t(field))}
+      </label>
+      <input
+        id={field}
+        name={field}
+        type={type}
+        value={form[field]}
+        onChange={handleChange}
+        className={inputClassName}
+        required={field === "firstName" || field === "lastName" || field === "email"}
+      />
+    </div>
+  );
+
   return (
-    <div className="p-4 md:p-8 text-gray-100 w-full">
+    <div className="min-h-full p-3 sm:p-6">
       <form
         onSubmit={handleSubmit}
-        className="grid grid-cols-1 md:grid-cols-12 gap-6"
+        className="mx-auto flex min-h-[calc(100vh-1.5rem)] w-full max-w-6xl flex-col border border-white/15 bg-[#3f5666]/82 px-5 py-4 text-[var(--color-beige)] shadow-[0_18px_55px_rgba(0,0,0,0.35)] backdrop-blur-sm sm:min-h-[calc(100vh-3rem)] sm:px-10 sm:py-7"
       >
-        <div className="md:col-span-7">
-          <h2 className="text-xl font-semibold mb-4">{t("contact")}</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-            {NAME_FIELDS.map((field) => (
-              <div key={field}>
-                <label htmlFor={field} className="block text-sm capitalize">
-                  {t(field)}
-                </label>
-                <input
-                  id={field}
-                  name={field}
-                  type="text"
-                  value={form[field]}
-                  onChange={handleChange}
-                  className="mt-1 w-full p-2 bg-blue-800 rounded border border-blue-700 focus:outline-none focus:border-indigo-400"
-                  required
-                />
-              </div>
-            ))}
-          </div>
-
-          <label className="block text-sm mb-2">{t("address")}</label>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-            {ADDRESS_FIELDS.map((field) => (
-              <input
-                key={field}
-                type="text"
-                placeholder={t(field)}
-                name={field}
-                value={form.address[field]}
-                onChange={handleChange}
-                className="w-full p-2 bg-blue-800 rounded border border-blue-700 focus:outline-none focus:border-indigo-400"
-                required
-              />
-            ))}
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-            {PHONE_FIELDS.map((field) => (
-              <div key={field}>
-                <label htmlFor={field} className="block text-sm capitalize">
-                  {t(field)}
-                </label>
-                <input
-                  id={field}
-                  type="tel"
-                  name={field}
-                  value={form[field]}
-                  onChange={handleChange}
-                  className="mt-1 w-full p-2 bg-blue-800 rounded border border-blue-700 focus:outline-none focus:border-indigo-400"
-                />
-              </div>
-            ))}
-          </div>
-
-          <div className="mb-4">
-            <label htmlFor="email" className="block text-sm">
-              {t("email")}
-            </label>
-            <input
-              id="email"
-              type="email"
-              name="email"
-              value={form.email}
-              onChange={handleChange}
-              className="mt-1 w-full p-2 bg-blue-800 rounded border border-blue-700 focus:outline-none focus:border-indigo-400"
-              required
-            />
+        <div className="mb-4 grid grid-cols-[1fr_auto_1fr] items-center gap-4 text-white">
+          <button
+            type="button"
+            onClick={onBack ?? onClose}
+            className="justify-self-start text-4xl font-semibold leading-none transition hover:opacity-80"
+            aria-label="Back"
+          >
+            {"<"}
+          </button>
+          <button
+            type="button"
+            onClick={onClose}
+            className="justify-self-center text-5xl font-semibold leading-none transition hover:opacity-80"
+            aria-label={t("close")}
+          >
+            {"\u00D7"}
+          </button>
+          <div className="justify-self-end text-5xl font-semibold leading-none opacity-95">
+            {">"}
           </div>
         </div>
 
-        <div className="md:col-span-5 flex flex-col justify-between">
-          <h2 className="text-xl font-semibold mb-4">{t("message")}</h2>
-          <textarea
-            name="message"
-            value={form.message}
-            onChange={handleChange}
-            placeholder={t("messagePlaceholder")}
-            className="w-full h-48 p-2 bg-blue-800 rounded border border-blue-700 focus:outline-none focus:border-indigo-400 text-gray-100"
-            required
-          />
+        <div className="mb-5 grid grid-cols-[1fr_auto_1fr] items-end gap-4 border-b border-[#173c59] pb-2">
+          <h2 className="text-[1.05rem] lowercase tracking-wide text-[var(--color-beige)]">
+            {fieldLabel(t("contact"))}
+          </h2>
+          <div />
+          <h2 className="justify-self-start text-[1.05rem] lowercase tracking-wide text-[var(--color-beige)]">
+            {fieldLabel(t("message"))}
+          </h2>
+        </div>
 
-          <button
-            type="submit"
-            disabled={status === "sending"}
-            className="group relative mt-4 self-end inline-flex items-center gap-2 rounded-full px-6 py-2 font-semibold text-white bg-gradient-to-r from-indigo-600 via-blue-700 to-indigo-600 shadow-lg shadow-indigo-900/30 hover:from-indigo-500 hover:via-blue-600 hover:to-indigo-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-400 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          >
-            <span>
-              {status === "sending"
-                ? t("sending")
-                : status === "success"
-                  ? t("sent")
-                  : status === "error"
-                    ? t("retry")
-                    : t("send")}
-            </span>
-            <span className="transition-transform group-hover:translate-x-1">
-              âžœ
-            </span>
-            <span className="absolute inset-0 rounded-full ring-1 ring-white/10 pointer-events-none" />
-          </button>
+        <div className="grid flex-1 grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1.12fr)_minmax(22rem,0.88fr)]">
+          <div className="space-y-3">
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+              {NAME_FIELDS.map((field) => renderLabeledField(field))}
+            </div>
 
-          {status === "error" && (
-            <p className="mt-2 text-red-400">{t("errorTooManyRequests")}</p>
-          )}
+            <div className="grid grid-cols-1 items-start gap-2 sm:grid-cols-[10.5rem_minmax(0,1fr)]">
+              <div className="pt-1 text-[1.15rem] lowercase leading-none text-[var(--color-beige)]">
+                {fieldLabel(t("address"))}
+              </div>
+              <div className="space-y-2">
+                {ADDRESS_FIELDS.map((field) => (
+                  <div
+                    key={field}
+                    className="grid grid-cols-1 gap-2 sm:grid-cols-[7rem_minmax(0,1fr)]"
+                  >
+                    <label
+                      htmlFor={field}
+                      className="text-[1rem] lowercase leading-none text-[var(--color-beige)]/90 sm:justify-self-end sm:pt-2"
+                    >
+                      {fieldLabel(t(field))}
+                    </label>
+                    <input
+                      id={field}
+                      type="text"
+                      name={field}
+                      value={form.address[field]}
+                      onChange={handleChange}
+                      className={inputClassName}
+                      required
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {PHONE_FIELDS.map((field) =>
+              renderLabeledField(field, "tel")
+            )}
+
+            {renderLabeledField("email", "email")}
+          </div>
+
+          <div className="flex min-h-[28rem] flex-col">
+            <textarea
+              name="message"
+              value={form.message}
+              onChange={handleChange}
+              placeholder={t("messagePlaceholder")}
+              className="min-h-[22rem] flex-1 rounded-[2.8rem] border-[3px] border-[#0d3350] bg-[var(--color-beige)] px-5 py-5 text-[var(--color-blue)] outline-none transition placeholder:text-[var(--color-blue)]/45 focus:border-[#234d69]"
+              required
+            />
+
+            <div className="mt-5 flex items-center justify-between gap-4">
+              {status === "error" ? (
+                <p className="max-w-xs text-sm text-[#ffd9d9]">
+                  {t("errorTooManyRequests")}
+                </p>
+              ) : (
+                <div />
+              )}
+
+              <button
+                type="submit"
+                disabled={status === "sending"}
+                className="rounded-xl bg-[#0d3350] px-6 py-2 text-2xl lowercase text-[var(--color-beige)] transition hover:bg-[#123f61] disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {fieldLabel(statusLabel)} {">"}
+              </button>
+            </div>
+          </div>
         </div>
       </form>
     </div>

@@ -382,8 +382,8 @@ export default function BookingForm({
       >
         <div className="md:col-span-12 mb-2 text-sm opacity-80">
           <p>
-            {t("arrival")}: {arrivalDate.toLocaleDateString()} â€” {t("departure")}
-            : {departureDate.toLocaleDateString()}
+            {t("arrival")}: {arrivalDate.toLocaleDateString()} &mdash;{" "}
+            {t("departure")}: {departureDate.toLocaleDateString()}
           </p>
         </div>
         <div className="md:col-span-7">
@@ -524,7 +524,7 @@ export default function BookingForm({
                     />
                     <span className="flex-1">{option.name}</span>
                     <span className="text-xs opacity-70">
-                      â‚¬{option.priceHt.toFixed(2)}
+                      &euro;{option.priceHt.toFixed(2)}
                     </span>
                   </label>
                 ))}
@@ -604,9 +604,9 @@ export default function BookingForm({
               disabled={!form.acceptTerms || submitting}
               className="group relative mt-6 inline-flex items-center gap-2 rounded-full px-6 py-2 font-semibold text-white bg-gradient-to-r from-indigo-600 via-blue-700 to-indigo-600 shadow-lg shadow-indigo-900/30 hover:from-indigo-500 hover:via-blue-600 hover:to-indigo-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-400 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              <span>{submitting ? "Savingâ€¦" : t("pay")}</span>
+              <span>{submitting ? "Saving..." : t("pay")}</span>
               <span className="transition-transform group-hover:translate-x-1">
-                âžœ
+                &rarr;
               </span>
               <span className="absolute inset-0 rounded-full ring-1 ring-white/10 pointer-events-none" />
             </button>
@@ -646,13 +646,13 @@ function PriceSummary({
 }) {
   return (
     <div className="mt-6 text-sm space-y-1">
-      <p>Base HT â‚¬{basePriceHt.toFixed(2)}</p>
-      <p>Options HT â‚¬{optionSumHt.toFixed(2)}</p>
-      <p>TVA HT â‚¬{tvaHt.toFixed(2)}</p>
-      <p>Taxe sÃ©jour â‚¬{taxSejourTtc.toFixed(2)}</p>
-      <p className="font-medium">Total â‚¬{total.toFixed(2)}</p>
-      <p>Deposit â‚¬{deposit.toFixed(2)}</p>
-      <p>Balance â‚¬{balance.toFixed(2)}</p>
+      <p>Base HT &euro;{basePriceHt.toFixed(2)}</p>
+      <p>Options HT &euro;{optionSumHt.toFixed(2)}</p>
+      <p>TVA HT &euro;{tvaHt.toFixed(2)}</p>
+      <p>{"Taxe s\u00e9jour"} &euro;{taxSejourTtc.toFixed(2)}</p>
+      <p className="font-medium">Total &euro;{total.toFixed(2)}</p>
+      <p>Deposit &euro;{deposit.toFixed(2)}</p>
+      <p>Balance &euro;{balance.toFixed(2)}</p>
     </div>
   );
 }
@@ -690,7 +690,7 @@ function ProfileCompletionModal({
           onClick={onClose}
           className="absolute top-2 right-2 text-xs px-2 py-1 bg-blue-700/40 rounded hover:bg-blue-600/60"
         >
-          âœ•
+          &times;
         </button>
         <h3 className="text-lg font-semibold mb-2">Complete your profile</h3>
         <p className="text-xs mb-4 opacity-80">
@@ -739,7 +739,7 @@ function ProfileCompletionModal({
             disabled={savingProfile}
             className="px-4 py-2 text-sm rounded bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50"
           >
-            {savingProfile ? "Savingâ€¦" : "Save & Continue"}
+            {savingProfile ? "Saving..." : "Save & Continue"}
           </button>
         </div>
       </div>

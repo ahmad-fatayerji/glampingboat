@@ -87,7 +87,7 @@ export default function ProfileForm() {
   if (loading) {
     return (
       <div className="w-full bg-white rounded-2xl p-6 shadow border border-[var(--color-blue)]/10 text-sm text-[var(--color-blue)]">
-        Loading profileâ€¦
+        Loading profile...
       </div>
     );
   }
@@ -159,7 +159,7 @@ export default function ProfileForm() {
           disabled={saving}
           className="rounded-md bg-[var(--color-blue)] text-[var(--color-beige)] font-semibold text-sm px-5 py-2 shadow hover:bg-[#042c49] focus:outline-none focus:ring-2 focus:ring-[var(--color-blue)]/40 disabled:opacity-50"
         >
-          {saving ? "Savingâ€¦" : "Save Profile"}
+          {saving ? "Saving..." : "Save Profile"}
         </button>
       </div>
     </form>

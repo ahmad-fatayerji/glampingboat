@@ -136,15 +136,21 @@ export default function MonthCalendar({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <button onClick={() => setCurrent((date) => subMonths(date, 1))} className="p-1 rounded hover:bg-gray-200">
-          â€¹
+        <button
+          onClick={() => setCurrent((date) => subMonths(date, 1))}
+          className="p-1 rounded hover:bg-gray-200"
+        >
+          &lsaquo;
         </button>
         <h2 className="text-lg font-semibold">
-          {monthNames[current.getMonth()]} {current.getFullYear()} â€“{" "}
+          {monthNames[current.getMonth()]} {current.getFullYear()} &ndash;{" "}
           {monthNames[nextMonthDate.getMonth()]} {nextMonthDate.getFullYear()}
         </h2>
-        <button onClick={() => setCurrent((date) => addMonths(date, 1))} className="p-1 rounded hover:bg-gray-200">
-          â€º
+        <button
+          onClick={() => setCurrent((date) => addMonths(date, 1))}
+          className="p-1 rounded hover:bg-gray-200"
+        >
+          &rsaquo;
         </button>
       </div>
 

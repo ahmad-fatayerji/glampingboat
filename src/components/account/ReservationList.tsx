@@ -13,7 +13,7 @@ function nightsBetween(startIso: string, endIso: string) {
   return Math.round(ms / 86400000);
 }
 
-const euro = (value: number) => `â‚¬${value.toFixed(2)}`;
+const euro = (value: number) => `\u20AC${value.toFixed(2)}`;
 
 interface Props {
   reservations: ReservationSerialized[];
@@ -114,7 +114,7 @@ export default function ReservationList({ reservations }: Props) {
                           month: "short",
                           year: "numeric",
                         })}
-                        <span className="mx-1 text-[var(--color-blue)]/40">â€”</span>
+                        <span className="mx-1 text-[var(--color-blue)]/40">&mdash;</span>
                         {fmt(reservation.endDate, {
                           day: "2-digit",
                           month: "short",
@@ -171,7 +171,7 @@ export default function ReservationList({ reservations }: Props) {
                         />
                         <Info label="TVA HT" value={euro(reservation.tvaHt)} />
                         <Info
-                          label="Taxe sÃ©jour"
+                          label={"Taxe s\u00e9jour"}
                           value={euro(reservation.taxSejourTtc)}
                         />
                         <Info
@@ -195,7 +195,7 @@ export default function ReservationList({ reservations }: Props) {
                                 className="flex justify-between"
                               >
                                 <span>
-                                  {item.option.name} Ã— {item.quantity}
+                                  {item.option.name} &times; {item.quantity}
                                 </span>
                                 <span className="tabular-nums">
                                   {euro(item.totalPriceHt)}
@@ -340,7 +340,7 @@ function CancelDialog({
               disabled={busy}
               className="relative px-5 py-2 text-sm font-semibold rounded-md bg-red-600 text-white shadow hover:bg-red-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-400 disabled:opacity-50"
             >
-              {busy ? "Cancellingâ€¦" : "Cancel"}
+              {busy ? "Cancelling..." : "Cancel"}
             </button>
           </div>
         </div>

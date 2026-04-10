@@ -1,10 +1,15 @@
 "use client";
 
 // Hero text overlay replicating screenshot styling
+import { useLanguage } from "@/components/Language/LanguageContext";
 import { useT } from "@/components/Language/useT";
 
 export default function Home() {
   const t = useT();
+  const { locale } = useLanguage();
+  const heroLineHeight = locale === "fr" ? 0.86 : 0.8;
+  const heroRowGap = locale === "fr" ? "0.08em" : "0";
+
   return (
     <main className="relative w-full min-h-screen">
       {/* Hero phrase */}
@@ -17,13 +22,17 @@ export default function Home() {
           style={{
             fontFamily: "Outfit, sans-serif",
             fontSize: "clamp(3rem,9vw,7rem)",
-            lineHeight: 0.8,
+            lineHeight: heroLineHeight,
             letterSpacing: "-1px",
           }}
         >
           <span className="block">{t("heroEmbrace")}</span>
-          <span className="block">{t("heroASlow")}</span>
-          <span className="block">{t("heroLifestyle")}</span>
+          <span className="block" style={{ marginTop: heroRowGap }}>
+            {t("heroASlow")}
+          </span>
+          <span className="block" style={{ marginTop: heroRowGap }}>
+            {t("heroLifestyle")}
+          </span>
         </h1>
       </div>
     </main>

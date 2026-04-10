@@ -81,7 +81,8 @@ export default function AppShell({ children, serverToday }: AppShellProps) {
 
   useEffect(() => {
     document.documentElement.dataset.drawer = drawerOpen ? "open" : "closed";
-  }, [drawerOpen]);
+    document.documentElement.dataset.drawerStage = drawerOpen ? stage : "closed";
+  }, [drawerOpen, stage]);
 
   const handleBookClick = () => {
     if (drawerOpen && stage === "calendar") {
@@ -115,6 +116,10 @@ export default function AppShell({ children, serverToday }: AppShellProps) {
     setDrawerOpen(true);
   };
 
+  const handleCloseDrawer = () => {
+    setDrawerOpen(false);
+  };
+
   const handleRangeSelect = (start: Date, end: Date) => {
     if (!session) {
       window.location.href = "/account";
@@ -134,6 +139,17 @@ export default function AppShell({ children, serverToday }: AppShellProps) {
     setStage("form");
   };
 
+  const activeMenuItem =
+    drawerOpen && (stage === "calendar" || stage === "form")
+      ? "book"
+      : drawerOpen && stage === "boat"
+        ? "boat"
+        : drawerOpen && stage === "contact"
+          ? "contact"
+          : pathname === "/buy"
+              ? "buy"
+              : null;
+
   return (
     <>
       <AudioToggle />
@@ -148,13 +164,18 @@ export default function AppShell({ children, serverToday }: AppShellProps) {
           onBookClick={handleBookClick}
           onBoatClick={handleBoatClick}
           onContactClick={handleContactClick}
+          activeItem={activeMenuItem}
         />
       </div>
 
       <div
-        className={`fixed inset-y-0 right-0 z-50 bg-[#002038]/95 backdrop-blur-sm p-6 md:p-8 text-gray-100 overflow-y-auto transform transition-transform duration-300 ease-in-out ${
+        className={`fixed inset-y-0 right-0 z-50 overflow-y-auto transform transition-transform duration-300 ease-in-out ${
           drawerOpen ? "translate-x-0" : "translate-x-full"
-        } w-full sm:w-3/4 md:w-2/3 lg:w-1/2 xl:w-2/5`}
+        } ${
+          stage === "contact"
+            ? "w-full bg-transparent p-0 text-gray-100 sm:w-[82vw] lg:w-[72vw] xl:w-[60vw]"
+            : "w-full bg-[#002038]/95 p-6 text-gray-100 backdrop-blur-sm sm:w-3/4 md:p-8 lg:w-1/2 xl:w-2/5"
+        }`}
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
       >
@@ -173,7 +194,7 @@ export default function AppShell({ children, serverToday }: AppShellProps) {
                   href="/account"
                   className="inline-flex items-center gap-1 rounded-full px-4 py-1.5 text-xs font-semibold tracking-wide bg-[var(--color-blue)] text-[var(--color-beige)] hover:bg-[#06324d] focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[var(--color-blue)]/40 transition"
                 >
-                  Go to account âžœ
+                  Go to account &rarr;
                 </a>
               </div>
             )}
@@ -199,7 +220,7 @@ export default function AppShell({ children, serverToday }: AppShellProps) {
                 >
                   <span>{t("next")}</span>
                   <span className="transition-transform group-hover:translate-x-1">
-                    âžœ
+                    &rarr;
                   </span>
                   <span className="absolute inset-0 rounded-full ring-1 ring-white/10 pointer-events-none" />
                 </button>
@@ -212,7 +233,9 @@ export default function AppShell({ children, serverToday }: AppShellProps) {
           <BookingForm arrivalDate={rangeStart} departureDate={rangeEnd} />
         )}
 
-        {stage === "contact" && <ContactForm />}
+        {stage === "contact" && (
+          <ContactForm onClose={handleCloseDrawer} onBack={handleCloseDrawer} />
+        )}
       </div>
 
       {children}
