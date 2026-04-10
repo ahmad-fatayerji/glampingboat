@@ -1,6 +1,5 @@
 import "./globals.css";
 import UserMenu from "@/components/UserMenu";
-import { SessionProvider } from "next-auth/react";
 import { Marcellus, Outfit } from "next/font/google";
 import Logo from "@/components/Logo";
 import AppShell from "@/components/AppShell";
@@ -8,6 +7,7 @@ import BackgroundVideo from "@/components/BackgroundVideo";
 import { AudioProvider } from "@/components/Audio/AudioContext";
 import CookieBanner from "@/components/Legal/CookieBanner";
 import { LanguageProvider } from "@/components/Language/LanguageContext";
+import AuthSessionProvider from "@/components/providers/AuthSessionProvider";
 
 const marcellus = Marcellus({ subsets: ["latin"], weight: "400" });
 const outfit = Outfit({ subsets: ["latin"], weight: ["100", "300"] });
@@ -38,7 +38,7 @@ export default function RootLayout({
     <html lang="en" className={`${marcellus.className} ${outfit.className}`}>
       <body>
         <BackgroundVideo />
-        <SessionProvider>
+        <AuthSessionProvider>
           <LanguageProvider>
             {/* AudioProvider mounted once here → audio persists across pages */}
             <AudioProvider src="/audio/bg-music.mp3">
@@ -54,7 +54,7 @@ export default function RootLayout({
               <CookieBanner />
             </AudioProvider>
           </LanguageProvider>
-        </SessionProvider>
+        </AuthSessionProvider>
       </body>
     </html>
   );

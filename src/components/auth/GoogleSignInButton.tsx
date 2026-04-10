@@ -16,7 +16,7 @@ export default function GoogleSignInButton({ dark }: Props) {
   return (
     <button
       type="button"
-      onClick={() => signIn("google")}
+      onClick={() => signIn("google", { callbackUrl: "/account" })}
       className={`${base} ${style}`}
     >
       <span className="text-lg leading-none font-semibold">G</span>

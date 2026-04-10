@@ -1,39 +1,53 @@
 "use client";
-import { useState, useRef, useEffect } from "react";
-import { usePathname } from "next/navigation";
+
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { useSession, signIn, signOut } from "next-auth/react";
+import { usePathname } from "next/navigation";
+import { signIn, signOut, useSession } from "next-auth/react";
+import { useT } from "@/components/Language/useT";
 
 export default function UserMenu() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const pathname = usePathname();
+  const t = useT();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement | null>(null);
+  const userInitial =
+    session?.user?.name?.[0]?.toUpperCase() ??
+    session?.user?.email?.[0]?.toUpperCase() ??
+    "U";
 
   useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node))
+    const handler = (event: MouseEvent) => {
+      if (ref.current && !ref.current.contains(event.target as Node)) {
         setOpen(false);
+      }
     };
+
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  // Hide on account/auth page to reduce redundancy
   if (pathname.startsWith("/account")) return null;
 
   return (
-    <div ref={ref} className="fixed top-4 right-4 z-50 shift-with-drawer">
+    <div ref={ref} className="fixed top-4 right-4 z-50 profile-shift-with-drawer">
       <button
-        onClick={() => setOpen((o) => !o)}
+        type="button"
+        onClick={() => setOpen((value) => !value)}
         aria-haspopup="menu"
         aria-expanded={open}
-        className="w-11 h-11 rounded-full bg-[var(--color-beige)] text-[var(--color-blue)] flex items-center justify-center shadow-lg ring-1 ring-[var(--color-blue)]/10 hover:shadow-xl transition"
+        aria-label={session ? "Open account menu" : "Open sign in menu"}
+        className={`flex h-11 w-11 items-center justify-center rounded-full shadow-lg transition hover:shadow-xl ${
+          session
+            ? "bg-[var(--color-blue)] text-[var(--color-beige)] ring-2 ring-[var(--color-beige)]/60"
+            : "bg-[var(--color-beige)] text-[var(--color-blue)] ring-1 ring-[var(--color-blue)]/10"
+        }`}
       >
-        {session?.user?.email ? (
-          <span className="font-semibold text-sm">
-            {session.user.email[0]?.toUpperCase()}
-          </span>
+        {status === "loading" ? (
+          <span className="h-4 w-4 animate-pulse rounded-full bg-current/55" />
+        ) : session?.user?.email ? (
+          <span className="text-sm font-semibold">{userInitial}</span>
         ) : (
           <svg
             width="22"
@@ -52,49 +66,59 @@ export default function UserMenu() {
           </svg>
         )}
       </button>
+
       {open && (
         <div
           role="menu"
-          className="mt-2 w-56 rounded-xl bg-white/95 backdrop-blur p-3 shadow-xl ring-1 ring-black/5 text-sm text-[#002038] space-y-2"
+          className="mt-4 w-[min(19.5rem,calc(100vw-2rem))] rounded-[1.85rem] border border-[var(--color-beige)]/65 bg-[linear-gradient(180deg,rgba(228,219,206,0.96),rgba(221,211,196,0.92))] p-3 text-sm text-[var(--color-blue)] shadow-[0_20px_60px_rgba(0,0,0,0.22)] backdrop-blur-xl"
         >
           {session ? (
-            <>
-              <div className="px-2 py-1 text-xs uppercase tracking-wide text-gray-500">
-                {session.user?.email}
+            <div className="space-y-2">
+              <div className="rounded-[1.35rem] border border-white/45 bg-white/30 px-4 py-3">
+                <p className="text-[0.66rem] uppercase tracking-[0.28em] text-[var(--color-blue)]/42">
+                  {t("accountMenu")}
+                </p>
+                <p className="mt-2 break-all text-[0.88rem] leading-5 text-[var(--color-blue)]/72">
+                  {session.user?.email}
+                </p>
               </div>
               <Link
                 href="/account?tab=bookings"
-                className="block px-3 py-2 rounded hover:bg-[#E4DBCE] font-medium"
+                className="block rounded-[1.35rem] px-4 py-3 font-medium transition hover:bg-[var(--color-blue)]/7"
                 onClick={() => setOpen(false)}
               >
-                Bookings
+                {t("bookingsMenu")}
               </Link>
               <Link
                 href="/account?tab=profile"
-                className="block px-3 py-2 rounded hover:bg-[#E4DBCE] font-medium"
+                className="block rounded-[1.35rem] px-4 py-3 font-medium transition hover:bg-[var(--color-blue)]/7"
                 onClick={() => setOpen(false)}
               >
-                Profile
+                {t("profileMenu")}
               </Link>
               <button
+                type="button"
                 onClick={() => signOut({ callbackUrl: "/" })}
-                className="w-full text-left px-3 py-2 rounded hover:bg-red-50 text-red-600 font-medium"
+                className="w-full rounded-[1.35rem] px-4 py-3 text-left font-medium text-[#a24a3f] transition hover:bg-[#a24a3f]/7"
               >
-                Logout
+                {t("logoutMenu")}
               </button>
-            </>
+            </div>
           ) : (
-            <>
-              <p className="px-2 text-gray-600 text-sm">
-                You are not signed in.
-              </p>
+            <div className="space-y-2">
+              <div className="rounded-[1.35rem] border border-white/45 bg-white/30 px-4 py-3">
+                <p className="text-sm leading-6 text-[var(--color-blue)]/70">
+                  {t("notSignedInMenu")}
+                </p>
+              </div>
               <button
+                type="button"
                 onClick={() => signIn(undefined, { callbackUrl: "/account" })}
-                className="w-full px-3 py-2 rounded-md bg-[var(--color-blue)] text-[var(--color-beige)] font-semibold shadow hover:bg-[#06324d] focus:outline-none focus:ring-2 focus:ring-[var(--color-blue)]/40 transition"
+                className="w-full rounded-[1.35rem] bg-[var(--color-blue)] px-4 py-3 font-semibold text-[var(--color-beige)] shadow-[0_10px_24px_rgba(0,0,0,0.14)] transition hover:bg-[#0d3048] focus:outline-none focus:ring-2 focus:ring-[var(--color-blue)]/20"
               >
-                Sign in / Create account
+                {t("signInCreateAccountMenu")}
               </button>
-            </>
+            </div>
           )}
         </div>
       )}

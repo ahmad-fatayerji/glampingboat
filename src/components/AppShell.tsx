@@ -1,40 +1,79 @@
 "use client";
 
-import React, {
-  startTransition,
-  useEffect,
-  useRef,
-  useState,
-  type ReactNode,
-} from "react";
-import { usePathname } from "next/navigation";
+import React, { useEffect, useRef, useState, type ReactNode } from "react";
 import { useSession } from "next-auth/react";
-import WaveToggle from "@/components/NavBox/WaveToggle";
-import NavBox from "@/components/NavBox/NavBox";
-import MonthCalendar from "@/components/MonthCalendar";
-import BookingForm from "@/components/Booking/BookingForm";
-import BoatSlideshow from "@/components/Boat/BoatSlideshow";
-import ContactForm from "@/components/Contact/ContactForm";
 import { AudioToggle } from "@/components/Audio/AudioToggle";
+import BoatSlideshow, { type BoatSlide } from "@/components/Boat/BoatSlideshow";
+import BookingForm from "@/components/Booking/BookingForm";
+import ContactForm from "@/components/Contact/ContactForm";
+import BuyDrawer from "@/components/Drawer/BuyDrawer";
+import DrawerSurface from "@/components/Drawer/DrawerSurface";
+import LegalTextDrawer from "@/components/Drawer/LegalTextDrawer";
+import VisionDrawer from "@/components/Drawer/VisionDrawer";
 import { useT } from "@/components/Language/useT";
+import LegalNoticesDrawer from "@/components/Legal/LegalNoticesDrawer";
+import MonthCalendar from "@/components/MonthCalendar";
+import NavBox from "@/components/NavBox/NavBox";
+import WaveToggle from "@/components/NavBox/WaveToggle";
 
 interface AppShellProps {
   children: ReactNode;
   serverToday: string;
 }
 
-type Stage = "boat" | "calendar" | "form" | "contact";
+type Stage =
+  | "vision"
+  | "boat"
+  | "calendar"
+  | "form"
+  | "buy"
+  | "contact"
+  | "legal"
+  | "cookies"
+  | "terms";
 
-const BOAT_IMAGES = [
-  "/boat/1.jpg",
-  "/boat/2.jpg",
-  "/boat/3.jpg",
-  "/boat/4.jpg",
-  "/boat/5.jpg",
-  "/boat/6.jpg",
+const BOAT_SLIDES: BoatSlide[] = [
+  {
+    src: "/images/boat/Shotcut_00_00_03_987a.png",
+    alt: "Boat interior dining area",
+    label: "Living area",
+  },
+  {
+    src: "/images/boat/Shotcut_00_00_03_987b.png",
+    alt: "Boat sleeping quarters",
+    label: "Sleeping quarters",
+  },
+  {
+    src: "/images/boat/Shotcut_00_00_03_987c.png",
+    alt: "Boat kitchenette",
+    label: "Kitchenette",
+  },
+  {
+    src: "/images/boat/Shotcut_00_00_03_987d.png",
+    alt: "Boat deck exterior",
+    label: "Deck",
+  },
+  {
+    src: "/images/boat/Shotcut_00_00_03_987e.png",
+    alt: "Boat bathroom area",
+    label: "Sanitary facilities",
+  },
+  {
+    src: "/images/boat/Shotcut_00_00_03_987f.png",
+    alt: "Boat cabin view",
+    label: "Cabin details",
+  },
+  {
+    src: "/images/boat/Shotcut_00_00_03_987g.png",
+    alt: "Boat exterior on the water",
+    label: "Exterior",
+  },
+  {
+    src: "/images/boat/plan 3d couleur.png",
+    alt: "Boat floor plan",
+    label: "3D plan",
+  },
 ];
-
-const LEGAL_PATHS = ["/legal-notices", "/cookies", "/terms"];
 
 export default function AppShell({ children, serverToday }: AppShellProps) {
   const [navOpen, setNavOpen] = useState(false);
@@ -42,11 +81,25 @@ export default function AppShell({ children, serverToday }: AppShellProps) {
   const [stage, setStage] = useState<Stage>("calendar");
   const [rangeStart, setRangeStart] = useState<Date | null>(null);
   const [rangeEnd, setRangeEnd] = useState<Date | null>(null);
-  const pathname = usePathname();
   const t = useT();
   const { data: session } = useSession();
   const touchStartX = useRef<number | null>(null);
   const touchStartY = useRef<number | null>(null);
+
+  useEffect(() => {
+    document.documentElement.dataset.drawer = drawerOpen ? "open" : "closed";
+    document.documentElement.dataset.drawerStage = drawerOpen ? stage : "closed";
+  }, [drawerOpen, stage]);
+
+  const openStage = (nextStage: Stage) => {
+    if (drawerOpen && stage === nextStage) {
+      setDrawerOpen(false);
+      return;
+    }
+
+    setStage(nextStage);
+    setDrawerOpen(true);
+  };
 
   const handleTouchStart = (event: React.TouchEvent) => {
     const touch = event.touches[0];
@@ -60,29 +113,14 @@ export default function AppShell({ children, serverToday }: AppShellProps) {
     const touch = event.changedTouches[0];
     const dx = touch.clientX - touchStartX.current;
     const dy = touch.clientY - touchStartY.current;
-    const absDx = Math.abs(dx);
-    const absDy = Math.abs(dy);
 
-    if (dx > 60 && absDx > absDy * 1.2) {
+    if (dx > 60 && Math.abs(dx) > Math.abs(dy) * 1.2) {
       setDrawerOpen(false);
     }
 
     touchStartX.current = null;
     touchStartY.current = null;
   };
-
-  useEffect(() => {
-    if (LEGAL_PATHS.includes(pathname)) {
-      startTransition(() => {
-        setDrawerOpen(false);
-      });
-    }
-  }, [pathname]);
-
-  useEffect(() => {
-    document.documentElement.dataset.drawer = drawerOpen ? "open" : "closed";
-    document.documentElement.dataset.drawerStage = drawerOpen ? stage : "closed";
-  }, [drawerOpen, stage]);
 
   const handleBookClick = () => {
     if (drawerOpen && stage === "calendar") {
@@ -93,26 +131,6 @@ export default function AppShell({ children, serverToday }: AppShellProps) {
     setStage("calendar");
     setRangeStart(null);
     setRangeEnd(null);
-    setDrawerOpen(true);
-  };
-
-  const handleBoatClick = () => {
-    if (drawerOpen && stage === "boat") {
-      setDrawerOpen(false);
-      return;
-    }
-
-    setStage("boat");
-    setDrawerOpen(true);
-  };
-
-  const handleContactClick = () => {
-    if (drawerOpen && stage === "contact") {
-      setDrawerOpen(false);
-      return;
-    }
-
-    setStage("contact");
     setDrawerOpen(true);
   };
 
@@ -136,14 +154,16 @@ export default function AppShell({ children, serverToday }: AppShellProps) {
   };
 
   const activeMenuItem =
-    drawerOpen && (stage === "calendar" || stage === "form")
-      ? "book"
+    drawerOpen && stage === "vision"
+      ? "ourVision"
       : drawerOpen && stage === "boat"
         ? "boat"
-        : drawerOpen && stage === "contact"
-          ? "contact"
-          : pathname === "/buy"
-              ? "buy"
+        : drawerOpen && (stage === "calendar" || stage === "form")
+          ? "book"
+          : drawerOpen && stage === "buy"
+            ? "buy"
+            : drawerOpen && stage === "contact"
+              ? "contact"
               : null;
 
   return (
@@ -157,38 +177,46 @@ export default function AppShell({ children, serverToday }: AppShellProps) {
         }`}
       >
         <NavBox
+          onVisionClick={() => openStage("vision")}
           onBookClick={handleBookClick}
-          onBoatClick={handleBoatClick}
-          onContactClick={handleContactClick}
+          onBoatClick={() => openStage("boat")}
+          onBuyClick={() => openStage("buy")}
+          onContactClick={() => openStage("contact")}
+          onLegalClick={() => openStage("legal")}
+          onCookiesClick={() => openStage("cookies")}
+          onTermsClick={() => openStage("terms")}
           activeItem={activeMenuItem}
         />
       </div>
 
       <div
-        className={`fixed inset-y-0 right-0 z-50 overflow-y-auto transform transition-transform duration-300 ease-in-out ${
+        className={`fixed inset-y-0 right-0 z-50 w-full overflow-y-auto bg-transparent p-0 text-gray-100 transition-transform duration-300 ease-in-out sm:w-[82vw] lg:w-[72vw] xl:w-[64vw] ${
           drawerOpen ? "translate-x-0" : "translate-x-full"
-        } ${
-          stage === "contact"
-            ? "w-full bg-transparent p-0 text-gray-100 sm:w-[82vw] lg:w-[72vw] xl:w-[60vw]"
-            : "w-full bg-[#002038]/95 p-6 text-gray-100 backdrop-blur-sm sm:w-3/4 md:p-8 lg:w-1/2 xl:w-2/5"
         }`}
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
       >
-        {stage === "boat" && <BoatSlideshow images={BOAT_IMAGES} />}
+        {stage === "vision" && <VisionDrawer />}
+
+        {stage === "boat" && (
+          <BoatSlideshow
+            slides={BOAT_SLIDES}
+            onClose={() => setDrawerOpen(false)}
+          />
+        )}
 
         {stage === "calendar" && (
-          <>
+          <DrawerSurface>
             {!session && (
-              <div className="mb-4 rounded-xl bg-[var(--color-beige)]/80 text-[var(--color-blue)] p-4 text-sm leading-relaxed border border-[var(--color-blue)]/10">
-                <p className="font-medium mb-1">Sign in required to book</p>
-                <p className="opacity-80 mb-3">
+              <div className="mb-4 rounded-xl border border-[var(--color-blue)]/10 bg-[var(--color-beige)]/80 p-4 text-sm leading-relaxed text-[var(--color-blue)]">
+                <p className="mb-1 font-medium">Sign in required to book</p>
+                <p className="mb-3 opacity-80">
                   Create an account or sign in before selecting dates and
                   completing your reservation.
                 </p>
                 <a
                   href="/account"
-                  className="inline-flex items-center gap-1 rounded-full px-4 py-1.5 text-xs font-semibold tracking-wide bg-[var(--color-blue)] text-[var(--color-beige)] hover:bg-[#06324d] focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[var(--color-blue)]/40 transition"
+                  className="inline-flex items-center gap-1 rounded-full bg-[var(--color-blue)] px-4 py-1.5 text-xs font-semibold tracking-wide text-[var(--color-beige)] transition hover:bg-[#06324d] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-blue)]/40 focus-visible:ring-offset-2"
                 >
                   Go to account &rarr;
                 </a>
@@ -200,7 +228,7 @@ export default function AppShell({ children, serverToday }: AppShellProps) {
               onSelectRange={handleRangeSelect}
             />
             {rangeStart && rangeEnd && (
-              <div className="mt-4 flex justify-between items-center">
+              <div className="mt-4 flex items-center justify-between">
                 <div className="text-sm">
                   <p>
                     {t("arrival")}: {rangeStart.toLocaleDateString()}
@@ -212,24 +240,48 @@ export default function AppShell({ children, serverToday }: AppShellProps) {
                 <button
                   type="button"
                   onClick={handleNext}
-                  className="group relative inline-flex items-center gap-2 rounded-full px-6 py-2 font-semibold text-white bg-gradient-to-r from-indigo-600 via-blue-700 to-indigo-600 shadow-lg shadow-indigo-900/30 hover:from-indigo-500 hover:via-blue-600 hover:to-indigo-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-400 transition-colors"
+                  className="inline-flex items-center gap-2 rounded-full bg-[var(--color-blue)] px-6 py-2 font-semibold text-[var(--color-beige)] transition hover:bg-[#06324d]"
                 >
                   <span>{t("next")}</span>
-                  <span className="transition-transform group-hover:translate-x-1">
-                    &rarr;
-                  </span>
-                  <span className="absolute inset-0 rounded-full ring-1 ring-white/10 pointer-events-none" />
+                  <span>&rarr;</span>
                 </button>
               </div>
             )}
-          </>
+          </DrawerSurface>
         )}
 
         {stage === "form" && rangeStart && rangeEnd && (
-          <BookingForm arrivalDate={rangeStart} departureDate={rangeEnd} />
+          <DrawerSurface>
+            <BookingForm arrivalDate={rangeStart} departureDate={rangeEnd} />
+          </DrawerSurface>
+        )}
+
+        {stage === "buy" && (
+          <BuyDrawer
+            onBookClick={() => {
+              setRangeStart(null);
+              setRangeEnd(null);
+              setStage("calendar");
+              setDrawerOpen(true);
+            }}
+            onContactClick={() => {
+              setStage("contact");
+              setDrawerOpen(true);
+            }}
+          />
         )}
 
         {stage === "contact" && <ContactForm />}
+
+        {stage === "legal" && (
+          <DrawerSurface className="border-white/10 bg-[rgba(24,34,30,0.42)] shadow-[0_18px_55px_rgba(0,0,0,0.22)] backdrop-blur-[1px]">
+            <LegalNoticesDrawer />
+          </DrawerSurface>
+        )}
+
+        {stage === "cookies" && <LegalTextDrawer kind="cookies" />}
+
+        {stage === "terms" && <LegalTextDrawer kind="terms" />}
       </div>
 
       {children}

@@ -92,16 +92,16 @@ export default function MonthCalendar({
         "text-[#8d8478] rounded-full cursor-not-allowed relative overflow-hidden"
       );
     } else if (isStart || isEnd) {
-      classes.push("bg-purple-500 text-white", "rounded-full");
+      classes.push("bg-[var(--color-blue)] text-[var(--color-beige)]", "rounded-full");
     } else if (inSelected) {
-      classes.push("bg-purple-500 text-white", "rounded-none");
+      classes.push("bg-[var(--color-blue)]/85 text-[var(--color-beige)]", "rounded-none");
     } else if (isHoverEnd) {
-      classes.push("bg-purple-300 text-white", "rounded-full");
+      classes.push("bg-[var(--color-blue)]/55 text-[var(--color-beige)]", "rounded-full");
     } else if (inHover) {
-      classes.push("bg-purple-300 text-white", "rounded-none");
+      classes.push("bg-[var(--color-blue)]/55 text-[var(--color-beige)]", "rounded-none");
     } else {
       classes.push(
-        "bg-indigo-600 text-white hover:bg-indigo-500",
+        "bg-[var(--color-blue)] text-[var(--color-beige)] hover:bg-[#06324d]",
         "cursor-pointer",
         "rounded-full"
       );
@@ -138,7 +138,7 @@ export default function MonthCalendar({
       <div className="flex items-center justify-between">
         <button
           onClick={() => setCurrent((date) => subMonths(date, 1))}
-          className="p-1 rounded hover:bg-gray-200"
+          className="flex h-10 w-10 items-center justify-center rounded-full border border-[var(--color-beige)]/20 bg-[var(--color-blue)] text-[var(--color-beige)] transition hover:bg-[#06324d]"
         >
           &lsaquo;
         </button>
@@ -148,7 +148,7 @@ export default function MonthCalendar({
         </h2>
         <button
           onClick={() => setCurrent((date) => addMonths(date, 1))}
-          className="p-1 rounded hover:bg-gray-200"
+          className="flex h-10 w-10 items-center justify-center rounded-full border border-[var(--color-beige)]/20 bg-[var(--color-blue)] text-[var(--color-beige)] transition hover:bg-[#06324d]"
         >
           &rsaquo;
         </button>
@@ -192,7 +192,7 @@ export default function MonthCalendar({
       <div className="flex flex-wrap items-center gap-6 text-xs text-gray-300">
         <span className="font-medium text-gray-200">{t("legend")}:</span>
         <span className="inline-flex items-center gap-1">
-          <span className="inline-block w-4 h-4 rounded-full bg-indigo-600" />
+          <span className="inline-block w-4 h-4 rounded-full bg-[var(--color-blue)]" />
           {t("available")}
         </span>
         <span className="inline-flex items-center gap-1">
@@ -207,7 +207,7 @@ export default function MonthCalendar({
           {t("unavailable")}
         </span>
         <span className="inline-flex items-center gap-1">
-          <span className="inline-block w-4 h-4 rounded-full bg-purple-500" />
+          <span className="inline-block w-4 h-4 rounded-full bg-[var(--color-blue)]" />
           {t("selectedRange")}
         </span>
       </div>

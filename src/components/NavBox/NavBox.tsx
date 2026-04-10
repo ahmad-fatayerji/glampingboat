@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import LanguagePicker from "./LanguagePicker";
 import LegalLinks from "./LegalLinks";
 import { useT } from "@/components/Language/useT";
@@ -8,25 +7,35 @@ import { useT } from "@/components/Language/useT";
 type NavItemKey = "ourVision" | "boat" | "book" | "buy" | "contact";
 
 interface NavBoxProps {
+  onVisionClick: () => void;
   onBookClick: () => void;
   onBoatClick: () => void;
+  onBuyClick: () => void;
   onContactClick: () => void;
+  onLegalClick: () => void;
+  onCookiesClick: () => void;
+  onTermsClick: () => void;
   activeItem?: NavItemKey | null;
 }
 
 export default function NavBox({
+  onVisionClick,
   onBookClick,
   onBoatClick,
+  onBuyClick,
   onContactClick,
+  onLegalClick,
+  onCookiesClick,
+  onTermsClick,
   activeItem = null,
 }: NavBoxProps) {
   const t = useT();
   const navItems = [
-    { label: t("ourVision"), key: "ourVision", href: "/" },
-    { label: t("boat"), key: "boat", href: "/" },
-    { label: t("book"), key: "book", href: "/book" },
-    { label: t("buy"), key: "buy", href: "/buy" },
-    { label: t("contact"), key: "contact", href: "/contact" },
+    { label: t("ourVision"), key: "ourVision", onClick: onVisionClick },
+    { label: t("boat"), key: "boat", onClick: onBoatClick },
+    { label: t("book"), key: "book", onClick: onBookClick },
+    { label: t("buy"), key: "buy", onClick: onBuyClick },
+    { label: t("contact"), key: "contact", onClick: onContactClick },
   ] as const;
 
   const getItemClassName = (key: NavItemKey) =>
@@ -49,7 +58,7 @@ export default function NavBox({
 
   return (
     <div
-      className="max-w-sm p-6 rounded-2xl shadow-lg"
+      className="max-w-sm rounded-2xl p-6 shadow-lg"
       style={{ backgroundColor: "#E4DBCE" }}
     >
       <div className="flex justify-center">
@@ -57,55 +66,19 @@ export default function NavBox({
       </div>
 
       <nav className="mt-6 flex flex-col space-y-3">
-        {navItems.map(({ label, href, key }) => {
-          const isActive = activeItem === key;
-
-          if (key === "boat") {
-            return (
-              <div key={key} className="flex items-center gap-4">
-                {renderActiveMarker(isActive)}
-                <button onClick={onBoatClick} className={getItemClassName(key)}>
-                  {label}
-                </button>
-              </div>
-            );
-          }
-
-          if (key === "book") {
-            return (
-              <div key={key} className="flex items-center gap-4">
-                {renderActiveMarker(isActive)}
-                <button onClick={onBookClick} className={getItemClassName(key)}>
-                  {label}
-                </button>
-              </div>
-            );
-          }
-
-          if (key === "contact") {
-            return (
-              <div key={key} className="flex items-center gap-4">
-                {renderActiveMarker(isActive)}
-                <button
-                  onClick={onContactClick}
-                  className={getItemClassName(key)}
-                >
-                  {label}
-                </button>
-              </div>
-            );
-          }
-
-          return (
-            <div key={key} className="flex items-center gap-4">
-              {renderActiveMarker(isActive)}
-              <Link href={href} className={getItemClassName(key)}>
-                {label}
-              </Link>
-            </div>
-          );
-        })}
-        <LegalLinks />
+        {navItems.map(({ label, key, onClick }) => (
+          <div key={key} className="flex items-center gap-4">
+            {renderActiveMarker(activeItem === key)}
+            <button type="button" onClick={onClick} className={getItemClassName(key)}>
+              {label}
+            </button>
+          </div>
+        ))}
+        <LegalLinks
+          onLegalClick={onLegalClick}
+          onCookiesClick={onCookiesClick}
+          onTermsClick={onTermsClick}
+        />
       </nav>
     </div>
   );

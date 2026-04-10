@@ -1,4 +1,4 @@
-import NextAuth, { type NextAuthConfig } from "next-auth";
+import { getServerSession, type NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { prisma } from "@/lib/prisma";
@@ -28,7 +28,7 @@ async function getUserIdByEmail(email: string) {
   return user?.id;
 }
 
-export const authOptions = {
+export const authOptions: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
   session: { strategy: "jwt" },
   pages: {
@@ -133,6 +133,8 @@ export const authOptions = {
       return session;
     },
   },
-} satisfies NextAuthConfig;
+};
 
-export const { handlers, auth } = NextAuth(authOptions);
+export function auth() {
+  return getServerSession(authOptions);
+}
