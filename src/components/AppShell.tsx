@@ -196,7 +196,9 @@ export default function AppShell({ children, serverToday }: AppShellProps) {
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
       >
-        {stage === "vision" && <VisionDrawer />}
+        {stage === "vision" && (
+          <VisionDrawer onClose={() => setDrawerOpen(false)} />
+        )}
 
         {stage === "boat" && (
           <BoatSlideshow
