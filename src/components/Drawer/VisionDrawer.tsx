@@ -83,7 +83,7 @@ function PageShell({
   closeLabel: string;
 }) {
   return (
-    <div className="relative min-h-[calc(100vh-1.5rem)] w-full overflow-hidden bg-transparent p-3 sm:min-h-[calc(100vh-3rem)] sm:p-4">
+    <div className="relative h-[calc(100vh-1.5rem)] w-full overflow-hidden bg-transparent p-3 sm:h-[calc(100vh-3rem)] sm:p-4">
       <Controls
         onPrev={onPrev}
         onNext={onNext}
@@ -92,7 +92,7 @@ function PageShell({
         nextLabel={nextLabel}
         closeLabel={closeLabel}
       />
-      <div className="h-full min-h-[calc(100vh-4rem)] w-full overflow-hidden bg-transparent sm:min-h-[calc(100vh-5rem)]">
+      <div className="h-full w-full overflow-hidden bg-transparent">
         {children}
       </div>
     </div>
@@ -125,7 +125,7 @@ function SlidePage({
       nextLabel={nextLabel}
       closeLabel={closeLabel}
     >
-      <div className="relative grid h-full min-h-[calc(100vh-4rem)] grid-rows-2 gap-[2px] bg-white sm:min-h-[calc(100vh-5rem)]">
+      <div className="relative grid h-full grid-rows-2 gap-[2px] bg-white">
         <div className="overflow-hidden">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
