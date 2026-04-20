@@ -1,6 +1,14 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import Image from "next/image";
+import {
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
 import { useT } from "@/components/Language/useT";
 
 export interface BoatSlide {
@@ -16,7 +24,17 @@ interface BoatSlideshowProps {
   onClose?: () => void;
 }
 
-function Controls({
+const PAGE_COUNT = 3;
+const DRAWER_IMAGE_SIZES =
+  "(min-width: 1280px) 64vw, (min-width: 1024px) 72vw, (min-width: 640px) 82vw, 100vw";
+const COLLAGE_THIRD_SIZES =
+  "(min-width: 1280px) 21vw, (min-width: 1024px) 24vw, (min-width: 640px) 28vw, 33vw";
+const COLLAGE_LARGE_SIZES =
+  "(min-width: 1280px) 43vw, (min-width: 1024px) 48vw, (min-width: 640px) 55vw, 67vw";
+const COLLAGE_SIDE_SIZES =
+  "(min-width: 1280px) 21vw, (min-width: 1024px) 24vw, (min-width: 640px) 27vw, 33vw";
+
+const Controls = memo(function Controls({
   onPrev,
   onNext,
   onClose,
@@ -63,9 +81,9 @@ function Controls({
       </button>
     </div>
   );
-}
+});
 
-function PageShell({
+const PageShell = memo(function PageShell({
   children,
   onPrev,
   onNext,
@@ -97,18 +115,35 @@ function PageShell({
       </div>
     </div>
   );
-}
+});
 
-function ImageTile({ src, alt }: { src: string; alt: string }) {
+const ImageTile = memo(function ImageTile({
+  src,
+  alt,
+  sizes,
+  priority = false,
+}: {
+  src: string;
+  alt: string;
+  sizes: string;
+  priority?: boolean;
+}) {
   return (
-    <div className="overflow-hidden">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={src} alt={alt} className="h-full w-full object-cover" />
+    <div className="relative overflow-hidden">
+      <Image
+        src={src}
+        alt={alt}
+        fill
+        sizes={sizes}
+        priority={priority}
+        quality={74}
+        className="object-cover"
+      />
     </div>
   );
-}
+});
 
-function CollagePage({
+const CollagePage = memo(function CollagePage({
   slides,
   onPrev,
   onNext,
@@ -136,24 +171,52 @@ function CollagePage({
     >
       <div className="grid h-full min-h-[calc(100vh-4rem)] grid-rows-[36%_64%] gap-[2px] bg-white sm:min-h-[calc(100vh-5rem)]">
         <div className="grid grid-cols-3 gap-[2px]">
-          <ImageTile src={slides[0].src} alt={slides[0].alt} />
-          <ImageTile src={slides[1].src} alt={slides[1].alt} />
-          <ImageTile src={slides[2].src} alt={slides[2].alt} />
+          <ImageTile
+            src={slides[0].src}
+            alt={slides[0].alt}
+            sizes={COLLAGE_THIRD_SIZES}
+            priority
+          />
+          <ImageTile
+            src={slides[1].src}
+            alt={slides[1].alt}
+            sizes={COLLAGE_THIRD_SIZES}
+            priority
+          />
+          <ImageTile
+            src={slides[2].src}
+            alt={slides[2].alt}
+            sizes={COLLAGE_THIRD_SIZES}
+            priority
+          />
         </div>
 
         <div className="grid grid-cols-[2fr_1fr] gap-[2px]">
-          <ImageTile src={slides[3].src} alt={slides[3].alt} />
+          <ImageTile
+            src={slides[3].src}
+            alt={slides[3].alt}
+            sizes={COLLAGE_LARGE_SIZES}
+            priority
+          />
           <div className="grid grid-rows-2 gap-[2px]">
-            <ImageTile src={slides[4].src} alt={slides[4].alt} />
-            <ImageTile src={slides[6].src} alt={slides[6].alt} />
+            <ImageTile
+              src={slides[4].src}
+              alt={slides[4].alt}
+              sizes={COLLAGE_SIDE_SIZES}
+            />
+            <ImageTile
+              src={slides[6].src}
+              alt={slides[6].alt}
+              sizes={COLLAGE_SIDE_SIZES}
+            />
           </div>
         </div>
       </div>
     </PageShell>
   );
-}
+});
 
-function SingleImagePage({
+const SingleImagePage = memo(function SingleImagePage({
   slide,
   onPrev,
   onNext,
@@ -179,17 +242,22 @@ function SingleImagePage({
       nextLabel={nextLabel}
       closeLabel={closeLabel}
     >
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={slide.src}
-        alt={slide.alt}
-        className="h-full min-h-[calc(100vh-4rem)] w-full object-cover sm:min-h-[calc(100vh-5rem)]"
-      />
+      <div className="relative h-full min-h-[calc(100vh-4rem)] w-full sm:min-h-[calc(100vh-5rem)]">
+        <Image
+          src={slide.src}
+          alt={slide.alt}
+          fill
+          sizes={DRAWER_IMAGE_SIZES}
+          priority
+          quality={76}
+          className="object-cover"
+        />
+      </div>
     </PageShell>
   );
-}
+});
 
-function DropMarker({
+const DropMarker = memo(function DropMarker({
   number,
   className,
 }: {
@@ -211,9 +279,13 @@ function DropMarker({
       </span>
     </div>
   );
-}
+});
 
-function AccessibilityBadge({ className }: { className: string }) {
+const AccessibilityBadge = memo(function AccessibilityBadge({
+  className,
+}: {
+  className: string;
+}) {
   return (
     <div className={`absolute ${className}`} aria-hidden="true">
       <svg viewBox="0 0 120 120" className="h-full w-full">
@@ -232,9 +304,9 @@ function AccessibilityBadge({ className }: { className: string }) {
       </svg>
     </div>
   );
-}
+});
 
-function PlanPage({
+const PlanPage = memo(function PlanPage({
   slide,
   onPrev,
   onNext,
@@ -279,11 +351,14 @@ function PlanPage({
       <div className="flex h-full min-h-[calc(100vh-4rem)] items-start justify-center bg-[rgba(255,255,255,0.08)] sm:min-h-[calc(100vh-5rem)]">
         <div className="relative w-full max-w-[1701px]">
           <div className="relative aspect-[1701/1134] w-full">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
+            <Image
               src={slide.src}
               alt={slide.alt}
-              className="absolute inset-0 h-full w-full object-cover"
+              fill
+              sizes={DRAWER_IMAGE_SIZES}
+              priority
+              quality={78}
+              className="object-cover"
             />
 
             <DropMarker number="1" className="left-[14.6%] top-[53.5%] h-[12%] w-[8.3%]" />
@@ -328,7 +403,7 @@ function PlanPage({
       </div>
     </PageShell>
   );
-}
+});
 
 export default function BoatSlideshow({
   slides,
@@ -337,25 +412,43 @@ export default function BoatSlideshow({
   onClose,
 }: BoatSlideshowProps) {
   const [page, setPage] = useState(0);
-  const pageCount = 3;
   const t = useT();
 
   useEffect(() => {
     if (!auto) return;
     const id = setInterval(
-      () => setPage((value) => (value + 1) % pageCount),
+      () => setPage((value) => (value + 1) % PAGE_COUNT),
       intervalMs
     );
     return () => clearInterval(id);
   }, [auto, intervalMs]);
 
-  if (slides.length < 8) return null;
+  const prev = useCallback(
+    () => setPage((value) => (value - 1 + PAGE_COUNT) % PAGE_COUNT),
+    []
+  );
+  const next = useCallback(
+    () => setPage((value) => (value + 1) % PAGE_COUNT),
+    []
+  );
+  const prevLabel = useMemo(() => t("previous"), [t]);
+  const nextLabel = useMemo(() => t("next"), [t]);
+  const closeLabel = useMemo(() => t("close"), [t]);
+  const planLabels = useMemo(
+    () => ({
+      sleepingText: t("boatPlanSleeping"),
+      kitchenetteText: t("boatPlanKitchenette"),
+      deckText: t("boatPlanDeck"),
+      electricMotorText: t("boatPlanElectricMotor"),
+      clearWaterText: t("boatPlanClearWater"),
+      blackWaterText: t("boatPlanBlackWater"),
+      noChoresText: t("boatPlanNoChores"),
+      noLicenceBoatText: t("boatPlanNoLicenceBoat"),
+    }),
+    [t]
+  );
 
-  const prev = () => setPage((value) => (value - 1 + pageCount) % pageCount);
-  const next = () => setPage((value) => (value + 1) % pageCount);
-  const prevLabel = t("previous");
-  const nextLabel = t("next");
-  const closeLabel = t("close");
+  if (slides.length < 8) return null;
 
   if (page === 0) {
     return (
@@ -394,14 +487,7 @@ export default function BoatSlideshow({
       prevLabel={prevLabel}
       nextLabel={nextLabel}
       closeLabel={closeLabel}
-      sleepingText={t("boatPlanSleeping")}
-      kitchenetteText={t("boatPlanKitchenette")}
-      deckText={t("boatPlanDeck")}
-      electricMotorText={t("boatPlanElectricMotor")}
-      clearWaterText={t("boatPlanClearWater")}
-      blackWaterText={t("boatPlanBlackWater")}
-      noChoresText={t("boatPlanNoChores")}
-      noLicenceBoatText={t("boatPlanNoLicenceBoat")}
+      {...planLabels}
     />
   );
 }

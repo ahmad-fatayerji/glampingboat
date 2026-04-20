@@ -34,42 +34,42 @@ type Stage =
 
 const BOAT_SLIDES: BoatSlide[] = [
   {
-    src: "/images/boat/Shotcut_00_00_03_987a.png",
+    src: "/images/boat/optimized/Shotcut_00_00_03_987a.webp",
     alt: "Boat interior dining area",
     label: "Living area",
   },
   {
-    src: "/images/boat/Shotcut_00_00_03_987b.png",
+    src: "/images/boat/optimized/Shotcut_00_00_03_987b.webp",
     alt: "Boat sleeping quarters",
     label: "Sleeping quarters",
   },
   {
-    src: "/images/boat/Shotcut_00_00_03_987c.png",
+    src: "/images/boat/optimized/Shotcut_00_00_03_987c.webp",
     alt: "Boat kitchenette",
     label: "Kitchenette",
   },
   {
-    src: "/images/boat/Shotcut_00_00_03_987d.png",
+    src: "/images/boat/optimized/Shotcut_00_00_03_987d.webp",
     alt: "Boat deck exterior",
     label: "Deck",
   },
   {
-    src: "/images/boat/Shotcut_00_00_03_987e.png",
+    src: "/images/boat/optimized/Shotcut_00_00_03_987e.webp",
     alt: "Boat bathroom area",
     label: "Sanitary facilities",
   },
   {
-    src: "/images/boat/Shotcut_00_00_03_987f.png",
+    src: "/images/boat/optimized/Shotcut_00_00_03_987f.webp",
     alt: "Boat cabin view",
     label: "Cabin details",
   },
   {
-    src: "/images/boat/Shotcut_00_00_03_987g.png",
+    src: "/images/boat/optimized/Shotcut_00_00_03_987g.webp",
     alt: "Boat exterior on the water",
     label: "Exterior",
   },
   {
-    src: "/images/boat/plan 3d couleur.png",
+    src: "/images/boat/optimized/plan 3d couleur.webp",
     alt: "Boat floor plan",
     label: "3D plan",
   },

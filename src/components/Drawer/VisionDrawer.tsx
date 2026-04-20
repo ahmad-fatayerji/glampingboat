@@ -1,6 +1,13 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import Image from "next/image";
+import {
+  memo,
+  useCallback,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
 import { useT } from "@/components/Language/useT";
 
 interface VisionDrawerProps {
@@ -16,7 +23,10 @@ interface VisionSlide {
   tags: string;
 }
 
-function Controls({
+const VISION_IMAGE_SIZES =
+  "(min-width: 1280px) 64vw, (min-width: 1024px) 72vw, (min-width: 640px) 82vw, 100vw";
+
+const Controls = memo(function Controls({
   onPrev,
   onNext,
   onClose,
@@ -63,9 +73,9 @@ function Controls({
       </button>
     </div>
   );
-}
+});
 
-function PageShell({
+const PageShell = memo(function PageShell({
   children,
   onPrev,
   onNext,
@@ -97,9 +107,33 @@ function PageShell({
       </div>
     </div>
   );
-}
+});
 
-function SlidePage({
+const VisionImage = memo(function VisionImage({
+  src,
+  alt,
+  priority,
+}: {
+  src: string;
+  alt: string;
+  priority: boolean;
+}) {
+  return (
+    <div className="relative overflow-hidden">
+      <Image
+        src={src}
+        alt={alt}
+        fill
+        sizes={VISION_IMAGE_SIZES}
+        priority={priority}
+        quality={76}
+        className="object-cover"
+      />
+    </div>
+  );
+});
+
+const SlidePage = memo(function SlidePage({
   slide,
   onPrev,
   onNext,
@@ -107,6 +141,7 @@ function SlidePage({
   prevLabel,
   nextLabel,
   closeLabel,
+  priority,
 }: {
   slide: VisionSlide;
   onPrev: () => void;
@@ -115,6 +150,7 @@ function SlidePage({
   prevLabel: string;
   nextLabel: string;
   closeLabel: string;
+  priority: boolean;
 }) {
   return (
     <PageShell
@@ -126,22 +162,12 @@ function SlidePage({
       closeLabel={closeLabel}
     >
       <div className="relative grid h-full grid-rows-2 gap-[2px] bg-white">
-        <div className="overflow-hidden">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={slide.topSrc}
-            alt={slide.topAlt}
-            className="h-full w-full object-cover"
-          />
-        </div>
-        <div className="overflow-hidden">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={slide.bottomSrc}
-            alt={slide.bottomAlt}
-            className="h-full w-full object-cover"
-          />
-        </div>
+        <VisionImage src={slide.topSrc} alt={slide.topAlt} priority={priority} />
+        <VisionImage
+          src={slide.bottomSrc}
+          alt={slide.bottomAlt}
+          priority={priority}
+        />
 
         <div className="pointer-events-none absolute inset-x-0 top-1/2 -translate-y-full px-[clamp(1rem,3vw,2.5rem)] text-[var(--color-beige)] drop-shadow-[0_2px_10px_rgba(0,0,0,0.45)]">
           <h2
@@ -173,34 +199,46 @@ function SlidePage({
       </div>
     </PageShell>
   );
-}
+});
 
 export default function VisionDrawer({ onClose }: VisionDrawerProps) {
   const t = useT();
   const [page, setPage] = useState(0);
 
-  const slides: VisionSlide[] = [
-    {
-      topSrc: "/images/our vision/Shotcut_00_00_03_987.png",
-      topAlt: "Glampingboat moored on the shore with guests relaxing on deck",
-      bottomSrc: "/images/our vision/Shotcut_00_00_03_987D.png",
-      bottomAlt: "Guest cycling past the moored glampingboat",
-      title: t("visionGlampTitle"),
-      tags: t("visionGlampTags"),
-    },
-    {
-      topSrc: "/images/our vision/Shotcut_00_00_03_987SZ.png",
-      topAlt: "Aerial view of the glampingboat cruising along a river",
-      bottomSrc: "/images/our vision/Shotcut_00_00_00_000.png",
-      bottomAlt: "Guest resting in a hammock on the glampingboat deck",
-      title: t("visionSynergiesTitle"),
-      tags: t("visionSynergiesTags"),
-    },
-  ];
+  const slides: VisionSlide[] = useMemo(
+    () => [
+      {
+        topSrc: "/images/our vision/optimized/Shotcut_00_00_03_987.webp",
+        topAlt: "Glampingboat moored on the shore with guests relaxing on deck",
+        bottomSrc: "/images/our vision/optimized/Shotcut_00_00_03_987D.webp",
+        bottomAlt: "Guest cycling past the moored glampingboat",
+        title: t("visionGlampTitle"),
+        tags: t("visionGlampTags"),
+      },
+      {
+        topSrc: "/images/our vision/optimized/Shotcut_00_00_03_987SZ.webp",
+        topAlt: "Aerial view of the glampingboat cruising along a river",
+        bottomSrc: "/images/our vision/optimized/Shotcut_00_00_00_000.webp",
+        bottomAlt: "Guest resting in a hammock on the glampingboat deck",
+        title: t("visionSynergiesTitle"),
+        tags: t("visionSynergiesTags"),
+      },
+    ],
+    [t]
+  );
 
   const pageCount = slides.length;
-  const prev = () => setPage((value) => (value - 1 + pageCount) % pageCount);
-  const next = () => setPage((value) => (value + 1) % pageCount);
+  const prev = useCallback(
+    () => setPage((value) => (value - 1 + pageCount) % pageCount),
+    [pageCount]
+  );
+  const next = useCallback(
+    () => setPage((value) => (value + 1) % pageCount),
+    [pageCount]
+  );
+  const prevLabel = useMemo(() => t("previous"), [t]);
+  const nextLabel = useMemo(() => t("next"), [t]);
+  const closeLabel = useMemo(() => t("close"), [t]);
 
   return (
     <SlidePage
@@ -208,9 +246,10 @@ export default function VisionDrawer({ onClose }: VisionDrawerProps) {
       onPrev={prev}
       onNext={next}
       onClose={onClose}
-      prevLabel={t("previous")}
-      nextLabel={t("next")}
-      closeLabel={t("close")}
+      prevLabel={prevLabel}
+      nextLabel={nextLabel}
+      closeLabel={closeLabel}
+      priority={page === 0}
     />
   );
 }
