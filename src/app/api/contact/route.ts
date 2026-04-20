@@ -1,5 +1,10 @@
 import { NextResponse } from "next/server";
-import { createGmailTransporter, getMailerAddress } from "@/lib/mailer";
+import {
+  buildBrandedEmail,
+  createGmailTransporter,
+  formatMultilineHtml,
+  getMailerAddress,
+} from "@/lib/mailer";
 import { getErrorMessage } from "@/lib/http";
 import { getString, isRecord } from "@/lib/type-guards";
 
@@ -28,19 +33,6 @@ function parseContactPayload(payload: unknown) {
 }
 
 type ContactPayload = NonNullable<ReturnType<typeof parseContactPayload>>;
-
-function escapeHtml(value: string) {
-  return value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
-}
-
-function formatMultilineHtml(value: string) {
-  return escapeHtml(value).replace(/\r?\n/g, "<br />");
-}
 
 function buildContactEmail(parsed: ContactPayload) {
   const fullName = `${parsed.firstName} ${parsed.lastName}`.trim();
@@ -86,61 +78,24 @@ function buildContactEmail(parsed: ContactPayload) {
     parsed.message || "-",
   ].join("\n");
 
-  const html = `
-    <!doctype html>
-    <html lang="en">
-      <head>
-        <meta charset="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <title>New Contact Form Submission</title>
-      </head>
-      <body style="margin: 0; padding: 0; background: #f5f0e8; font-family: Arial, Helvetica, sans-serif; color: #002038;">
-        <div style="display: none; max-height: 0; overflow: hidden; opacity: 0;">
-          New message from ${escapeHtml(fullName || parsed.email || "the website contact form")}.
+  const html = buildBrandedEmail({
+    title: "New contact form submission",
+    eyebrow: "Website contact",
+    preview: `New message from ${fullName || parsed.email || "the website contact form"}.`,
+    bodyHtml: `
+      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse: collapse; background: rgba(255,255,255,0.32); border: 1px solid rgba(0,32,56,0.12);">
+        ${rowsHtml}
+      </table>
+      <div style="margin-top: 18px; border-left: 5px solid #3f5666; background: rgba(255,255,255,0.38); padding: 20px 22px;">
+        <div style="margin-bottom: 10px; color: #3f5666; font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;">
+          Message
         </div>
-        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse: collapse; background: #f5f0e8;">
-          <tr>
-            <td align="center" style="padding: 32px 16px;">
-              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width: 680px; border-collapse: collapse; overflow: hidden; border: 1px solid rgba(0,32,56,0.16); background: #e4dbce;">
-                <tr>
-                  <td style="background: #002038; padding: 30px 32px 26px;">
-                    <div style="font-family: Georgia, 'Times New Roman', serif; color: #e4dbce; font-size: 34px; line-height: 1; font-weight: 400;">
-                      glampingboat
-                    </div>
-                    <div style="margin-top: 16px; color: rgba(228,219,206,0.78); font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase;">
-                      Website contact
-                    </div>
-                    <h1 style="margin: 10px 0 0; color: #ffffff; font-size: 26px; line-height: 1.25; font-weight: 700;">
-                      New contact form submission
-                    </h1>
-                  </td>
-                </tr>
-                <tr>
-                  <td style="padding: 26px 30px 8px;">
-                    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse: collapse; background: rgba(255,255,255,0.32); border: 1px solid rgba(0,32,56,0.12);">
-                      ${rowsHtml}
-                    </table>
-                  </td>
-                </tr>
-                <tr>
-                  <td style="padding: 18px 30px 34px;">
-                    <div style="border-left: 5px solid #3f5666; background: rgba(255,255,255,0.38); padding: 20px 22px;">
-                      <div style="margin-bottom: 10px; color: #3f5666; font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;">
-                        Message
-                      </div>
-                      <div style="color: #002038; font-size: 17px; line-height: 1.65;">
-                        ${parsed.message ? formatMultilineHtml(parsed.message) : "-"}
-                      </div>
-                    </div>
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
-        </table>
-      </body>
-    </html>
-  `;
+        <div style="color: #002038; font-size: 17px; line-height: 1.65;">
+          ${parsed.message ? formatMultilineHtml(parsed.message) : "-"}
+        </div>
+      </div>
+    `,
+  });
 
   return { html, text };
 }
