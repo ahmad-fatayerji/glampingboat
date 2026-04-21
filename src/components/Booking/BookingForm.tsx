@@ -375,29 +375,34 @@ export default function BookingForm({
   };
 
   return (
-    <div className="p-4 md:p-8 text-gray-100 w-full">
+    <div className="w-full text-[var(--color-beige)]">
       <form
         onSubmit={handleSubmit}
-        className="grid grid-cols-1 md:grid-cols-12 gap-6"
+        className="grid grid-cols-1 gap-6 md:grid-cols-12"
       >
-        <div className="md:col-span-12 mb-2 text-sm opacity-80">
+        <div className="text-sm text-[var(--color-beige)]/80 md:col-span-12">
           <p>
             {t("arrival")}: {arrivalDate.toLocaleDateString()} &mdash;{" "}
             {t("departure")}: {departureDate.toLocaleDateString()}
           </p>
         </div>
         <div className="md:col-span-7">
-          <h2 className="text-xl font-semibold mb-4">{t("contact")}</h2>
+          <h2 className="mb-4 border-b border-[#173c59] pb-2 text-[1.05rem] lowercase tracking-wide text-[var(--color-beige)]">
+            {t("contact")}
+          </h2>
           {!session && (
-            <p className="mb-4 text-sm text-red-300">
+            <p className="mb-4 text-sm text-[#ffd9d9]">
               {t("pleaseLogin") ||
                 "Please sign in first to complete booking. Your selected dates will be kept."}
             </p>
           )}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+          <div className="mb-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
             {NAME_FIELDS.map((field) => (
               <div key={field}>
-                <label htmlFor={field} className="block text-sm capitalize">
+                <label
+                  htmlFor={field}
+                  className="block text-sm lowercase text-[var(--color-beige)]/90"
+                >
                   {t(field)}
                 </label>
                 <input
@@ -406,13 +411,15 @@ export default function BookingForm({
                   type="text"
                   value={form[field]}
                   onChange={handleChange}
-                  className="mt-1 w-full p-2 bg-blue-800 rounded border border-blue-700 focus:outline-none focus:border-indigo-400"
+                  className="mt-1 h-10 w-full rounded-md border-2 border-[#0d3350] bg-[var(--color-beige)] px-3 text-[var(--color-blue)] outline-none transition placeholder:text-[var(--color-blue)]/45 focus:border-[#234d69]"
                 />
               </div>
             ))}
           </div>
-          <label className="block text-sm mb-2">{t("address")}</label>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+          <label className="mb-2 block text-sm lowercase text-[var(--color-beige)]/90">
+            {t("address")}
+          </label>
+          <div className="mb-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
             {ADDRESS_FIELDS.map((field) => (
               <input
                 key={field}
@@ -421,14 +428,17 @@ export default function BookingForm({
                 name={field}
                 value={form.address[field]}
                 onChange={handleChange}
-                className="w-full p-2 bg-blue-800 rounded border border-blue-700 focus:outline-none focus:border-indigo-400"
+                className="h-10 w-full rounded-md border-2 border-[#0d3350] bg-[var(--color-beige)] px-3 text-[var(--color-blue)] outline-none transition placeholder:text-[var(--color-blue)]/45 focus:border-[#234d69]"
               />
             ))}
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
             {PHONE_FIELDS.map((field) => (
               <div key={field}>
-                <label htmlFor={field} className="block text-sm capitalize">
+                <label
+                  htmlFor={field}
+                  className="block text-sm lowercase text-[var(--color-beige)]/90"
+                >
                   {t(field)}
                 </label>
                 <input
@@ -437,14 +447,17 @@ export default function BookingForm({
                   name={field}
                   value={form[field]}
                   onChange={handleChange}
-                  className="mt-1 w-full p-2 bg-blue-800 rounded border border-blue-700 focus:outline-none focus:border-indigo-400"
+                  className="mt-1 h-10 w-full rounded-md border-2 border-[#0d3350] bg-[var(--color-beige)] px-3 text-[var(--color-blue)] outline-none transition placeholder:text-[var(--color-blue)]/45 focus:border-[#234d69]"
                 />
               </div>
             ))}
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+          <div className="mb-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
-              <label htmlFor="email" className="block text-sm">
+              <label
+                htmlFor="email"
+                className="block text-sm lowercase text-[var(--color-beige)]/90"
+              >
                 {t("email")}
               </label>
               <input
@@ -453,11 +466,14 @@ export default function BookingForm({
                 name="email"
                 value={form.email}
                 onChange={handleChange}
-                className="mt-1 w-full p-2 bg-blue-800 rounded border border-blue-700 focus:outline-none focus:border-indigo-400"
+                className="mt-1 h-10 w-full rounded-md border-2 border-[#0d3350] bg-[var(--color-beige)] px-3 text-[var(--color-blue)] outline-none transition placeholder:text-[var(--color-blue)]/45 focus:border-[#234d69]"
               />
             </div>
             <div>
-              <label htmlFor="birthDate" className="block text-sm">
+              <label
+                htmlFor="birthDate"
+                className="block text-sm lowercase text-[var(--color-beige)]/90"
+              >
                 {t("birthDate")}
               </label>
               <input
@@ -466,7 +482,7 @@ export default function BookingForm({
                 name="birthDate"
                 value={form.birthDate}
                 onChange={handleChange}
-                className="mt-1 w-full p-2 bg-blue-800 rounded border border-blue-700 focus:outline-none focus:border-indigo-400"
+                className="mt-1 h-10 w-full rounded-md border-2 border-[#0d3350] bg-[var(--color-beige)] px-3 text-[var(--color-blue)] outline-none transition placeholder:text-[var(--color-blue)]/45 focus:border-[#234d69]"
               />
             </div>
           </div>
@@ -476,54 +492,60 @@ export default function BookingForm({
               name="specialOffers"
               checked={form.specialOffers}
               onChange={handleChange}
-              className="form-checkbox h-5 w-5 text-indigo-500"
+              className="h-4 w-4 accent-[#0d3350]"
             />
             <span className="ml-2 text-sm">
               I would like to receive special offers
             </span>
           </label>
-          <div className="grid grid-cols-2 gap-4 mt-6 mb-4">
+          <div className="mt-6 mb-4 grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm mb-1">Adults</label>
+              <label className="mb-1 block text-sm lowercase text-[var(--color-beige)]/90">
+                {t("adults") || "Adults"}
+              </label>
               <input
                 type="number"
                 name="adults"
                 min={1}
                 value={form.adults}
                 onChange={handleChange}
-                className="w-full p-2 bg-blue-800 rounded border border-blue-700 focus:outline-none focus:border-indigo-400"
+                className="h-10 w-full rounded-md border-2 border-[#0d3350] bg-[var(--color-beige)] px-3 text-[var(--color-blue)] outline-none transition placeholder:text-[var(--color-blue)]/45 focus:border-[#234d69]"
               />
             </div>
             <div>
-              <label className="block text-sm mb-1">Children</label>
+              <label className="mb-1 block text-sm lowercase text-[var(--color-beige)]/90">
+                {t("children") || "Children"}
+              </label>
               <input
                 type="number"
                 name="children"
                 min={0}
                 value={form.children}
                 onChange={handleChange}
-                className="w-full p-2 bg-blue-800 rounded border border-blue-700 focus:outline-none focus:border-indigo-400"
+                className="h-10 w-full rounded-md border-2 border-[#0d3350] bg-[var(--color-beige)] px-3 text-[var(--color-blue)] outline-none transition placeholder:text-[var(--color-blue)]/45 focus:border-[#234d69]"
               />
             </div>
           </div>
           {options.length > 0 && (
             <div className="mt-4">
-              <h3 className="text-sm font-semibold mb-2">Options</h3>
+              <h3 className="mb-2 text-sm lowercase text-[var(--color-beige)]/90">
+                Options
+              </h3>
               <div className="space-y-2">
                 {options.map((option) => (
                   <label
                     key={option.id}
-                    className="flex items-center gap-2 text-sm"
+                    className="flex items-center gap-2 text-sm text-[var(--color-beige)]"
                   >
                     <input
                       type="checkbox"
                       name={`${BOOKING_OPTION_PREFIX}${option.id}`}
                       checked={!!form.options[option.id]}
                       onChange={handleChange}
-                      className="h-4 w-4"
+                      className="h-4 w-4 accent-[#0d3350]"
                     />
                     <span className="flex-1">{option.name}</span>
-                    <span className="text-xs opacity-70">
+                    <span className="text-xs text-[var(--color-beige)]/70">
                       &euro;{option.priceHt.toFixed(2)}
                     </span>
                   </label>
@@ -534,16 +556,21 @@ export default function BookingForm({
         </div>
         <div className="md:col-span-5 flex flex-col justify-between">
           <div>
-            <h2 className="text-xl font-semibold mb-4">{t("comments")}</h2>
+            <h2 className="mb-4 border-b border-[#173c59] pb-2 text-[1.05rem] lowercase tracking-wide text-[var(--color-beige)]">
+              {t("comments")}
+            </h2>
             <textarea
               name="comments"
               value={form.comments}
               onChange={handleChange}
               placeholder={t("comments")}
-              className="w-full h-40 p-2 bg-blue-800 rounded border border-blue-700 focus:outline-none focus:border-indigo-400 text-gray-100"
+              className="h-40 w-full rounded-md border-2 border-[#0d3350] bg-[var(--color-beige)] p-3 text-[var(--color-blue)] outline-none transition placeholder:text-[var(--color-blue)]/45 focus:border-[#234d69]"
             />
             <div className="mt-6">
-              <label htmlFor="discountCode" className="block text-sm mb-1">
+              <label
+                htmlFor="discountCode"
+                className="mb-1 block text-sm lowercase text-[var(--color-beige)]/90"
+              >
                 {t("discountCode")}
               </label>
               <input
@@ -552,7 +579,7 @@ export default function BookingForm({
                 name="discountCode"
                 value={form.discountCode}
                 onChange={handleChange}
-                className="w-full p-2 bg-blue-800 rounded border border-blue-700 focus:outline-none focus:border-indigo-400"
+                className="h-10 w-full rounded-md border-2 border-[#0d3350] bg-[var(--color-beige)] px-3 text-[var(--color-blue)] outline-none transition placeholder:text-[var(--color-blue)]/45 focus:border-[#234d69]"
               />
             </div>
             <PriceSummary
@@ -570,7 +597,7 @@ export default function BookingForm({
                 name="payFullNow"
                 checked={form.payFullNow}
                 onChange={handleChange}
-                className="form-checkbox h-5 w-5 text-indigo-500"
+                className="h-4 w-4 accent-[#0d3350]"
               />
               <span className="ml-2 text-sm">{t("payFullNow")}</span>
             </label>
@@ -582,7 +609,7 @@ export default function BookingForm({
                 name="cancellation"
                 checked={form.cancellation}
                 onChange={handleChange}
-                className="form-checkbox h-5 w-5 text-indigo-500"
+                className="h-4 w-4 accent-[#0d3350]"
               />
               <span className="ml-2 text-sm">{t("cancellationInsurance")}</span>
             </label>
@@ -592,23 +619,40 @@ export default function BookingForm({
                 name="acceptTerms"
                 checked={form.acceptTerms}
                 onChange={handleChange}
-                className="form-checkbox h-5 w-5 text-indigo-500"
+                className="h-4 w-4 accent-[#0d3350]"
               />
               <span className="ml-2 text-sm underline cursor-pointer">
                 {t("acceptTerms")}
               </span>
             </label>
-            {error && <div className="mt-4 text-xs text-red-300">{error}</div>}
+            {error && <div className="mt-4 text-xs text-[#ffd9d9]">{error}</div>}
             <button
               type="submit"
               disabled={!form.acceptTerms || submitting}
-              className="group relative mt-6 inline-flex items-center gap-2 rounded-full px-6 py-2 font-semibold text-white bg-gradient-to-r from-indigo-600 via-blue-700 to-indigo-600 shadow-lg shadow-indigo-900/30 hover:from-indigo-500 hover:via-blue-600 hover:to-indigo-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-400 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="group mt-6 inline-flex items-center gap-3 rounded-xl bg-[#0d3350] px-6 py-2 text-2xl lowercase text-[var(--color-beige)] transition hover:bg-[#123f61] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-beige)]/60 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              <span>{submitting ? "Saving..." : t("pay")}</span>
-              <span className="transition-transform group-hover:translate-x-1">
-                &rarr;
-              </span>
-              <span className="absolute inset-0 rounded-full ring-1 ring-white/10 pointer-events-none" />
+              <span>{submitting ? "saving..." : t("pay")}</span>
+              <svg
+                aria-hidden="true"
+                viewBox="0 0 20 20"
+                className="h-5 w-5 transition-transform group-hover:translate-x-1"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M3 10H15"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                />
+                <path
+                  d="M10 5L15 10L10 15"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
             </button>
           </div>
         </div>
@@ -684,19 +728,21 @@ function ProfileCompletionModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
-      <div className="bg-blue-900 border border-blue-700 rounded-lg w-full max-w-lg p-6 relative">
+      <div className="relative w-full max-w-lg border border-white/15 bg-[#3f5666]/92 p-6 text-[var(--color-beige)] shadow-[0_18px_55px_rgba(0,0,0,0.35)] backdrop-blur-sm">
         <button
           type="button"
           onClick={onClose}
-          className="absolute top-2 right-2 text-xs px-2 py-1 bg-blue-700/40 rounded hover:bg-blue-600/60"
+          className="absolute top-2 right-2 rounded px-2 py-1 text-xs text-[var(--color-beige)] transition hover:bg-[#0d3350]/40"
         >
           &times;
         </button>
-        <h3 className="text-lg font-semibold mb-2">Complete your profile</h3>
-        <p className="text-xs mb-4 opacity-80">
+        <h3 className="mb-2 border-b border-[#173c59] pb-2 text-[1.05rem] lowercase tracking-wide">
+          Complete your profile
+        </h3>
+        <p className="mb-4 text-xs text-[var(--color-beige)]/80">
           We need a few details before confirming your reservation.
         </p>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           {requiredFields.map((field) => {
             const missing = !getProfileFieldValue(form, field.key).trim();
             const baseName = field.key.includes("address.")
@@ -705,17 +751,17 @@ function ProfileCompletionModal({
 
             return (
               <div key={field.key} className="flex flex-col">
-                <label className="text-xs mb-1">
+                <label className="mb-1 text-xs lowercase text-[var(--color-beige)]/90">
                   {field.label}
-                  <span className="text-red-300 ml-1">*</span>
+                  <span className="ml-1 text-[#ffd9d9]">*</span>
                 </label>
                 <input
                   type="text"
                   name={baseName}
                   value={getProfileFieldValue(form, field.key)}
                   onChange={onChange}
-                  className={`p-2 rounded bg-blue-800 border text-sm focus:outline-none focus:border-indigo-400 ${
-                    missing ? "border-red-500" : "border-blue-700"
+                  className={`h-10 rounded-md border-2 bg-[var(--color-beige)] px-3 text-sm text-[var(--color-blue)] outline-none transition placeholder:text-[var(--color-blue)]/45 focus:border-[#234d69] ${
+                    missing ? "border-[#c65a4a]" : "border-[#0d3350]"
                   }`}
                 />
               </div>
@@ -723,13 +769,13 @@ function ProfileCompletionModal({
           })}
         </div>
         {profileError && (
-          <div className="mt-3 text-xs text-red-300">{profileError}</div>
+          <div className="mt-3 text-xs text-[#ffd9d9]">{profileError}</div>
         )}
         <div className="mt-6 flex justify-end gap-3">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 text-sm rounded bg-blue-800 border border-blue-700 hover:bg-blue-700"
+            className="rounded-xl border border-[#173c59] px-4 py-2 text-sm lowercase text-[var(--color-beige)] transition hover:bg-[#0d3350]/40"
           >
             Cancel
           </button>
@@ -737,7 +783,7 @@ function ProfileCompletionModal({
             type="button"
             onClick={onSave}
             disabled={savingProfile}
-            className="px-4 py-2 text-sm rounded bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50"
+            className="rounded-xl bg-[#0d3350] px-4 py-2 text-sm lowercase text-[var(--color-beige)] transition hover:bg-[#123f61] disabled:cursor-not-allowed disabled:opacity-60"
           >
             {savingProfile ? "Saving..." : "Save & Continue"}
           </button>
