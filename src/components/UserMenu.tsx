@@ -38,10 +38,8 @@ export default function UserMenu() {
         aria-haspopup="menu"
         aria-expanded={open}
         aria-label={session ? "Open account menu" : "Open sign in menu"}
-        className={`flex h-11 w-11 items-center justify-center rounded-full shadow-lg transition hover:shadow-xl ${
-          session
-            ? "bg-[var(--color-blue)] text-[var(--color-beige)] ring-2 ring-[var(--color-beige)]/60"
-            : "bg-[var(--color-beige)] text-[var(--color-blue)] ring-1 ring-[var(--color-blue)]/10"
+        className={`flex h-11 w-11 items-center justify-center rounded-full border border-[var(--color-beige)]/70 text-[var(--color-beige)] shadow-[0_10px_30px_rgba(0,0,0,0.35)] ring-1 ring-inset ring-white/10 backdrop-blur-sm transition hover:border-[var(--color-beige)] hover:bg-[#3f5666] ${
+          session ? "bg-[#3f5666]/92" : "bg-[#3f5666]/82"
         }`}
       >
         {status === "loading" ? (
@@ -70,28 +68,28 @@ export default function UserMenu() {
       {open && (
         <div
           role="menu"
-          className="mt-4 w-[min(19.5rem,calc(100vw-2rem))] rounded-[1.85rem] border border-[var(--color-beige)]/65 bg-[linear-gradient(180deg,rgba(228,219,206,0.96),rgba(221,211,196,0.92))] p-3 text-sm text-[var(--color-blue)] shadow-[0_20px_60px_rgba(0,0,0,0.22)] backdrop-blur-xl"
+          className="absolute right-0 mt-3 w-[min(19.5rem,calc(100vw-2rem))] border border-white/15 bg-[#3f5666]/92 p-3 text-sm text-[var(--color-beige)] shadow-[0_18px_55px_rgba(0,0,0,0.35)] backdrop-blur-sm"
         >
           {session ? (
             <div className="space-y-2">
-              <div className="rounded-[1.35rem] border border-white/45 bg-white/30 px-4 py-3">
-                <p className="text-[0.66rem] uppercase tracking-[0.28em] text-[var(--color-blue)]/42">
+              <div className="border-b border-[#173c59] px-2 pb-3">
+                <p className="text-[0.66rem] uppercase tracking-[0.28em] text-[var(--color-beige)]/60">
                   {t("accountMenu")}
                 </p>
-                <p className="mt-2 break-all text-[0.88rem] leading-5 text-[var(--color-blue)]/72">
+                <p className="mt-2 break-all text-[0.88rem] leading-5 text-[var(--color-beige)]/90">
                   {session.user?.email}
                 </p>
               </div>
               <Link
                 href="/account?tab=bookings"
-                className="block rounded-[1.35rem] px-4 py-3 font-medium transition hover:bg-[var(--color-blue)]/7"
+                className="block rounded-md px-4 py-3 lowercase text-[var(--color-beige)] transition hover:bg-[#0d3350]/40"
                 onClick={() => setOpen(false)}
               >
                 {t("bookingsMenu")}
               </Link>
               <Link
                 href="/account?tab=profile"
-                className="block rounded-[1.35rem] px-4 py-3 font-medium transition hover:bg-[var(--color-blue)]/7"
+                className="block rounded-md px-4 py-3 lowercase text-[var(--color-beige)] transition hover:bg-[#0d3350]/40"
                 onClick={() => setOpen(false)}
               >
                 {t("profileMenu")}
@@ -99,22 +97,22 @@ export default function UserMenu() {
               <button
                 type="button"
                 onClick={() => signOut({ callbackUrl: "/" })}
-                className="w-full rounded-[1.35rem] px-4 py-3 text-left font-medium text-[#a24a3f] transition hover:bg-[#a24a3f]/7"
+                className="w-full rounded-md px-4 py-3 text-left lowercase text-[#f0b4a8] transition hover:bg-[#a24a3f]/25"
               >
                 {t("logoutMenu")}
               </button>
             </div>
           ) : (
-            <div className="space-y-2">
-              <div className="rounded-[1.35rem] border border-white/45 bg-white/30 px-4 py-3">
-                <p className="text-sm leading-6 text-[var(--color-blue)]/70">
+            <div className="space-y-3">
+              <div className="border-b border-[#173c59] px-2 pb-3">
+                <p className="text-sm leading-6 text-[var(--color-beige)]/80">
                   {t("notSignedInMenu")}
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => signIn(undefined, { callbackUrl: "/account" })}
-                className="w-full rounded-[1.35rem] bg-[var(--color-blue)] px-4 py-3 font-semibold text-[var(--color-beige)] shadow-[0_10px_24px_rgba(0,0,0,0.14)] transition hover:bg-[#0d3048] focus:outline-none focus:ring-2 focus:ring-[var(--color-blue)]/20"
+                className="w-full rounded-xl bg-[#0d3350] px-4 py-3 lowercase text-[var(--color-beige)] transition hover:bg-[#123f61] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-beige)]/60"
               >
                 {t("signInCreateAccountMenu")}
               </button>

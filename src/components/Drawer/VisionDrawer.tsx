@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import type { StaticImageData } from "next/image";
 import {
   memo,
   useCallback,
@@ -9,15 +10,19 @@ import {
   type ReactNode,
 } from "react";
 import { useT } from "@/components/Language/useT";
+import hammockDeckImage from "../../../public/images/our vision/optimized/Shotcut_00_00_00_000.webp";
+import mooredDeckImage from "../../../public/images/our vision/optimized/Shotcut_00_00_03_987.webp";
+import cyclingGuestImage from "../../../public/images/our vision/optimized/Shotcut_00_00_03_987D.webp";
+import riverCruiseImage from "../../../public/images/our vision/optimized/Shotcut_00_00_03_987SZ.webp";
 
 interface VisionDrawerProps {
   onClose?: () => void;
 }
 
 interface VisionSlide {
-  topSrc: string;
+  topSrc: StaticImageData;
   topAlt: string;
-  bottomSrc: string;
+  bottomSrc: StaticImageData;
   bottomAlt: string;
   title: string;
   tags: string;
@@ -114,7 +119,7 @@ const VisionImage = memo(function VisionImage({
   alt,
   priority,
 }: {
-  src: string;
+  src: StaticImageData;
   alt: string;
   priority: boolean;
 }) {
@@ -126,6 +131,7 @@ const VisionImage = memo(function VisionImage({
         fill
         sizes={VISION_IMAGE_SIZES}
         priority={priority}
+        placeholder="blur"
         quality={76}
         className="object-cover"
       />
@@ -208,17 +214,17 @@ export default function VisionDrawer({ onClose }: VisionDrawerProps) {
   const slides: VisionSlide[] = useMemo(
     () => [
       {
-        topSrc: "/images/our vision/optimized/Shotcut_00_00_03_987.webp",
+        topSrc: mooredDeckImage,
         topAlt: "Glampingboat moored on the shore with guests relaxing on deck",
-        bottomSrc: "/images/our vision/optimized/Shotcut_00_00_03_987D.webp",
+        bottomSrc: cyclingGuestImage,
         bottomAlt: "Guest cycling past the moored glampingboat",
         title: t("visionGlampTitle"),
         tags: t("visionGlampTags"),
       },
       {
-        topSrc: "/images/our vision/optimized/Shotcut_00_00_03_987SZ.webp",
+        topSrc: riverCruiseImage,
         topAlt: "Aerial view of the glampingboat cruising along a river",
-        bottomSrc: "/images/our vision/optimized/Shotcut_00_00_00_000.webp",
+        bottomSrc: hammockDeckImage,
         bottomAlt: "Guest resting in a hammock on the glampingboat deck",
         title: t("visionSynergiesTitle"),
         tags: t("visionSynergiesTags"),
