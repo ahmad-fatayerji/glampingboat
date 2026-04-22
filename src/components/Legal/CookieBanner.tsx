@@ -74,18 +74,18 @@ export default function CookieBanner() {
   if (!open) return null;
 
   const primaryBtn =
-    "inline-flex items-center rounded-xl bg-[#0d3350] px-5 py-2 text-sm lowercase text-[var(--color-beige)] transition hover:bg-[#123f61] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-beige)]/60";
+    "inline-flex items-center rounded-xl bg-[#0d3350] px-5 py-2 text-sm text-[var(--color-beige)] transition hover:bg-[#123f61] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-beige)]/60";
   const secondaryBtn =
-    "inline-flex items-center rounded-xl border border-[#173c59] bg-transparent px-5 py-2 text-sm lowercase text-[var(--color-beige)] transition hover:bg-[#0d3350]/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-beige)]/60";
+    "inline-flex items-center rounded-xl border border-[#173c59] bg-transparent px-5 py-2 text-sm text-[var(--color-beige)] transition hover:bg-[#0d3350]/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-beige)]/60";
   const ghostBtn =
-    "inline-flex items-center rounded-xl px-5 py-2 text-sm lowercase text-[var(--color-beige)]/85 underline decoration-[var(--color-beige)]/35 underline-offset-4 transition hover:text-[var(--color-beige)] hover:decoration-[var(--color-beige)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-beige)]/60";
+    "inline-flex items-center rounded-xl px-5 py-2 text-sm text-[var(--color-beige)]/85 underline decoration-[var(--color-beige)]/35 underline-offset-4 transition hover:text-[var(--color-beige)] hover:decoration-[var(--color-beige)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-beige)]/60";
 
   return (
     <div className="fixed inset-x-0 bottom-0 z-50 p-4 sm:p-6">
       <div className="mx-auto max-w-4xl border border-white/15 bg-[#3f5666]/82 text-[var(--color-beige)] shadow-[0_18px_55px_rgba(0,0,0,0.35)] backdrop-blur-sm">
         <div className="p-4 sm:p-6">
           <div className="flex items-end gap-4 border-b border-[#173c59] pb-2">
-            <h2 className="text-[1.05rem] lowercase tracking-wide text-[var(--color-beige)]">
+            <h2 className="text-[1.05rem] tracking-wide text-[var(--color-beige)]">
               {t("cookies")}
             </h2>
           </div>

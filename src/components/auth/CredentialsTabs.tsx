@@ -10,10 +10,10 @@ export default function CredentialsTabs() {
 
   return (
     <div className="space-y-6">
-      <h1 className="border-b border-[#173c59] pb-2 text-center text-[1.3rem] lowercase tracking-wide text-[var(--color-beige)]">
+      <h1 className="border-b border-[#173c59] pb-2 text-center text-[1.3rem] tracking-wide text-[var(--color-beige)]">
         {mode === "signin" ? t("authSignIn") : t("authCreateAccount")}
       </h1>
-      <div className="grid grid-cols-2 rounded-xl border border-[#0d3350] bg-[#0d3350]/30 p-1 text-sm lowercase tracking-wide">
+      <div className="grid grid-cols-2 rounded-xl border border-[#0d3350] bg-[#0d3350]/30 p-1 text-sm tracking-wide">
         <button
           type="button"
           onClick={() => setMode("signin")}

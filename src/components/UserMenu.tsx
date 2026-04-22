@@ -82,14 +82,14 @@ export default function UserMenu() {
               </div>
               <Link
                 href="/account?tab=bookings"
-                className="block rounded-md px-4 py-3 lowercase text-[var(--color-beige)] transition hover:bg-[#0d3350]/40"
+                className="block rounded-md px-4 py-3 text-[var(--color-beige)] transition hover:bg-[#0d3350]/40"
                 onClick={() => setOpen(false)}
               >
                 {t("bookingsMenu")}
               </Link>
               <Link
                 href="/account?tab=profile"
-                className="block rounded-md px-4 py-3 lowercase text-[var(--color-beige)] transition hover:bg-[#0d3350]/40"
+                className="block rounded-md px-4 py-3 text-[var(--color-beige)] transition hover:bg-[#0d3350]/40"
                 onClick={() => setOpen(false)}
               >
                 {t("profileMenu")}
@@ -97,7 +97,7 @@ export default function UserMenu() {
               <button
                 type="button"
                 onClick={() => signOut({ callbackUrl: "/" })}
-                className="w-full rounded-md px-4 py-3 text-left lowercase text-[#f0b4a8] transition hover:bg-[#a24a3f]/25"
+                className="w-full rounded-md px-4 py-3 text-left text-[#f0b4a8] transition hover:bg-[#a24a3f]/25"
               >
                 {t("logoutMenu")}
               </button>
@@ -112,7 +112,7 @@ export default function UserMenu() {
               <button
                 type="button"
                 onClick={() => signIn(undefined, { callbackUrl: "/account" })}
-                className="w-full rounded-xl bg-[#0d3350] px-4 py-3 lowercase text-[var(--color-beige)] transition hover:bg-[#123f61] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-beige)]/60"
+                className="w-full rounded-xl bg-[#0d3350] px-4 py-3 text-[var(--color-beige)] transition hover:bg-[#123f61] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-beige)]/60"
               >
                 {t("signInCreateAccountMenu")}
               </button>

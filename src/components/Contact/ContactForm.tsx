@@ -115,7 +115,7 @@ export default function ContactForm() {
     >
       <label
         htmlFor={field}
-        className="text-[1.15rem] lowercase leading-none text-[var(--color-beige)]"
+        className="text-[1.15rem] leading-none text-[var(--color-beige)]"
       >
         {fieldLabel(t(field))}
       </label>
@@ -138,11 +138,11 @@ export default function ContactForm() {
         className="mx-auto flex min-h-[calc(100vh-1.5rem)] w-full max-w-6xl flex-col border border-white/15 bg-[#3f5666]/82 px-5 py-4 text-[var(--color-beige)] shadow-[0_18px_55px_rgba(0,0,0,0.35)] backdrop-blur-sm sm:min-h-[calc(100vh-3rem)] sm:px-10 sm:py-7"
       >
         <div className="mb-5 grid grid-cols-[1fr_auto_1fr] items-end gap-4 border-b border-[#173c59] pb-2">
-          <h2 className="text-[1.05rem] lowercase tracking-wide text-[var(--color-beige)]">
+          <h2 className="text-[1.05rem] tracking-wide text-[var(--color-beige)]">
             {fieldLabel(t("contact"))}
           </h2>
           <div />
-          <h2 className="justify-self-start text-[1.05rem] lowercase tracking-wide text-[var(--color-beige)]">
+          <h2 className="justify-self-start text-[1.05rem] tracking-wide text-[var(--color-beige)]">
             {fieldLabel(t("message"))}
           </h2>
         </div>
@@ -154,7 +154,7 @@ export default function ContactForm() {
             </div>
 
             <div className="grid grid-cols-1 items-start gap-2 sm:grid-cols-[10.5rem_minmax(0,1fr)]">
-              <div className="pt-1 text-[1.15rem] lowercase leading-none text-[var(--color-beige)]">
+              <div className="pt-1 text-[1.15rem] leading-none text-[var(--color-beige)]">
                 {fieldLabel(t("address"))}
               </div>
               <div className="space-y-2">
@@ -165,7 +165,7 @@ export default function ContactForm() {
                   >
                     <label
                       htmlFor={field}
-                      className="text-[1rem] lowercase leading-none text-[var(--color-beige)]/90 sm:justify-self-end sm:pt-2"
+                      className="text-[1rem] leading-none text-[var(--color-beige)]/90 sm:justify-self-end sm:pt-2"
                     >
                       {fieldLabel(t(field))}
                     </label>
@@ -216,7 +216,7 @@ export default function ContactForm() {
               <button
                 type="submit"
                 disabled={status === "sending"}
-                className="inline-flex items-center gap-3 rounded-xl bg-[#0d3350] px-6 py-2 text-2xl lowercase text-[var(--color-beige)] transition hover:bg-[#123f61] disabled:cursor-not-allowed disabled:opacity-60"
+                className="inline-flex items-center gap-3 rounded-xl bg-[#0d3350] px-6 py-2 text-2xl text-[var(--color-beige)] transition hover:bg-[#123f61] disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <span>{fieldLabel(statusLabel)}</span>
                 <svg

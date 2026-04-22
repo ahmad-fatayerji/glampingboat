@@ -387,7 +387,7 @@ export default function BookingForm({
           </p>
         </div>
         <div className="md:col-span-7">
-          <h2 className="mb-4 border-b border-[#173c59] pb-2 text-[1.05rem] lowercase tracking-wide text-[var(--color-beige)]">
+          <h2 className="mb-4 border-b border-[#173c59] pb-2 text-[1.05rem] tracking-wide text-[var(--color-beige)]">
             {t("contact")}
           </h2>
           {!session && (
@@ -400,7 +400,7 @@ export default function BookingForm({
               <div key={field}>
                 <label
                   htmlFor={field}
-                  className="block text-sm lowercase text-[var(--color-beige)]/90"
+                  className="block text-sm text-[var(--color-beige)]/90"
                 >
                   {t(field)}
                 </label>
@@ -415,7 +415,7 @@ export default function BookingForm({
               </div>
             ))}
           </div>
-          <label className="mb-2 block text-sm lowercase text-[var(--color-beige)]/90">
+          <label className="mb-2 block text-sm text-[var(--color-beige)]/90">
             {t("address")}
           </label>
           <div className="mb-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -436,7 +436,7 @@ export default function BookingForm({
               <div key={field}>
                 <label
                   htmlFor={field}
-                  className="block text-sm lowercase text-[var(--color-beige)]/90"
+                  className="block text-sm text-[var(--color-beige)]/90"
                 >
                   {t(field)}
                 </label>
@@ -455,7 +455,7 @@ export default function BookingForm({
             <div>
               <label
                 htmlFor="email"
-                className="block text-sm lowercase text-[var(--color-beige)]/90"
+                className="block text-sm text-[var(--color-beige)]/90"
               >
                 {t("email")}
               </label>
@@ -471,7 +471,7 @@ export default function BookingForm({
             <div>
               <label
                 htmlFor="birthDate"
-                className="block text-sm lowercase text-[var(--color-beige)]/90"
+                className="block text-sm text-[var(--color-beige)]/90"
               >
                 {t("birthDate")}
               </label>
@@ -499,7 +499,7 @@ export default function BookingForm({
           </label>
           <div className="mt-6 mb-4 grid grid-cols-2 gap-4">
             <div>
-              <label className="mb-1 block text-sm lowercase text-[var(--color-beige)]/90">
+              <label className="mb-1 block text-sm text-[var(--color-beige)]/90">
                 {t("adults")}
               </label>
               <input
@@ -512,7 +512,7 @@ export default function BookingForm({
               />
             </div>
             <div>
-              <label className="mb-1 block text-sm lowercase text-[var(--color-beige)]/90">
+              <label className="mb-1 block text-sm text-[var(--color-beige)]/90">
                 {t("children")}
               </label>
               <input
@@ -527,7 +527,7 @@ export default function BookingForm({
           </div>
           {options.length > 0 && (
             <div className="mt-4">
-              <h3 className="mb-2 text-sm lowercase text-[var(--color-beige)]/90">
+              <h3 className="mb-2 text-sm text-[var(--color-beige)]/90">
                 {t("options")}
               </h3>
               <div className="space-y-2">
@@ -555,7 +555,7 @@ export default function BookingForm({
         </div>
         <div className="md:col-span-5 flex flex-col justify-between">
           <div>
-            <h2 className="mb-4 border-b border-[#173c59] pb-2 text-[1.05rem] lowercase tracking-wide text-[var(--color-beige)]">
+            <h2 className="mb-4 border-b border-[#173c59] pb-2 text-[1.05rem] tracking-wide text-[var(--color-beige)]">
               {t("comments")}
             </h2>
             <textarea
@@ -568,7 +568,7 @@ export default function BookingForm({
             <div className="mt-6">
               <label
                 htmlFor="discountCode"
-                className="mb-1 block text-sm lowercase text-[var(--color-beige)]/90"
+                className="mb-1 block text-sm text-[var(--color-beige)]/90"
               >
                 {t("discountCode")}
               </label>
@@ -629,7 +629,7 @@ export default function BookingForm({
             <button
               type="submit"
               disabled={!form.acceptTerms || submitting}
-              className="group mt-6 inline-flex items-center gap-3 rounded-xl bg-[#0d3350] px-6 py-2 text-2xl lowercase text-[var(--color-beige)] transition hover:bg-[#123f61] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-beige)]/60 disabled:cursor-not-allowed disabled:opacity-60"
+              className="group mt-6 inline-flex items-center gap-3 rounded-xl bg-[#0d3350] px-6 py-2 text-2xl text-[var(--color-beige)] transition hover:bg-[#123f61] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-beige)]/60 disabled:cursor-not-allowed disabled:opacity-60"
             >
               <span>{submitting ? t("saving") : t("pay")}</span>
               <svg
@@ -741,7 +741,7 @@ function ProfileCompletionModal({
         >
           &times;
         </button>
-        <h3 className="mb-2 border-b border-[#173c59] pb-2 text-[1.05rem] lowercase tracking-wide">
+        <h3 className="mb-2 border-b border-[#173c59] pb-2 text-[1.05rem] tracking-wide">
           {t("completeYourProfile")}
         </h3>
         <p className="mb-4 text-xs text-[var(--color-beige)]/80">
@@ -756,7 +756,7 @@ function ProfileCompletionModal({
 
             return (
               <div key={field.key} className="flex flex-col">
-                <label className="mb-1 text-xs lowercase text-[var(--color-beige)]/90">
+                <label className="mb-1 text-xs text-[var(--color-beige)]/90">
                   {field.label}
                   <span className="ml-1 text-[#ffd9d9]">*</span>
                 </label>
@@ -780,7 +780,7 @@ function ProfileCompletionModal({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-xl border border-[#173c59] px-4 py-2 text-sm lowercase text-[var(--color-beige)] transition hover:bg-[#0d3350]/40"
+            className="rounded-xl border border-[#173c59] px-4 py-2 text-sm text-[var(--color-beige)] transition hover:bg-[#0d3350]/40"
           >
             {t("cancel")}
           </button>
@@ -788,7 +788,7 @@ function ProfileCompletionModal({
             type="button"
             onClick={onSave}
             disabled={savingProfile}
-            className="rounded-xl bg-[#0d3350] px-4 py-2 text-sm lowercase text-[var(--color-beige)] transition hover:bg-[#123f61] disabled:cursor-not-allowed disabled:opacity-60"
+            className="rounded-xl bg-[#0d3350] px-4 py-2 text-sm text-[var(--color-beige)] transition hover:bg-[#123f61] disabled:cursor-not-allowed disabled:opacity-60"
           >
             {savingProfile ? t("saving") : t("saveContinue")}
           </button>

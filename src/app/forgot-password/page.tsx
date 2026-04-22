@@ -41,7 +41,7 @@ export default function ForgotPasswordPage() {
     <div className="min-h-screen flex items-center justify-center px-4 pt-40 pb-12">
       <div className="w-full max-w-md border border-white/15 bg-[#3f5666]/92 p-8 text-[var(--color-beige)] shadow-[0_18px_55px_rgba(0,0,0,0.35)] backdrop-blur-sm">
         <div className="space-y-2">
-          <h1 className="border-b border-[#173c59] pb-2 text-center text-[1.3rem] lowercase tracking-wide text-[var(--color-beige)]">
+          <h1 className="border-b border-[#173c59] pb-2 text-center text-[1.3rem] tracking-wide text-[var(--color-beige)]">
             {t("resetPassword")}
           </h1>
           <p className="text-center text-sm leading-relaxed text-[var(--color-beige)]/75">
@@ -51,18 +51,18 @@ export default function ForgotPasswordPage() {
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
           {message && (
-            <p className="rounded-md border border-[#65845f] bg-[#3f6546]/35 px-3 py-2 text-sm lowercase text-[#e8f4df]">
+            <p className="rounded-md border border-[#65845f] bg-[#3f6546]/35 px-3 py-2 text-sm text-[#e8f4df]">
               {message}
             </p>
           )}
           {error && (
-            <p className="rounded-md border border-[#8a3a30] bg-[#8a3a30]/25 px-3 py-2 text-sm lowercase text-[#ffd9d9]">
+            <p className="rounded-md border border-[#8a3a30] bg-[#8a3a30]/25 px-3 py-2 text-sm text-[#ffd9d9]">
               {error}
             </p>
           )}
 
           <div className="flex flex-col gap-1">
-            <label className="text-sm lowercase text-[var(--color-beige)]/90">
+            <label className="text-sm text-[var(--color-beige)]/90">
               {t("email")}
             </label>
             <input
@@ -78,7 +78,7 @@ export default function ForgotPasswordPage() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full rounded-xl bg-[#0d3350] py-2 text-sm lowercase tracking-wide text-[var(--color-beige)] transition hover:bg-[#123f61] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-beige)]/60 disabled:cursor-not-allowed disabled:opacity-60"
+            className="w-full rounded-xl bg-[#0d3350] py-2 text-sm tracking-wide text-[var(--color-beige)] transition hover:bg-[#123f61] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-beige)]/60 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {isSubmitting ? t("sending") : t("sendResetLink")}
           </button>
@@ -87,7 +87,7 @@ export default function ForgotPasswordPage() {
         <div className="mt-5 text-center">
           <Link
             href="/account"
-            className="text-xs lowercase text-[var(--color-beige)]/70 underline underline-offset-2 hover:text-[var(--color-beige)]"
+            className="text-xs text-[var(--color-beige)]/70 underline underline-offset-2 hover:text-[var(--color-beige)]"
           >
             {t("backToSignIn")}
           </Link>

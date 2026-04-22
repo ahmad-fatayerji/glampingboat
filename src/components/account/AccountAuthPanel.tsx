@@ -20,7 +20,7 @@ export default function AccountAuthPanel() {
       <div className="text-right -mt-4">
         <Link
           href="/forgot-password"
-          className="text-xs lowercase text-[var(--color-beige)]/70 hover:text-[var(--color-beige)] underline underline-offset-2"
+          className="text-xs text-[var(--color-beige)]/70 hover:text-[var(--color-beige)] underline underline-offset-2"
         >
           {t("authForgotPassword")}
         </Link>

@@ -100,7 +100,7 @@ export function buildBrandedEmail({
                 <tr>
                   <td style="background: ${BRAND.blue}; padding: 30px 32px 26px;">
                     <div style="font-family: Georgia, 'Times New Roman', serif; color: ${BRAND.beige}; font-size: 34px; line-height: 1; font-weight: 400;">
-                      glampingboat
+                      Glamping Boat
                     </div>
                     <div style="margin-top: 16px; color: rgba(228,219,206,0.78); font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase;">
                       ${escapedEyebrow}

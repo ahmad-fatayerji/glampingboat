@@ -18,7 +18,7 @@ export default function Logo() {
           color: "var(--color-beige)",
         }}
       >
-        glampingboat
+        Glamping Boat
       </span>
       <span
         className="leading-none transition-transform group-hover:scale-105 group-focus-visible:scale-105"

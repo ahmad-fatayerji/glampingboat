@@ -88,8 +88,33 @@ export default function ProfileForm() {
 
   if (loading) {
     return (
-      <div className="w-full border border-white/15 bg-[#3f5666]/82 p-6 text-sm lowercase tracking-wide text-[var(--color-beige)]/80 shadow-[0_18px_55px_rgba(0,0,0,0.35)] backdrop-blur-sm">
-        {t("loadingProfile")}
+      <div
+        className="w-full border border-white/15 bg-[#3f5666]/82 p-6 text-[var(--color-beige)] shadow-[0_18px_55px_rgba(0,0,0,0.35)] backdrop-blur-sm md:p-8"
+        role="status"
+        aria-live="polite"
+      >
+        <div className="flex items-center gap-4">
+          <span className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[var(--color-beige)]/25 bg-[var(--color-blue)]/35">
+            <span className="absolute h-6 w-6 animate-spin rounded-full border-2 border-transparent border-t-[var(--color-beige)]" />
+            <span className="h-6 w-6 rounded-full border-2 border-[var(--color-beige)]/25" />
+          </span>
+          <div>
+            <p className="text-xs tracking-[0.28em] text-[var(--color-beige)]/60">
+              Glamping Boat
+            </p>
+            <p className="mt-1 text-base tracking-wide text-[var(--color-beige)]">
+              {t("loadingProfile")}
+            </p>
+          </div>
+        </div>
+        <div className="mt-7 grid grid-cols-1 gap-4 sm:grid-cols-2" aria-hidden="true">
+          {Array.from({ length: 6 }).map((_, index) => (
+            <div key={index} className="space-y-2">
+              <div className="h-3 w-24 rounded-full bg-[var(--color-beige)]/25" />
+              <div className="h-10 rounded-md border-2 border-[#0d3350] bg-[var(--color-beige)]/35" />
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
@@ -100,14 +125,14 @@ export default function ProfileForm() {
       className="w-full space-y-6 border border-white/15 bg-[#3f5666]/82 p-6 md:p-8 text-[var(--color-beige)] shadow-[0_18px_55px_rgba(0,0,0,0.35)] backdrop-blur-sm"
     >
       <div className="flex items-center justify-between gap-4 border-b border-[#173c59] pb-2">
-        <h2 className="text-[1.05rem] lowercase tracking-wide text-[var(--color-beige)]">
+        <h2 className="text-[1.05rem] tracking-wide text-[var(--color-beige)]">
           {t("profileInformation")}
         </h2>
         {message && (
-          <span className="text-xs lowercase text-[#c7e8c7]">{message}</span>
+          <span className="text-xs text-[#c7e8c7]">{message}</span>
         )}
         {error && (
-          <span className="text-xs lowercase text-[#ffd9d9]">{error}</span>
+          <span className="text-xs text-[#ffd9d9]">{error}</span>
         )}
       </div>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -163,7 +188,7 @@ export default function ProfileForm() {
       <div className="pt-2">
         <button
           disabled={saving}
-          className="group inline-flex items-center gap-3 rounded-xl bg-[#0d3350] px-6 py-2 text-base lowercase tracking-wide text-[var(--color-beige)] transition hover:bg-[#123f61] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-beige)]/60 disabled:cursor-not-allowed disabled:opacity-60"
+          className="group inline-flex items-center gap-3 rounded-xl bg-[#0d3350] px-6 py-2 text-base tracking-wide text-[var(--color-beige)] transition hover:bg-[#123f61] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-beige)]/60 disabled:cursor-not-allowed disabled:opacity-60"
         >
           <span>{saving ? t("saving") : t("saveProfile")}</span>
           <svg
@@ -207,7 +232,7 @@ function Field({
   disabled?: boolean;
 }) {
   return (
-    <label className="flex flex-col gap-1 text-sm lowercase text-[var(--color-beige)]/90">
+    <label className="flex flex-col gap-1 text-sm text-[var(--color-beige)]/90">
       <span>{label}</span>
       <input
         type={type}

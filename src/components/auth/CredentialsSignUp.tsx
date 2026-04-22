@@ -26,12 +26,12 @@ export default function CredentialsSignUp() {
   return (
     <form onSubmit={handleSignup} className="space-y-4">
       {error && (
-        <p className="rounded-md border border-[#8a3a30] bg-[#8a3a30]/25 px-3 py-2 text-sm lowercase text-[#ffd9d9]">
+        <p className="rounded-md border border-[#8a3a30] bg-[#8a3a30]/25 px-3 py-2 text-sm text-[#ffd9d9]">
           {error}
         </p>
       )}
       <div className="flex flex-col gap-1">
-        <label className="text-sm lowercase text-[var(--color-beige)]/90">
+        <label className="text-sm text-[var(--color-beige)]/90">
           {t("email")}
         </label>
         <input
@@ -44,7 +44,7 @@ export default function CredentialsSignUp() {
         />
       </div>
       <div className="flex flex-col gap-1">
-        <label className="text-sm lowercase text-[var(--color-beige)]/90">
+        <label className="text-sm text-[var(--color-beige)]/90">
           {t("password")}
         </label>
         <input
@@ -56,7 +56,7 @@ export default function CredentialsSignUp() {
           placeholder={t("authChoosePasswordPlaceholder")}
         />
       </div>
-      <button className="w-full rounded-xl bg-[#0d3350] py-2 text-sm lowercase tracking-wide text-[var(--color-beige)] transition hover:bg-[#123f61] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-beige)]/60">
+      <button className="w-full rounded-xl bg-[#0d3350] py-2 text-sm tracking-wide text-[var(--color-beige)] transition hover:bg-[#123f61] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-beige)]/60">
         {t("authCreateAccount")}
       </button>
     </form>

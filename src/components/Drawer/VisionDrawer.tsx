@@ -215,17 +215,17 @@ export default function VisionDrawer({ onClose }: VisionDrawerProps) {
     () => [
       {
         topSrc: mooredDeckImage,
-        topAlt: "Glampingboat moored on the shore with guests relaxing on deck",
+        topAlt: "Glamping Boat moored on the shore with guests relaxing on deck",
         bottomSrc: cyclingGuestImage,
-        bottomAlt: "Guest cycling past the moored glampingboat",
+        bottomAlt: "Guest cycling past the moored Glamping Boat",
         title: t("visionGlampTitle"),
         tags: t("visionGlampTags"),
       },
       {
         topSrc: riverCruiseImage,
-        topAlt: "Aerial view of the glampingboat cruising along a river",
+        topAlt: "Aerial view of the Glamping Boat cruising along a river",
         bottomSrc: hammockDeckImage,
-        bottomAlt: "Guest resting in a hammock on the glampingboat deck",
+        bottomAlt: "Guest resting in a hammock on the Glamping Boat deck",
         title: t("visionSynergiesTitle"),
         tags: t("visionSynergiesTags"),
       },

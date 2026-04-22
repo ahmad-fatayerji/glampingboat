@@ -152,7 +152,7 @@ const en = {
   failedCreateReservation: "Failed to create reservation",
   saveContinue: "Save & continue",
   total: "Total",
-  buyTitle: "Own the glampingboat experience.",
+  buyTitle: "Own the Glamping Boat experience.",
   buyBody:
     "Construction and management of pleasure boats, mobile floating living structures and mini river bases. Contact us for purchase information, manufacturing details, and availability.",
   resetPassword: "Reset password",
@@ -194,7 +194,7 @@ const en = {
     "Personalizes advertising content on and off the site.",
   saveCookieChoices: "Save my choices",
   manageCookies: "Manage my cookies",
-  logoHome: "Glampingboat home",
+  logoHome: "Glamping Boat home",
   trademarkLabel: "Trademark",
   videoNotSupported: "Your browser does not support the video tag.",
 } as const;
@@ -357,7 +357,7 @@ export const dictionaries: Record<Locale, Dictionary> = {
     failedCreateReservation: "Echec de la creation de la reservation",
     saveContinue: "Enregistrer et continuer",
     total: "Total",
-    buyTitle: "Possedez l'experience glampingboat.",
+    buyTitle: "Possedez l'experience Glamping Boat.",
     buyBody:
       "Construction et gestion de bateaux de plaisance, structures flottantes mobiles et mini bases fluviales. Contactez-nous pour les informations d'achat, les details de fabrication et les disponibilites.",
     resetPassword: "Reinitialiser le mot de passe",
@@ -401,7 +401,7 @@ export const dictionaries: Record<Locale, Dictionary> = {
       "Personnalise le contenu publicitaire sur et en dehors du site.",
     saveCookieChoices: "Enregistrer mes choix",
     manageCookies: "Gerer mes cookies",
-    logoHome: "Accueil Glampingboat",
+    logoHome: "Accueil Glamping Boat",
     trademarkLabel: "Marque deposee",
     videoNotSupported: "Votre navigateur ne prend pas en charge la video.",
   },
@@ -558,7 +558,7 @@ export const dictionaries: Record<Locale, Dictionary> = {
     failedCreateReservation: "Buchung konnte nicht erstellt werden",
     saveContinue: "Speichern und fortfahren",
     total: "Gesamt",
-    buyTitle: "Besitzen Sie das glampingboat-Erlebnis.",
+    buyTitle: "Besitzen Sie das Glamping Boat-Erlebnis.",
     buyBody:
       "Bau und Management von Freizeitbooten, mobilen schwimmenden Wohnstrukturen und kleinen Flussbasen. Kontaktieren Sie uns fuer Kaufinformationen, Fertigungsdetails und Verfuegbarkeit.",
     resetPassword: "Passwort zuruecksetzen",
@@ -602,7 +602,7 @@ export const dictionaries: Record<Locale, Dictionary> = {
       "Personalisiert Werbeinhalte auf und ausserhalb der Website.",
     saveCookieChoices: "Auswahl speichern",
     manageCookies: "Cookies verwalten",
-    logoHome: "Glampingboat Startseite",
+    logoHome: "Glamping Boat Startseite",
     trademarkLabel: "Marke",
     videoNotSupported: "Ihr Browser unterstuetzt das Video-Tag nicht.",
   },
@@ -759,7 +759,7 @@ export const dictionaries: Record<Locale, Dictionary> = {
     failedCreateReservation: "Boeking kon niet worden aangemaakt",
     saveContinue: "Opslaan en doorgaan",
     total: "Totaal",
-    buyTitle: "Beleef glampingboat als eigenaar.",
+    buyTitle: "Beleef Glamping Boat als eigenaar.",
     buyBody:
       "Bouw en beheer van pleziervaartuigen, mobiele drijvende woonstructuren en mini-rivierbases. Neem contact met ons op voor aankoopinformatie, fabricagedetails en beschikbaarheid.",
     resetPassword: "Wachtwoord resetten",
@@ -802,7 +802,7 @@ export const dictionaries: Record<Locale, Dictionary> = {
       "Personaliseert advertentiecontent op en buiten de site.",
     saveCookieChoices: "Keuzes opslaan",
     manageCookies: "Cookies beheren",
-    logoHome: "Glampingboat startpagina",
+    logoHome: "Glamping Boat startpagina",
     trademarkLabel: "Handelsmerk",
     videoNotSupported: "Je browser ondersteunt de videotag niet.",
   },
@@ -990,7 +990,7 @@ export const dictionaries: Record<Locale, Dictionary> = {
       "\u0421\u043e\u0445\u0440\u0430\u043d\u0438\u0442\u044c \u0438 \u043f\u0440\u043e\u0434\u043e\u043b\u0436\u0438\u0442\u044c",
     total: "\u0418\u0442\u043e\u0433\u043e",
     buyTitle:
-      "\u0421\u0442\u0430\u043d\u044c\u0442\u0435 \u0432\u043b\u0430\u0434\u0435\u043b\u044c\u0446\u0435\u043c glampingboat.",
+      "\u0421\u0442\u0430\u043d\u044c\u0442\u0435 \u0432\u043b\u0430\u0434\u0435\u043b\u044c\u0446\u0435\u043c Glamping Boat.",
     buyBody:
       "\u0421\u0442\u0440\u043e\u0438\u0442\u0435\u043b\u044c\u0441\u0442\u0432\u043e \u0438 \u0443\u043f\u0440\u0430\u0432\u043b\u0435\u043d\u0438\u0435 \u043f\u0440\u043e\u0433\u0443\u043b\u043e\u0447\u043d\u044b\u043c\u0438 \u043b\u043e\u0434\u043a\u0430\u043c\u0438, \u043c\u043e\u0431\u0438\u043b\u044c\u043d\u044b\u043c\u0438 \u043f\u043b\u0430\u0432\u0443\u0447\u0438\u043c\u0438 \u0436\u0438\u043b\u044b\u043c\u0438 \u0441\u0442\u0440\u0443\u043a\u0442\u0443\u0440\u0430\u043c\u0438 \u0438 \u043c\u0438\u043d\u0438-\u0431\u0430\u0437\u0430\u043c\u0438 \u043d\u0430 \u0440\u0435\u043a\u0430\u0445. \u0421\u0432\u044f\u0436\u0438\u0442\u0435\u0441\u044c \u0441 \u043d\u0430\u043c\u0438 \u0434\u043b\u044f \u0434\u0435\u0442\u0430\u043b\u0435\u0439 \u043f\u043e\u043a\u0443\u043f\u043a\u0438, \u043f\u0440\u043e\u0438\u0437\u0432\u043e\u0434\u0441\u0442\u0432\u0430 \u0438 \u0434\u043e\u0441\u0442\u0443\u043f\u043d\u043e\u0441\u0442\u0438.",
     resetPassword: "\u0421\u0431\u0440\u043e\u0441 \u043f\u0430\u0440\u043e\u043b\u044f",
@@ -1043,7 +1043,7 @@ export const dictionaries: Record<Locale, Dictionary> = {
       "\u0421\u043e\u0445\u0440\u0430\u043d\u0438\u0442\u044c \u0432\u044b\u0431\u043e\u0440",
     manageCookies:
       "\u0423\u043f\u0440\u0430\u0432\u043b\u044f\u0442\u044c cookies",
-    logoHome: "Glampingboat \u0433\u043b\u0430\u0432\u043d\u0430\u044f",
+    logoHome: "Glamping Boat \u0433\u043b\u0430\u0432\u043d\u0430\u044f",
     trademarkLabel: "\u0422\u043e\u0440\u0433\u043e\u0432\u0430\u044f \u043c\u0430\u0440\u043a\u0430",
     videoNotSupported:
       "\u0412\u0430\u0448 \u0431\u0440\u0430\u0443\u0437\u0435\u0440 \u043d\u0435 \u043f\u043e\u0434\u0434\u0435\u0440\u0436\u0438\u0432\u0430\u0435\u0442 video.",
@@ -1201,7 +1201,7 @@ export const dictionaries: Record<Locale, Dictionary> = {
     failedCreateReservation: "No se pudo crear la reserva",
     saveContinue: "Guardar y continuar",
     total: "Total",
-    buyTitle: "Haz tuya la experiencia glampingboat.",
+    buyTitle: "Haz tuya la experiencia Glamping Boat.",
     buyBody:
       "Construccion y gestion de barcos de recreo, estructuras habitables flotantes moviles y mini bases fluviales. Contactanos para informacion de compra, detalles de fabricacion y disponibilidad.",
     resetPassword: "Restablecer contrasena",
@@ -1245,7 +1245,7 @@ export const dictionaries: Record<Locale, Dictionary> = {
       "Personaliza contenido publicitario dentro y fuera del sitio.",
     saveCookieChoices: "Guardar mis elecciones",
     manageCookies: "Gestionar mis cookies",
-    logoHome: "Inicio de Glampingboat",
+    logoHome: "Inicio de Glamping Boat",
     trademarkLabel: "Marca registrada",
     videoNotSupported: "Tu navegador no admite la etiqueta de video.",
   },
@@ -1402,7 +1402,7 @@ export const dictionaries: Record<Locale, Dictionary> = {
     failedCreateReservation: "Creazione prenotazione non riuscita",
     saveContinue: "Salva e continua",
     total: "Totale",
-    buyTitle: "Possiedi l'esperienza glampingboat.",
+    buyTitle: "Possiedi l'esperienza Glamping Boat.",
     buyBody:
       "Costruzione e gestione di imbarcazioni da diporto, strutture abitative galleggianti mobili e mini basi fluviali. Contattaci per informazioni sull'acquisto, dettagli di produzione e disponibilita.",
     resetPassword: "Reimposta password",
@@ -1446,7 +1446,7 @@ export const dictionaries: Record<Locale, Dictionary> = {
       "Personalizza contenuti pubblicitari sul sito e fuori dal sito.",
     saveCookieChoices: "Salva le scelte",
     manageCookies: "Gestisci i cookie",
-    logoHome: "Home Glampingboat",
+    logoHome: "Home Glamping Boat",
     trademarkLabel: "Marchio",
     videoNotSupported: "Il tuo browser non supporta il tag video.",
   },

@@ -67,7 +67,7 @@ function TabButton({
     <button
       type="button"
       onClick={onClick}
-      className={`flex-1 rounded-xl py-2 lowercase tracking-wide transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-beige)]/40 ${
+      className={`flex-1 rounded-xl py-2 tracking-wide transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-beige)]/40 ${
         active
           ? "bg-[#0d3350] text-[var(--color-beige)] shadow-inner"
           : "text-[var(--color-beige)]/70 hover:bg-[#0d3350]/40 hover:text-[var(--color-beige)]"
