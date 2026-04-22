@@ -64,50 +64,50 @@ const content: Record<LegalKind, Record<Locale, LegalItem>> = {
       ),
     },
     fr: {
-      title: "Mentions legales",
+      title: "Mentions légales",
       body: (
         <>
           <h2>Les coches de Penchot - LcP</h2>
           <p>
             contact@glampingboat.fr
             <br />
-            SAS Societe par Actions Simplifiee
+            SAS Société par Actions Simplifiée
             <br />
-            Capital social de EUR 1,000.00
+            Capital social de 1 000,00 EUR
             <br />
-            Registre du Commerce et des Societes de Rodez (Aveyron)
+            Registre du commerce et des sociétés de Rodez (Aveyron)
             <br />
-            Numero SIRET 978 634 905
+            Numéro SIRET 978 634 905
             <br />
-            Siege social : 14B rue de la Guiraldie, 12300 Boisse-Penchot, France
+            Siège social : 14B rue de la Guiraldie, 12300 Boisse-Penchot, France
             <br />
-            Jean-Francois Durel, president, +33 652 11 33 47,
+            Jean-François Durel, président, +33 652 11 33 47,
             lescochesdepenchot@gmail.com
           </p>
-          <h2>Hebergement du site</h2>
+          <h2>Hébergement du site</h2>
           <p>
-            nom de l&apos;hebergeur
+            nom de l&apos;hébergeur
             <br />
             raison sociale
             <br />
             adresse
             <br />
-            numero de telephone
+            numéro de téléphone
           </p>
-          <h2>Activites commerciales</h2>
+          <h2>Activités commerciales</h2>
           <p>
-            Registre du Commerce et des Societes de Rodez (Aveyron)
+            Registre du commerce et des sociétés de Rodez (Aveyron)
             <br />
-            Numero SIRET 978 634 905 SIREN 978 634 905 00019
+            Numéro SIRET 978 634 905 SIREN 978 634 905 00019
             <br />
-            Numero de TVA intracommunautaire FR 04978634905
+            Numéro de TVA intracommunautaire FR 04978634905
             <br />
-            <strong>Conditions generales de vente (CGV)</strong>
+            <strong>Conditions générales de vente (CGV)</strong>
             <br />
             Code APE 30.11Z
             <br />
             Construction et gestion de bateaux de plaisance, d&apos;habitats
-            flottants mobiles et de mini bases fluviales
+            flottants mobiles et de mini-bases fluviales
             <br />
             Code constructeur unique LCP
           </p>
@@ -397,13 +397,13 @@ const content: Record<LegalKind, Record<Locale, LegalItem>> = {
         <>
           <p>
             Maquette de politique de cookies conforme au RGPD et au droit
-            francais.
+            français.
           </p>
           <h2>Responsable du traitement</h2>
           <p>[Nom/raison sociale], [adresse], contact: [email].</p>
-          <h2>Cookies utilises</h2>
+          <h2>Cookies utilisés</h2>
           <p>
-            Indispensables, mesure d&apos;audience, confort & performance,
+            Indispensables, mesure d&apos;audience, confort et performance,
             marketing.
           </p>
         </>
@@ -503,14 +503,15 @@ const content: Record<LegalKind, Record<Locale, LegalItem>> = {
       ),
     },
     fr: {
-      title: "Conditions generales",
+      title: "Conditions générales",
       body: (
         <>
           <p>
-            Maquette de CGU/CGV. Adaptez selon vente, location ou prestations.
+            Maquette de CGU/CGV. Adaptez selon votre activité de vente, de
+            location ou de prestations.
           </p>
           <h2>Objet</h2>
-          <p>Regles d&apos;utilisation du site et des services/produits.</p>
+          <p>Règles d&apos;utilisation du site et des services/produits.</p>
         </>
       ),
     },

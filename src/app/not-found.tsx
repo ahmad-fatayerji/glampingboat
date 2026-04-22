@@ -1,6 +1,11 @@
+"use client";
+
 import Link from "next/link";
+import { useT } from "@/components/Language/useT";
 
 export default function NotFound() {
+  const t = useT();
+
   return (
     <main className="relative flex min-h-screen items-center px-4 pt-40 pb-20 text-[var(--color-beige)] sm:px-8">
       <section className="w-full max-w-3xl border border-white/15 bg-[#3f5666]/82 px-6 py-8 shadow-[0_18px_55px_rgba(0,0,0,0.35)] backdrop-blur-sm sm:ml-6 sm:px-10 sm:py-10">
@@ -47,14 +52,13 @@ export default function NotFound() {
               404
             </p>
             <h1 className="mt-1 text-3xl leading-tight tracking-wide text-[var(--color-beige)] sm:text-5xl">
-              This route drifted away.
+              {t("notFoundTitle")}
             </h1>
           </div>
         </div>
 
         <p className="max-w-xl text-base leading-7 text-[var(--color-beige)]/78 sm:text-lg">
-          The page you were looking for is no longer moored here. Head back to
-          the main deck, check availability, or contact us from the navigation.
+          {t("notFoundBody")}
         </p>
 
         <div className="mt-8 flex flex-col gap-3 sm:flex-row">
@@ -62,7 +66,7 @@ export default function NotFound() {
             href="/"
             className="inline-flex items-center justify-center gap-3 rounded-xl bg-[var(--color-beige)] px-5 py-3 text-sm font-medium tracking-wide text-[var(--color-blue)] transition hover:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-beige)]/70"
           >
-            <span>Return home</span>
+            <span>{t("notFoundReturnHome")}</span>
             <svg
               aria-hidden="true"
               viewBox="0 0 20 20"
@@ -89,7 +93,7 @@ export default function NotFound() {
             href="/account"
             className="inline-flex items-center justify-center rounded-xl border border-[var(--color-beige)]/45 px-5 py-3 text-sm font-medium tracking-wide text-[var(--color-beige)] transition hover:border-[var(--color-beige)] hover:bg-[var(--color-blue)]/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-beige)]/50"
           >
-            View account
+            {t("notFoundViewAccount")}
           </Link>
         </div>
       </section>

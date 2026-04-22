@@ -14,7 +14,7 @@ const outfit = Outfit({ subsets: ["latin"], weight: ["100", "300"] });
 
 export const metadata = {
   title: "Glamping Boat",
-  description: "Site de vente et location de bateaux fluviaux",
+  description: "Site de vente et de location de bateaux fluviaux",
   icons: {
     icon: "/icon.svg",
     shortcut: "/icon.svg",
@@ -27,7 +27,7 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  // Compute “today” in Paris at midnight
+  // Compute "today" in Paris at midnight
   const parisNow = new Date(
     new Date().toLocaleString("en-US", { timeZone: "Europe/Paris" })
   );
@@ -40,7 +40,7 @@ export default function RootLayout({
         <AuthSessionProvider>
           <LanguageProvider>
             <BackgroundVideo />
-            {/* AudioProvider mounted once here → audio persists across pages */}
+            {/* AudioProvider mounted once here, so audio persists across pages */}
             <AudioProvider src="/audio/bg-music.mp3">
               {/* fixed logo */}
               <div className="fixed top-16 left-5 z-40">
