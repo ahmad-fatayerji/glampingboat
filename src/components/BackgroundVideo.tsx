@@ -1,8 +1,11 @@
-"use client"; 
+"use client";
 
 import React from "react";
+import { useT } from "@/components/Language/useT";
 
 export default function BackgroundVideo() {
+  const t = useT();
+
   return (
     <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
       <video
@@ -14,7 +17,7 @@ export default function BackgroundVideo() {
         poster="/boat/1.jpg"
       >
         <source src="/videos/background-video.webm" type="video/webm" />
-        Your browser does not support the video tag.
+        {t("videoNotSupported")}
       </video>
       <div className="absolute inset-0 bg-[#001522]/35" aria-hidden="true" />
     </div>

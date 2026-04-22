@@ -211,16 +211,17 @@ export default function AppShell({ children, serverToday }: AppShellProps) {
           <DrawerSurface>
             {!session && (
               <div className="mb-4 rounded-xl border border-[var(--color-blue)]/10 bg-[var(--color-beige)]/80 p-4 text-sm leading-relaxed text-[var(--color-blue)]">
-                <p className="mb-1 font-medium">Sign in required to book</p>
+                <p className="mb-1 font-medium">
+                  {t("bookingSignInRequiredTitle")}
+                </p>
                 <p className="mb-3 opacity-80">
-                  Create an account or sign in before selecting dates and
-                  completing your reservation.
+                  {t("bookingSignInRequiredBody")}
                 </p>
                 <a
                   href="/account"
                   className="inline-flex items-center gap-1 rounded-full bg-[var(--color-blue)] px-4 py-1.5 text-xs font-semibold tracking-wide text-[var(--color-beige)] transition hover:bg-[#06324d] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-blue)]/40 focus-visible:ring-offset-2"
                 >
-                  Go to account &rarr;
+                  {t("goToAccount")} &rarr;
                 </a>
               </div>
             )}

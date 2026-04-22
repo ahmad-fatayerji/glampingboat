@@ -100,3 +100,65 @@ body {
     pointer-events: none;
   }
 }
+
+/* Wave toggle button — gentle periodic drift, faster undulation on hover. */
+.wave-toggle svg path {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: wave-drift 7s ease-in-out infinite;
+  will-change: transform;
+}
+.wave-toggle svg path:nth-of-type(2) {
+  animation-delay: 0.18s;
+}
+.wave-toggle svg path:nth-of-type(3) {
+  animation-delay: 0.36s;
+}
+
+.wave-toggle:hover svg path,
+.wave-toggle:focus-visible svg path {
+  animation: wave-drift-hover 1.6s ease-in-out infinite;
+}
+.wave-toggle:hover svg path:nth-of-type(2),
+.wave-toggle:focus-visible svg path:nth-of-type(2) {
+  animation-delay: 0.18s;
+}
+.wave-toggle:hover svg path:nth-of-type(3),
+.wave-toggle:focus-visible svg path:nth-of-type(3) {
+  animation-delay: 0.36s;
+}
+
+@keyframes wave-drift {
+  0%,
+  65%,
+  100% {
+    transform: translateX(0);
+  }
+  75% {
+    transform: translateX(1.5px);
+  }
+  85% {
+    transform: translateX(-1.5px);
+  }
+  95% {
+    transform: translateX(0.5px);
+  }
+}
+
+@keyframes wave-drift-hover {
+  0%,
+  100% {
+    transform: translateX(-2px);
+  }
+  50% {
+    transform: translateX(2px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wave-toggle svg path,
+  .wave-toggle:hover svg path,
+  .wave-toggle:focus-visible svg path {
+    animation: none;
+  }
+}

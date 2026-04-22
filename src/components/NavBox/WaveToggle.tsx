@@ -1,18 +1,22 @@
 "use client";
 
+import { useT } from "@/components/Language/useT";
+
 interface WaveToggleProps {
   open: boolean;
   toggle: () => void;
 }
 
 export default function WaveToggle({ open, toggle }: WaveToggleProps) {
+  const t = useT();
+
   return (
     <>
       {/* floating wave button */}
       <button
         onClick={toggle}
-        aria-label={open ? "Close menu" : "Open menu"}
-        className="fixed top-5 left-5 z-50 p-2 bg-transparent scale-125"
+        aria-label={open ? t("closeMenu") : t("openMenu")}
+        className="wave-toggle fixed top-5 left-5 z-50 p-2 bg-transparent scale-125"
       >
         {/* The actual waves.svg */}
         <svg

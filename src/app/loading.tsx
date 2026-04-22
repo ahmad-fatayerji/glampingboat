@@ -1,3 +1,9 @@
+"use client";
+
+import { useT } from "@/components/Language/useT";
+
 export default function Loading() {
-  return <h1>Loading!</h1>;
+  const t = useT();
+
+  return <h1>{t("loading")}</h1>;
 }

@@ -1,8 +1,10 @@
 "use client";
 import { signIn } from "next-auth/react";
 import { useState } from "react";
+import { useT } from "@/components/Language/useT";
 
 export default function CredentialsSignUp() {
+  const t = useT();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -30,7 +32,7 @@ export default function CredentialsSignUp() {
       )}
       <div className="flex flex-col gap-1">
         <label className="text-sm lowercase text-[var(--color-beige)]/90">
-          email
+          {t("email")}
         </label>
         <input
           type="email"
@@ -38,12 +40,12 @@ export default function CredentialsSignUp() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           className="h-10 w-full rounded-md border-2 border-[#0d3350] bg-[var(--color-beige)] px-3 text-sm text-[var(--color-blue)] outline-none transition placeholder:text-[var(--color-blue)]/45 focus:border-[#234d69]"
-          placeholder="you@example.com"
+          placeholder={t("authEmailPlaceholder")}
         />
       </div>
       <div className="flex flex-col gap-1">
         <label className="text-sm lowercase text-[var(--color-beige)]/90">
-          password
+          {t("password")}
         </label>
         <input
           type="password"
@@ -51,11 +53,11 @@ export default function CredentialsSignUp() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           className="h-10 w-full rounded-md border-2 border-[#0d3350] bg-[var(--color-beige)] px-3 text-sm text-[var(--color-blue)] outline-none transition placeholder:text-[var(--color-blue)]/45 focus:border-[#234d69]"
-          placeholder="choose a secure password"
+          placeholder={t("authChoosePasswordPlaceholder")}
         />
       </div>
       <button className="w-full rounded-xl bg-[#0d3350] py-2 text-sm lowercase tracking-wide text-[var(--color-beige)] transition hover:bg-[#123f61] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-beige)]/60">
-        create account
+        {t("authCreateAccount")}
       </button>
     </form>
   );

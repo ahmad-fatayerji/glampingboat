@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useT } from "@/components/Language/useT";
 import { getErrorMessage, readJsonResponse } from "@/lib/http";
 import type { ApiErrorResponse, ReservationSerialized } from "@/lib/types";
 
@@ -20,6 +21,7 @@ interface Props {
 }
 
 export default function ReservationList({ reservations }: Props) {
+  const t = useT();
   const [expanded, setExpanded] = useState<string | null>(null);
   const [filter, setFilter] = useState<"all" | "upcoming" | "past">("upcoming");
   const [list, setList] = useState(reservations);
@@ -40,7 +42,7 @@ export default function ReservationList({ reservations }: Props) {
     return (
       <div className="border border-white/15 bg-[#3f5666]/82 p-12 text-center shadow-[0_18px_55px_rgba(0,0,0,0.35)] backdrop-blur-sm">
         <p className="text-sm lowercase tracking-wide text-[var(--color-beige)]/80">
-          you have no reservations yet.
+          {t("noReservationsYet")}
         </p>
       </div>
     );
@@ -54,15 +56,15 @@ export default function ReservationList({ reservations }: Props) {
       const response = await fetch(`/api/reservations/${id}`, { method: "DELETE" });
       if (!response.ok) {
         const json = await readJsonResponse<ApiErrorResponse>(response, {
-          error: "Failed to cancel",
+          error: t("failedToCancel"),
         });
-        throw new Error(json.error || "Failed to cancel");
+        throw new Error(json.error || t("failedToCancel"));
       }
 
       setList((current) => current.filter((reservation) => reservation.id !== id));
       setPendingCancel(null);
     } catch (cancelError) {
-      setError(getErrorMessage(cancelError, "Unexpected error"));
+      setError(getErrorMessage(cancelError, t("unexpectedError")));
     } finally {
       setBusy(false);
     }
@@ -72,7 +74,7 @@ export default function ReservationList({ reservations }: Props) {
     <div className="space-y-4 border border-white/15 bg-[#3f5666]/82 p-5 shadow-[0_18px_55px_rgba(0,0,0,0.35)] backdrop-blur-sm md:p-6">
       <div className="flex flex-col gap-4 border-b border-[#173c59] pb-3 sm:flex-row sm:items-end sm:justify-between">
         <h2 className="text-[1.05rem] lowercase tracking-wide text-[var(--color-beige)]">
-          reservations
+          {t("reservations")}
         </h2>
         <div className="inline-flex rounded-xl border border-[#0d3350] bg-[#0d3350]/30 p-1 text-[11px] lowercase tracking-wider">
           {(["upcoming", "past", "all"] as const).map((value) => (
@@ -86,7 +88,11 @@ export default function ReservationList({ reservations }: Props) {
               }`}
               aria-pressed={filter === value}
             >
-              {value}
+              {value === "upcoming"
+                ? t("filterUpcoming")
+                : value === "past"
+                  ? t("filterPast")
+                  : t("filterAll")}
             </button>
           ))}
         </div>
@@ -123,7 +129,8 @@ export default function ReservationList({ reservations }: Props) {
                       </span>
                       <span className="mt-1 flex flex-col text-[10px] lowercase tracking-wider text-[var(--color-beige)]/60 sm:mt-0 sm:flex-row sm:items-center sm:gap-2">
                         <span>
-                          {nights} night{nights !== 1 ? "s" : ""}
+                          {nights}{" "}
+                          {nights === 1 ? t("nightSingular") : t("nightPlural")}
                         </span>
                         {reservation.bookingRef && (
                           <span className="rounded border border-[#173c59] bg-[#0d3350]/60 px-2 py-0.5 font-mono text-[9px] tracking-tight text-[var(--color-beige)]/80">
@@ -132,15 +139,20 @@ export default function ReservationList({ reservations }: Props) {
                         )}
                       </span>
                     </div>
-                    <StatusBadge status={status} />
+                    <StatusBadge
+                      label={endPast ? t("past") : t("upcoming")}
+                      status={status}
+                    />
                   </div>
                   <div className="flex items-center gap-8 pr-1 text-sm">
                     <span className="tabular-nums text-[var(--color-beige)]">
                       {euro(reservation.totalTtc)}
                     </span>
                     <span className="text-xs lowercase text-[var(--color-beige)]/60">
-                      {reservation.adults}a
-                      {reservation.children > 0 ? `+${reservation.children}c` : ""}
+                      {reservation.adults} {t("adultsShort")}
+                      {reservation.children > 0
+                        ? ` +${reservation.children} ${t("childrenShort")}`
+                        : ""}
                     </span>
                     <svg
                       className={`h-4 w-4 text-[var(--color-beige)]/70 transition-transform ${
@@ -164,29 +176,29 @@ export default function ReservationList({ reservations }: Props) {
                   <div className="overflow-hidden">
                     <div className="space-y-5 border-t border-[#173c59] bg-[#0d3350]/15 px-6 pb-6 pt-4 text-sm">
                       <div className="grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-6">
-                        <Info label="base ht" value={euro(reservation.basePriceHt)} />
+                        <Info label={t("baseHt")} value={euro(reservation.basePriceHt)} />
                         <Info
-                          label="options ht"
+                          label={t("optionsHt")}
                           value={euro(reservation.optionsPriceHt)}
                         />
-                        <Info label="tva ht" value={euro(reservation.tvaHt)} />
+                        <Info label={t("tvaHt")} value={euro(reservation.tvaHt)} />
                         <Info
-                          label={"taxe s\u00e9jour"}
+                          label={t("touristTax")}
                           value={euro(reservation.taxSejourTtc)}
                         />
                         <Info
-                          label="deposit"
+                          label={t("deposit")}
                           value={euro(reservation.depositAmount)}
                         />
                         <Info
-                          label="balance"
+                          label={t("balance")}
                           value={euro(reservation.balanceAmount)}
                         />
                       </div>
                       {reservation.items.length > 0 && (
                         <div>
                           <h3 className="mb-2 text-[10px] lowercase tracking-wider text-[var(--color-beige)]/60">
-                            options
+                            {t("options")}
                           </h3>
                           <ul className="space-y-1 text-[var(--color-beige)]/90">
                             {reservation.items.map((item) => (
@@ -208,7 +220,7 @@ export default function ReservationList({ reservations }: Props) {
                       <div className="flex flex-col gap-2 border-t border-[#173c59] pt-3 sm:flex-row sm:items-center sm:justify-between">
                         <span className="flex flex-col text-[11px] lowercase text-[var(--color-beige)]/60 sm:flex-row sm:items-center sm:gap-3">
                           <span>
-                            created{" "}
+                            {t("created")}{" "}
                             {fmt(reservation.createdAt, {
                               day: "2-digit",
                               month: "short",
@@ -217,7 +229,7 @@ export default function ReservationList({ reservations }: Props) {
                           </span>
                           {reservation.bookingRef && (
                             <span className="rounded border border-[#173c59] bg-[#0d3350]/60 px-2 py-0.5 font-mono text-[10px] text-[var(--color-beige)]/80">
-                              ref: {reservation.bookingRef}
+                              {t("ref")}: {reservation.bookingRef}
                             </span>
                           )}
                         </span>
@@ -226,7 +238,7 @@ export default function ReservationList({ reservations }: Props) {
                           className="self-start text-[11px] lowercase tracking-wide text-[#ffd9d9] underline underline-offset-2 transition hover:text-[#ffbfbf] disabled:opacity-40 sm:self-auto"
                           disabled={busy}
                         >
-                          cancel reservation
+                          {t("cancelReservation")}
                         </button>
                       </div>
                     </div>
@@ -248,6 +260,7 @@ export default function ReservationList({ reservations }: Props) {
         onConfirm={() => pendingCancel && handleCancel(pendingCancel)}
         busy={busy}
         error={error}
+        t={t}
       />
     </div>
   );
@@ -266,7 +279,13 @@ function Info({ label, value }: { label: string; value: string }) {
   );
 }
 
-function StatusBadge({ status }: { status: "upcoming" | "past" }) {
+function StatusBadge({
+  label,
+  status,
+}: {
+  label: string;
+  status: "upcoming" | "past";
+}) {
   const isPast = status === "past";
   return (
     <span
@@ -281,7 +300,7 @@ function StatusBadge({ status }: { status: "upcoming" | "past" }) {
           isPast ? "bg-[var(--color-beige)]/40" : "bg-[var(--color-beige)]"
         }`}
       />
-      {isPast ? "past" : "upcoming"}
+      {label}
     </span>
   );
 }
@@ -292,6 +311,7 @@ interface CancelDialogProps {
   onConfirm: () => void;
   busy: boolean;
   error: string | null;
+  t: ReturnType<typeof useT>;
 }
 
 function CancelDialog({
@@ -300,6 +320,7 @@ function CancelDialog({
   onConfirm,
   busy,
   error,
+  t,
 }: CancelDialogProps) {
   if (!open) return null;
 
@@ -316,11 +337,10 @@ function CancelDialog({
             id="cancel-title"
             className="border-b border-[#173c59] pb-2 text-[1.05rem] lowercase tracking-wide text-[var(--color-beige)]"
           >
-            cancel reservation?
+            {t("cancelReservationQuestion")}
           </h2>
           <p className="text-sm leading-relaxed lowercase text-[var(--color-beige)]/80">
-            this action will permanently remove the reservation. this cannot be
-            undone.
+            {t("cancelReservationBody")}
           </p>
           {error && (
             <div className="rounded-md border border-[#8a3a30] bg-[#8a3a30]/25 px-3 py-2 text-xs lowercase text-[#ffd9d9]">
@@ -333,14 +353,14 @@ function CancelDialog({
               disabled={busy}
               className="rounded-xl border border-[#173c59] px-4 py-2 text-sm lowercase tracking-wide text-[var(--color-beige)] transition hover:bg-[#0d3350]/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-beige)]/40 disabled:opacity-40"
             >
-              keep
+              {t("keep")}
             </button>
             <button
               onClick={onConfirm}
               disabled={busy}
               className="rounded-xl bg-[#8a3a30] px-5 py-2 text-sm lowercase tracking-wide text-[var(--color-beige)] shadow transition hover:bg-[#9e4237] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#ffd9d9]/60 disabled:opacity-50"
             >
-              {busy ? "cancelling..." : "cancel"}
+              {busy ? t("cancelling") : t("cancel")}
             </button>
           </div>
         </div>

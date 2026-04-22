@@ -1,15 +1,16 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import CredentialsSignUp from "./CredentialsSignUp"
-import CredentialsSignIn from "./CredentialsSignIn"
+import { useState } from "react";
+import CredentialsSignUp from "./CredentialsSignUp";
+import CredentialsSignIn from "./CredentialsSignIn";
+import { useT } from "@/components/Language/useT";
 
 export default function CredentialsPanel() {
-  const [mode, setMode] = useState<"sign-up" | "sign-in">("sign-up")
+  const [mode, setMode] = useState<"sign-up" | "sign-in">("sign-up");
+  const t = useT();
 
   return (
     <div className="space-y-4">
-      {/* toggle buttons */}
       <div className="flex justify-center space-x-2">
         <button
           onClick={() => setMode("sign-up")}
@@ -19,7 +20,7 @@ export default function CredentialsPanel() {
               : "bg-gray-100 text-gray-700 hover:bg-gray-200"
           }`}
         >
-          Sign Up
+          {t("authCreateAccount")}
         </button>
         <button
           onClick={() => setMode("sign-in")}
@@ -29,12 +30,11 @@ export default function CredentialsPanel() {
               : "bg-gray-100 text-gray-700 hover:bg-gray-200"
           }`}
         >
-          Sign In
+          {t("authSignIn")}
         </button>
       </div>
 
-      {/* the active form */}
       {mode === "sign-up" ? <CredentialsSignUp /> : <CredentialsSignIn />}
     </div>
-  )
+  );
 }

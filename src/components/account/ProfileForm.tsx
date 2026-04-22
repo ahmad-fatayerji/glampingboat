@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { readJsonResponse, getErrorMessage } from "@/lib/http";
+import { useT } from "@/components/Language/useT";
 import {
   createEmptyProfileFormData,
   toProfileFormData,
@@ -10,6 +11,7 @@ import {
 import type { ProfileFormData, ProfileResponse } from "@/lib/types";
 
 export default function ProfileForm() {
+  const t = useT();
   const [data, setData] = useState<ProfileFormData>(createEmptyProfileFormData);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -76,9 +78,9 @@ export default function ProfileForm() {
         { user: null }
       );
       setData(toProfileFormData(json.user));
-      setMessage("Profile saved");
+      setMessage(t("profileSaved"));
     } catch (submissionError) {
-      setError(getErrorMessage(submissionError, "Error"));
+      setError(getErrorMessage(submissionError, t("unexpectedError")));
     } finally {
       setSaving(false);
     }
@@ -87,7 +89,7 @@ export default function ProfileForm() {
   if (loading) {
     return (
       <div className="w-full border border-white/15 bg-[#3f5666]/82 p-6 text-sm lowercase tracking-wide text-[var(--color-beige)]/80 shadow-[0_18px_55px_rgba(0,0,0,0.35)] backdrop-blur-sm">
-        loading profile...
+        {t("loadingProfile")}
       </div>
     );
   }
@@ -99,7 +101,7 @@ export default function ProfileForm() {
     >
       <div className="flex items-center justify-between gap-4 border-b border-[#173c59] pb-2">
         <h2 className="text-[1.05rem] lowercase tracking-wide text-[var(--color-beige)]">
-          profile information
+          {t("profileInformation")}
         </h2>
         {message && (
           <span className="text-xs lowercase text-[#c7e8c7]">{message}</span>
@@ -110,60 +112,60 @@ export default function ProfileForm() {
       </div>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <Field
-          label="first name"
+          label={t("firstName")}
           value={data.firstName}
           onChange={(value) => update("firstName", value)}
         />
         <Field
-          label="last name"
+          label={t("lastName")}
           value={data.lastName}
           onChange={(value) => update("lastName", value)}
         />
         <Field
-          label="phone"
+          label={t("phone")}
           value={data.phone}
           onChange={(value) => update("phone", value)}
         />
         <Field
-          label="mobile"
+          label={t("mobile")}
           value={data.mobile}
           onChange={(value) => update("mobile", value)}
         />
         <Field
-          label="birth date"
+          label={t("birthDate")}
           type="date"
           value={data.birthDate}
           onChange={(value) => update("birthDate", value)}
         />
         <div className="hidden sm:block" />
         <Field
-          label="address number"
+          label={t("addressNumber")}
           value={data.addressNumber}
           onChange={(value) => update("addressNumber", value)}
         />
         <Field
-          label="street"
+          label={t("street")}
           value={data.addressStreet}
           onChange={(value) => update("addressStreet", value)}
         />
         <Field
-          label="city"
+          label={t("city")}
           value={data.addressCity}
           onChange={(value) => update("addressCity", value)}
         />
         <Field
-          label="state"
+          label={t("state")}
           value={data.addressState}
           onChange={(value) => update("addressState", value)}
         />
-        <Field label="email" value={data.email} disabled />
+        <Field label={t("email")} value={data.email} disabled />
       </div>
       <div className="pt-2">
         <button
           disabled={saving}
           className="group inline-flex items-center gap-3 rounded-xl bg-[#0d3350] px-6 py-2 text-base lowercase tracking-wide text-[var(--color-beige)] transition hover:bg-[#123f61] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-beige)]/60 disabled:cursor-not-allowed disabled:opacity-60"
         >
-          <span>{saving ? "saving..." : "save profile"}</span>
+          <span>{saving ? t("saving") : t("saveProfile")}</span>
           <svg
             aria-hidden="true"
             viewBox="0 0 20 20"

@@ -1,6 +1,10 @@
 "use client";
 
+import { useT } from "@/components/Language/useT";
+
 export default function ManageCookiesButton() {
+  const t = useT();
+
   const reset = () => {
     try {
       localStorage.removeItem("cookie-consent-v1");
@@ -14,7 +18,7 @@ export default function ManageCookiesButton() {
       onClick={reset}
       className="rounded-xl bg-[var(--color-beige)] px-4 py-2 font-semibold text-[var(--color-blue)] transition hover:bg-[#efe6d9]"
     >
-      Gérer mes cookies
+      {t("manageCookies")}
     </button>
   );
 }

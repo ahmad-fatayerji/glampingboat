@@ -4,6 +4,7 @@ import { startTransition, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import ReservationList from "./ReservationList";
 import ProfileForm from "./ProfileForm";
+import { useT } from "@/components/Language/useT";
 import type { AccountTab, ReservationSerialized } from "@/lib/types";
 
 interface Props {
@@ -15,6 +16,7 @@ export default function AccountTabs({ reservations, initialTab }: Props) {
   const search = useSearchParams();
   const router = useRouter();
   const [tab, setTab] = useState<AccountTab>(initialTab);
+  const t = useT();
 
   useEffect(() => {
     const nextTab: AccountTab =
@@ -37,13 +39,13 @@ export default function AccountTabs({ reservations, initialTab }: Props) {
           active={tab === "bookings"}
           onClick={() => switchTab("bookings")}
         >
-          bookings
+          {t("bookingsMenu")}
         </TabButton>
         <TabButton
           active={tab === "profile"}
           onClick={() => switchTab("profile")}
         >
-          profile
+          {t("profileMenu")}
         </TabButton>
       </div>
       {tab === "bookings" && <ReservationList reservations={reservations} />}

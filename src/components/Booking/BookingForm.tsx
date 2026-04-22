@@ -306,7 +306,7 @@ export default function BookingForm({
       }
 
       if (!response.ok) {
-        throw new Error("Failed to create reservation");
+        throw new Error(t("failedCreateReservation"));
       }
 
       window.location.href = "/account";
@@ -321,7 +321,7 @@ export default function BookingForm({
     setProfileError(null);
     const missing = getMissingProfileFields(form);
     if (missing.length) {
-      setProfileError("Please fill all required fields.");
+      setProfileError(t("fillAllRequired"));
       return;
     }
 
@@ -346,13 +346,13 @@ export default function BookingForm({
         ),
       });
       if (!response.ok) {
-        throw new Error("Profile save failed");
+        throw new Error(t("profileSaveFailed"));
       }
 
       setShowProfileModal(false);
       await performReservation();
     } catch (profileSaveError) {
-      setProfileError(getErrorMessage(profileSaveError, "Error saving profile"));
+      setProfileError(getErrorMessage(profileSaveError, t("errorSavingProfile")));
     } finally {
       setSavingProfile(false);
     }
@@ -392,8 +392,7 @@ export default function BookingForm({
           </h2>
           {!session && (
             <p className="mb-4 text-sm text-[#ffd9d9]">
-              {t("pleaseLogin") ||
-                "Please sign in first to complete booking. Your selected dates will be kept."}
+              {t("bookingSignInFirst")}
             </p>
           )}
           <div className="mb-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -495,13 +494,13 @@ export default function BookingForm({
               className="h-4 w-4 accent-[#0d3350]"
             />
             <span className="ml-2 text-sm">
-              I would like to receive special offers
+              {t("specialOffers")}
             </span>
           </label>
           <div className="mt-6 mb-4 grid grid-cols-2 gap-4">
             <div>
               <label className="mb-1 block text-sm lowercase text-[var(--color-beige)]/90">
-                {t("adults") || "Adults"}
+                {t("adults")}
               </label>
               <input
                 type="number"
@@ -514,7 +513,7 @@ export default function BookingForm({
             </div>
             <div>
               <label className="mb-1 block text-sm lowercase text-[var(--color-beige)]/90">
-                {t("children") || "Children"}
+                {t("children")}
               </label>
               <input
                 type="number"
@@ -529,7 +528,7 @@ export default function BookingForm({
           {options.length > 0 && (
             <div className="mt-4">
               <h3 className="mb-2 text-sm lowercase text-[var(--color-beige)]/90">
-                Options
+                {t("options")}
               </h3>
               <div className="space-y-2">
                 {options.map((option) => (
@@ -590,6 +589,7 @@ export default function BookingForm({
               total={pricing.total}
               deposit={pricing.deposit}
               balance={pricing.balance}
+              t={t}
             />
             <label className="inline-flex items-center mt-4">
               <input
@@ -631,7 +631,7 @@ export default function BookingForm({
               disabled={!form.acceptTerms || submitting}
               className="group mt-6 inline-flex items-center gap-3 rounded-xl bg-[#0d3350] px-6 py-2 text-2xl lowercase text-[var(--color-beige)] transition hover:bg-[#123f61] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-beige)]/60 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              <span>{submitting ? "saving..." : t("pay")}</span>
+              <span>{submitting ? t("saving") : t("pay")}</span>
               <svg
                 aria-hidden="true"
                 viewBox="0 0 20 20"
@@ -666,6 +666,7 @@ export default function BookingForm({
         onSave={saveProfileAndContinue}
         savingProfile={savingProfile}
         profileError={profileError}
+        t={t}
       />
     </div>
   );
@@ -679,6 +680,7 @@ function PriceSummary({
   total,
   deposit,
   balance,
+  t,
 }: {
   basePriceHt: number;
   optionSumHt: number;
@@ -687,16 +689,17 @@ function PriceSummary({
   total: number;
   deposit: number;
   balance: number;
+  t: ReturnType<typeof useT>;
 }) {
   return (
     <div className="mt-6 text-sm space-y-1">
-      <p>Base HT &euro;{basePriceHt.toFixed(2)}</p>
-      <p>Options HT &euro;{optionSumHt.toFixed(2)}</p>
-      <p>TVA HT &euro;{tvaHt.toFixed(2)}</p>
-      <p>{"Taxe s\u00e9jour"} &euro;{taxSejourTtc.toFixed(2)}</p>
-      <p className="font-medium">Total &euro;{total.toFixed(2)}</p>
-      <p>Deposit &euro;{deposit.toFixed(2)}</p>
-      <p>Balance &euro;{balance.toFixed(2)}</p>
+      <p>{t("baseHt")} &euro;{basePriceHt.toFixed(2)}</p>
+      <p>{t("optionsHt")} &euro;{optionSumHt.toFixed(2)}</p>
+      <p>{t("tvaHt")} &euro;{tvaHt.toFixed(2)}</p>
+      <p>{t("touristTax")} &euro;{taxSejourTtc.toFixed(2)}</p>
+      <p className="font-medium">{t("total")} &euro;{total.toFixed(2)}</p>
+      <p>{t("deposit")} &euro;{deposit.toFixed(2)}</p>
+      <p>{t("balance")} &euro;{balance.toFixed(2)}</p>
     </div>
   );
 }
@@ -710,6 +713,7 @@ function ProfileCompletionModal({
   onSave,
   savingProfile,
   profileError,
+  t,
 }: {
   open: boolean;
   form: BookingFormState;
@@ -721,6 +725,7 @@ function ProfileCompletionModal({
   onSave: () => void;
   savingProfile: boolean;
   profileError: string | null;
+  t: ReturnType<typeof useT>;
 }) {
   if (!open) {
     return null;
@@ -737,10 +742,10 @@ function ProfileCompletionModal({
           &times;
         </button>
         <h3 className="mb-2 border-b border-[#173c59] pb-2 text-[1.05rem] lowercase tracking-wide">
-          Complete your profile
+          {t("completeYourProfile")}
         </h3>
         <p className="mb-4 text-xs text-[var(--color-beige)]/80">
-          We need a few details before confirming your reservation.
+          {t("completeProfileBody")}
         </p>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           {requiredFields.map((field) => {
@@ -777,7 +782,7 @@ function ProfileCompletionModal({
             onClick={onClose}
             className="rounded-xl border border-[#173c59] px-4 py-2 text-sm lowercase text-[var(--color-beige)] transition hover:bg-[#0d3350]/40"
           >
-            Cancel
+            {t("cancel")}
           </button>
           <button
             type="button"
@@ -785,7 +790,7 @@ function ProfileCompletionModal({
             disabled={savingProfile}
             className="rounded-xl bg-[#0d3350] px-4 py-2 text-sm lowercase text-[var(--color-beige)] transition hover:bg-[#123f61] disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {savingProfile ? "Saving..." : "Save & Continue"}
+            {savingProfile ? t("saving") : t("saveContinue")}
           </button>
         </div>
       </div>

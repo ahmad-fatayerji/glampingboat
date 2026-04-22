@@ -37,9 +37,9 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${marcellus.className} ${outfit.className}`}>
       <body>
-        <BackgroundVideo />
         <AuthSessionProvider>
           <LanguageProvider>
+            <BackgroundVideo />
             {/* AudioProvider mounted once here → audio persists across pages */}
             <AudioProvider src="/audio/bg-music.mp3">
               {/* fixed logo */}

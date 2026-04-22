@@ -19,12 +19,10 @@ export default function BuyDrawer({
           {t("buy")}
         </p>
         <h2 className="text-4xl font-semibold leading-tight md:text-5xl">
-          Own the glampingboat experience.
+          {t("buyTitle")}
         </h2>
         <p className="max-w-2xl text-lg leading-relaxed text-[var(--color-beige)]/88">
-          Construction and management of pleasure boats, mobile floating living
-          structures and mini river bases. Contact us for purchase information,
-          manufacturing details, and availability.
+          {t("buyBody")}
         </p>
         <div className="flex flex-wrap gap-3">
           <button
@@ -32,14 +30,14 @@ export default function BuyDrawer({
             onClick={onContactClick}
             className="rounded-xl bg-[var(--color-beige)] px-5 py-3 font-semibold text-[var(--color-blue)] transition hover:bg-[#efe6d9]"
           >
-            Contact
+            {t("contact")}
           </button>
           <button
             type="button"
             onClick={onBookClick}
             className="rounded-xl border border-[var(--color-beige)]/35 px-5 py-3 font-semibold text-[var(--color-beige)] transition hover:bg-white/8"
           >
-            Book
+            {t("book")}
           </button>
         </div>
       </div>

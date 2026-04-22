@@ -2,13 +2,16 @@
 import { useState } from "react";
 import CredentialsSignIn from "./CredentialsSignIn";
 import CredentialsSignUp from "./CredentialsSignUp";
+import { useT } from "@/components/Language/useT";
 
 export default function CredentialsTabs() {
   const [mode, setMode] = useState<"signin" | "signup">("signin");
+  const t = useT();
+
   return (
     <div className="space-y-6">
       <h1 className="border-b border-[#173c59] pb-2 text-center text-[1.3rem] lowercase tracking-wide text-[var(--color-beige)]">
-        {mode === "signin" ? "sign in" : "create account"}
+        {mode === "signin" ? t("authSignIn") : t("authCreateAccount")}
       </h1>
       <div className="grid grid-cols-2 rounded-xl border border-[#0d3350] bg-[#0d3350]/30 p-1 text-sm lowercase tracking-wide">
         <button
@@ -20,7 +23,7 @@ export default function CredentialsTabs() {
               : "text-[var(--color-beige)]/70 hover:text-[var(--color-beige)]"
           }`}
         >
-          sign in
+          {t("authSignIn")}
         </button>
         <button
           type="button"
@@ -31,7 +34,7 @@ export default function CredentialsTabs() {
               : "text-[var(--color-beige)]/70 hover:text-[var(--color-beige)]"
           }`}
         >
-          create
+          {t("authCreate")}
         </button>
       </div>
       {mode === "signin" ? <CredentialsSignIn /> : <CredentialsSignUp />}

@@ -2,6 +2,7 @@
 
 import Drop from "./Drop";
 import { useLanguage } from "@/components/Language/LanguageContext";
+import { useT } from "@/components/Language/useT";
 import type { Locale } from "@/components/Language/dictionaries";
 
 const LANGS: ReadonlyArray<{ code: Locale; label: string }> = [
@@ -16,6 +17,7 @@ const LANGS: ReadonlyArray<{ code: Locale; label: string }> = [
 
 export default function LanguagePicker() {
   const { locale: active, setLocale } = useLanguage();
+  const t = useT();
 
   return (
     <div className="flex items-center gap-x-.1">
@@ -23,7 +25,7 @@ export default function LanguagePicker() {
         <button
           key={code}
           onClick={() => setLocale(code)}
-          aria-label={`Switch to ${label}`}
+          aria-label={`${t("switchToLanguage")} ${label}`}
           className="relative w-10 h-10 flex items-center justify-center"
         >
           <Drop

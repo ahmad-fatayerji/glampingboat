@@ -218,53 +218,53 @@ const content: Record<LegalKind, Record<Locale, LegalItem>> = {
       ),
     },
     ru: {
-      title: "Pravovaya informatsiya",
+      title: "Правовая информация",
       body: (
         <>
           <h2>Les coches de Penchot - LcP</h2>
           <p>
             contact@glampingboat.fr
             <br />
-            SAS Societe par Actions Simplifiee (uproshchennoe aktsionernoe obshchestvo)
+            SAS Societe par Actions Simplifiee (упрощенное акционерное общество)
             <br />
-            Ustavnyi kapital EUR 1,000.00
+            Уставный капитал EUR 1,000.00
             <br />
-            Kommercheskii reestr Rodez (Aveyron)
+            Торговый реестр Rodez (Aveyron)
             <br />
-            Nomer SIRET 978 634 905
+            Номер SIRET 978 634 905
             <br />
-            Yuridicheskii adres: 14B rue de la Guiraldie, 12300
+            Юридический адрес: 14B rue de la Guiraldie, 12300
             Boisse-Penchot, France
             <br />
-            Jean-Francois Durel, prezident, +33 652 11 33 47,
+            Jean-Francois Durel, президент, +33 652 11 33 47,
             lescochesdepenchot@gmail.com
           </p>
-          <h2>Khosting saita</h2>
+          <h2>Хостинг сайта</h2>
           <p>
-            nazvanie khostinga
+            название хостинга
             <br />
-            nazvanie kompanii
+            название компании
             <br />
-            adres
+            адрес
             <br />
-            telefon
+            телефон
           </p>
-          <h2>Kommercheskaya deyatelnost</h2>
+          <h2>Коммерческая деятельность</h2>
           <p>
-            Kommercheskii reestr Rodez (Aveyron)
+            Торговый реестр Rodez (Aveyron)
             <br />
-            Nomer SIRET 978 634 905 SIREN 978 634 905 00019
+            Номер SIRET 978 634 905 SIREN 978 634 905 00019
             <br />
-            Nomer vnutrisoyuznogo NDS FR 04978634905
+            Номер НДС ЕС FR 04978634905
             <br />
-            <strong>Obshchie usloviya prodazhi</strong>
+            <strong>Общие условия продажи</strong>
             <br />
-            Kod APE 30.11Z
+            Код APE 30.11Z
             <br />
-            Stroitelstvo i upravlenie progulochnymi sudami, mobilnymi
-            plavuchimi zhilymi konstruktsiyami i mini rechnymi bazami
+            Строительство и управление прогулочными судами, мобильными
+            плавучими жилыми конструкциями и мини-речными базами
             <br />
-            Unikalnyi kod proizvoditelya LCP
+            Уникальный код производителя LCP
           </p>
         </>
       ),
@@ -440,17 +440,17 @@ const content: Record<LegalKind, Record<Locale, LegalItem>> = {
       ),
     },
     ru: {
-      title: "Politika cookie",
+      title: "Политика cookie",
       body: (
         <>
           <p>
-            Eto shablon politiki cookie. Adaptiruite ego pod fakticheskie
-            dannye dlya sootvetstviya GDPR.
+            Это шаблон политики cookie. Адаптируйте его под фактические данные
+            для соответствия GDPR.
           </p>
-          <h2>Operator dannykh</h2>
-          <p>[Kompaniya], [adres], kontakt: [email].</p>
-          <h2>Ispolzuemye cookie</h2>
-          <p>Obyazatelnye, analitika, predpochteniya/proizvoditelnost, marketing.</p>
+          <h2>Оператор данных</h2>
+          <p>[Компания], [адрес], контакт: [email].</p>
+          <h2>Используемые cookie</h2>
+          <p>Обязательные, аналитика, предпочтения/производительность, маркетинг.</p>
         </>
       ),
     },
@@ -541,15 +541,15 @@ const content: Record<LegalKind, Record<Locale, LegalItem>> = {
       ),
     },
     ru: {
-      title: "Usloviya",
+      title: "Условия",
       body: (
         <>
           <p>
-            Shablon uslovii ispolzovaniya/obshchikh uslovii prodazhi.
-            Adaptiruite ego pod prodazhi, arendu ili uslugi.
+            Шаблон условий использования/общих условий продажи. Адаптируйте его
+            под продажи, аренду или услуги.
           </p>
-          <h2>Predmet</h2>
-          <p>Pravila ispolzovaniya saita i predostavleniya uslug/tovarov.</p>
+          <h2>Предмет</h2>
+          <p>Правила использования сайта и предоставления услуг/товаров.</p>
         </>
       ),
     },

@@ -3,6 +3,7 @@
 
 import React from "react";
 import { useAudio } from "./AudioContext";
+import { useT } from "@/components/Language/useT";
 
 // Simple icons for demo (replace with your SVGs if you like)
 const SoundOnIcon = () => <span>🔊</span>;
@@ -10,11 +11,12 @@ const SoundOffIcon = () => <span>🔇</span>;
 
 export const AudioToggle: React.FC = () => {
   const { muted, toggleMute } = useAudio();
+  const t = useT();
 
   return (
     <button
       onClick={toggleMute}
-      aria-label={muted ? "Unmute" : "Mute"}
+      aria-label={muted ? t("unmuteAudio") : t("muteAudio")}
       className={`
         fixed bottom-6 right-6   /* bottom-right to avoid overlapping drawers */
         z-[100]

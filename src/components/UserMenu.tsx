@@ -37,7 +37,7 @@ export default function UserMenu() {
         onClick={() => setOpen((value) => !value)}
         aria-haspopup="menu"
         aria-expanded={open}
-        aria-label={session ? "Open account menu" : "Open sign in menu"}
+        aria-label={session ? t("openAccountMenu") : t("openSignInMenu")}
         className={`flex h-11 w-11 items-center justify-center rounded-full border border-[var(--color-beige)]/70 text-[var(--color-beige)] shadow-[0_10px_30px_rgba(0,0,0,0.35)] ring-1 ring-inset ring-white/10 backdrop-blur-sm transition hover:border-[var(--color-beige)] hover:bg-[#3f5666] ${
           session ? "bg-[#3f5666]/92" : "bg-[#3f5666]/82"
         }`}

@@ -1,12 +1,14 @@
 "use client";
 
 import { signIn } from "next-auth/react";
+import { useT } from "@/components/Language/useT";
 
 interface Props {
   dark?: boolean;
 }
 
 export default function GoogleSignInButton({ dark }: Props) {
+  const t = useT();
   const base =
     "w-full py-2 rounded-md font-medium transition flex items-center justify-center gap-2 text-sm ring-1 ring-transparent";
   const style = dark
@@ -20,7 +22,7 @@ export default function GoogleSignInButton({ dark }: Props) {
       className={`${base} ${style}`}
     >
       <span className="text-lg leading-none font-semibold">G</span>
-      <span className="tracking-wide">Sign in with Google</span>
+      <span className="tracking-wide">{t("authGoogleSignIn")}</span>
     </button>
   );
 }
