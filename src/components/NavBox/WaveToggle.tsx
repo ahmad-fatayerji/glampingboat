@@ -8,9 +8,9 @@ interface WaveToggleProps {
   toggle: () => void;
 }
 
-const SIZE = 40;
+const SIZE = 46;
 const COLOR = "#E4DBCE";
-const BASELINES = [12, 20, 28];
+const BASELINES = [14, 23, 32];
 
 export default function WaveToggle({ open, toggle }: WaveToggleProps) {
   const t = useT();
@@ -112,7 +112,7 @@ export default function WaveToggle({ open, toggle }: WaveToggleProps) {
         hoverRef.current = false;
       }}
       aria-label={open ? t("closeMenu") : t("openMenu")}
-      className="fixed top-5 left-5 z-50 p-2 bg-transparent scale-125"
+      className="fixed top-5 left-5 z-50 cursor-pointer bg-transparent p-2 scale-125"
     >
       <canvas
         ref={canvasRef}

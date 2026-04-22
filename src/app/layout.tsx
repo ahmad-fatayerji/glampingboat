@@ -43,7 +43,7 @@ export default function RootLayout({
             {/* AudioProvider mounted once here, so audio persists across pages */}
             <AudioProvider src="/audio/bg-music.mp3">
               {/* fixed logo */}
-              <div className="fixed top-16 left-5 z-40">
+              <div className="fixed top-24 left-5 z-40">
                 <Logo />
               </div>
 
