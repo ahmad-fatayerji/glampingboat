@@ -7,31 +7,31 @@ export default function CredentialsTabs() {
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   return (
     <div className="space-y-6">
-      <h1 className="text-center text-2xl font-semibold tracking-wide text-[var(--color-blue)]">
-        {mode === "signin" ? "Sign in" : "Create account"}
+      <h1 className="border-b border-[#173c59] pb-2 text-center text-[1.3rem] lowercase tracking-wide text-[var(--color-beige)]">
+        {mode === "signin" ? "sign in" : "create account"}
       </h1>
-      <div className="grid grid-cols-2 rounded-full overflow-hidden bg-[var(--color-beige)]/60 text-sm ring-1 ring-[var(--color-blue)]/10">
+      <div className="grid grid-cols-2 rounded-xl border border-[#0d3350] bg-[#0d3350]/30 p-1 text-sm lowercase tracking-wide">
         <button
           type="button"
           onClick={() => setMode("signin")}
-          className={`py-2 font-medium transition ${
+          className={`rounded-lg py-2 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-beige)]/40 ${
             mode === "signin"
-              ? "bg-[var(--color-blue)] text-[var(--color-beige)]"
-              : "text-[var(--color-blue)]/70 hover:text-[var(--color-blue)]"
+              ? "bg-[#0d3350] text-[var(--color-beige)] shadow-inner"
+              : "text-[var(--color-beige)]/70 hover:text-[var(--color-beige)]"
           }`}
         >
-          Sign In
+          sign in
         </button>
         <button
           type="button"
           onClick={() => setMode("signup")}
-          className={`py-2 font-medium transition ${
+          className={`rounded-lg py-2 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-beige)]/40 ${
             mode === "signup"
-              ? "bg-[var(--color-blue)] text-[var(--color-beige)]"
-              : "text-[var(--color-blue)]/70 hover:text-[var(--color-blue)]"
+              ? "bg-[#0d3350] text-[var(--color-beige)] shadow-inner"
+              : "text-[var(--color-beige)]/70 hover:text-[var(--color-beige)]"
           }`}
         >
-          Create
+          create
         </button>
       </div>
       {mode === "signin" ? <CredentialsSignIn /> : <CredentialsSignUp />}

@@ -38,9 +38,9 @@ export default function ReservationList({ reservations }: Props) {
 
   if (!list.length) {
     return (
-      <div className="bg-white rounded-2xl p-12 text-center border border-[var(--color-blue)]/10 shadow-sm">
-        <p className="text-sm text-[var(--color-blue)]/70 tracking-wide">
-          You have no reservations yet.
+      <div className="border border-white/15 bg-[#3f5666]/82 p-12 text-center shadow-[0_18px_55px_rgba(0,0,0,0.35)] backdrop-blur-sm">
+        <p className="text-sm lowercase tracking-wide text-[var(--color-beige)]/80">
+          you have no reservations yet.
         </p>
       </div>
     );
@@ -69,20 +69,20 @@ export default function ReservationList({ reservations }: Props) {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-        <h2 className="text-xl md:text-2xl font-semibold text-[var(--color-blue)] tracking-wide">
-          Reservations
+    <div className="space-y-4 border border-white/15 bg-[#3f5666]/82 p-5 shadow-[0_18px_55px_rgba(0,0,0,0.35)] backdrop-blur-sm md:p-6">
+      <div className="flex flex-col gap-4 border-b border-[#173c59] pb-3 sm:flex-row sm:items-end sm:justify-between">
+        <h2 className="text-[1.05rem] lowercase tracking-wide text-[var(--color-beige)]">
+          reservations
         </h2>
-        <div className="inline-flex rounded-full bg-[var(--color-beige)]/60 p-1 shadow-inner ring-1 ring-[var(--color-blue)]/10 text-[11px] font-medium uppercase tracking-wider">
+        <div className="inline-flex rounded-xl border border-[#0d3350] bg-[#0d3350]/30 p-1 text-[11px] lowercase tracking-wider">
           {(["upcoming", "past", "all"] as const).map((value) => (
             <button
               key={value}
               onClick={() => setFilter(value)}
-              className={`px-4 py-1.5 rounded-full transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-blue)]/40 ${
+              className={`rounded-lg px-4 py-1.5 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-beige)]/40 ${
                 filter === value
-                  ? "bg-[var(--color-blue)] text-[var(--color-beige)] shadow"
-                  : "text-[var(--color-blue)]/60 hover:text-[var(--color-blue)]"
+                  ? "bg-[#0d3350] text-[var(--color-beige)] shadow-inner"
+                  : "text-[var(--color-beige)]/60 hover:text-[var(--color-beige)]"
               }`}
               aria-pressed={filter === value}
             >
@@ -91,7 +91,7 @@ export default function ReservationList({ reservations }: Props) {
           ))}
         </div>
       </div>
-      <ul className="space-y-4">
+      <ul className="space-y-3">
         {filtered.map((reservation) => {
           const nights = nightsBetween(reservation.startDate, reservation.endDate);
           const isExpanded = expanded === reservation.id;
@@ -100,33 +100,33 @@ export default function ReservationList({ reservations }: Props) {
 
           return (
             <li key={reservation.id} className="group">
-              <div className="rounded-2xl border border-[var(--color-blue)]/10 bg-white shadow-sm overflow-hidden ring-1 ring-transparent group-hover:ring-[var(--color-blue)]/10 transition">
+              <div className="overflow-hidden border border-[#173c59] bg-[#0d3350]/25 transition group-hover:border-[#234d69]">
                 <button
                   onClick={() => setExpanded(isExpanded ? null : reservation.id)}
-                  className="w-full flex flex-col gap-3 text-left px-5 py-4 md:flex-row md:items-center md:gap-6"
+                  className="flex w-full flex-col gap-3 px-5 py-4 text-left md:flex-row md:items-center md:gap-6"
                   aria-expanded={isExpanded}
                 >
-                  <div className="flex-1 flex flex-col md:flex-row md:items-center md:gap-5">
+                  <div className="flex flex-1 flex-col md:flex-row md:items-center md:gap-5">
                     <div className="flex flex-col sm:flex-row sm:items-baseline sm:gap-3">
-                      <span className="font-medium tracking-wide text-[var(--color-blue)]">
+                      <span className="tracking-wide text-[var(--color-beige)]">
                         {fmt(reservation.startDate, {
                           day: "2-digit",
                           month: "short",
                           year: "numeric",
                         })}
-                        <span className="mx-1 text-[var(--color-blue)]/40">&mdash;</span>
+                        <span className="mx-1 text-[var(--color-beige)]/40">&mdash;</span>
                         {fmt(reservation.endDate, {
                           day: "2-digit",
                           month: "short",
                           year: "numeric",
                         })}
                       </span>
-                      <span className="text-[10px] uppercase tracking-wider text-[var(--color-blue)]/50 mt-1 sm:mt-0 flex flex-col sm:flex-row sm:items-center sm:gap-2">
+                      <span className="mt-1 flex flex-col text-[10px] lowercase tracking-wider text-[var(--color-beige)]/60 sm:mt-0 sm:flex-row sm:items-center sm:gap-2">
                         <span>
                           {nights} night{nights !== 1 ? "s" : ""}
                         </span>
                         {reservation.bookingRef && (
-                          <span className="font-mono text-[9px] tracking-tight bg-[var(--color-blue)]/5 px-2 py-0.5 rounded border border-[var(--color-blue)]/10">
+                          <span className="rounded border border-[#173c59] bg-[#0d3350]/60 px-2 py-0.5 font-mono text-[9px] tracking-tight text-[var(--color-beige)]/80">
                             {reservation.bookingRef}
                           </span>
                         )}
@@ -134,16 +134,16 @@ export default function ReservationList({ reservations }: Props) {
                     </div>
                     <StatusBadge status={status} />
                   </div>
-                  <div className="flex items-center gap-8 text-sm pr-1">
-                    <span className="font-semibold text-[var(--color-blue)] tabular-nums">
+                  <div className="flex items-center gap-8 pr-1 text-sm">
+                    <span className="tabular-nums text-[var(--color-beige)]">
                       {euro(reservation.totalTtc)}
                     </span>
-                    <span className="text-[var(--color-blue)]/60 text-xs">
-                      {reservation.adults}A
-                      {reservation.children > 0 ? `+${reservation.children}C` : ""}
+                    <span className="text-xs lowercase text-[var(--color-beige)]/60">
+                      {reservation.adults}a
+                      {reservation.children > 0 ? `+${reservation.children}c` : ""}
                     </span>
                     <svg
-                      className={`w-4 h-4 text-[var(--color-blue)]/70 transition-transform ${
+                      className={`h-4 w-4 text-[var(--color-beige)]/70 transition-transform ${
                         isExpanded ? "rotate-180" : ""
                       }`}
                       fill="none"
@@ -162,33 +162,33 @@ export default function ReservationList({ reservations }: Props) {
                   }`}
                 >
                   <div className="overflow-hidden">
-                    <div className="px-6 pb-6 pt-1 bg-white text-sm space-y-5">
-                      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-5">
-                        <Info label="Base HT" value={euro(reservation.basePriceHt)} />
+                    <div className="space-y-5 border-t border-[#173c59] bg-[#0d3350]/15 px-6 pb-6 pt-4 text-sm">
+                      <div className="grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-6">
+                        <Info label="base ht" value={euro(reservation.basePriceHt)} />
                         <Info
-                          label="Options HT"
+                          label="options ht"
                           value={euro(reservation.optionsPriceHt)}
                         />
-                        <Info label="TVA HT" value={euro(reservation.tvaHt)} />
+                        <Info label="tva ht" value={euro(reservation.tvaHt)} />
                         <Info
-                          label={"Taxe s\u00e9jour"}
+                          label={"taxe s\u00e9jour"}
                           value={euro(reservation.taxSejourTtc)}
                         />
                         <Info
-                          label="Deposit"
+                          label="deposit"
                           value={euro(reservation.depositAmount)}
                         />
                         <Info
-                          label="Balance"
+                          label="balance"
                           value={euro(reservation.balanceAmount)}
                         />
                       </div>
                       {reservation.items.length > 0 && (
                         <div>
-                          <h3 className="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-blue)]/60 mb-2">
-                            Options
+                          <h3 className="mb-2 text-[10px] lowercase tracking-wider text-[var(--color-beige)]/60">
+                            options
                           </h3>
-                          <ul className="space-y-1">
+                          <ul className="space-y-1 text-[var(--color-beige)]/90">
                             {reservation.items.map((item) => (
                               <li
                                 key={item.id}
@@ -205,10 +205,10 @@ export default function ReservationList({ reservations }: Props) {
                           </ul>
                         </div>
                       )}
-                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pt-3 border-t border-[var(--color-blue)]/10">
-                        <span className="text-[11px] text-[var(--color-blue)]/60 flex flex-col sm:flex-row sm:items-center sm:gap-3">
+                      <div className="flex flex-col gap-2 border-t border-[#173c59] pt-3 sm:flex-row sm:items-center sm:justify-between">
+                        <span className="flex flex-col text-[11px] lowercase text-[var(--color-beige)]/60 sm:flex-row sm:items-center sm:gap-3">
                           <span>
-                            Created{" "}
+                            created{" "}
                             {fmt(reservation.createdAt, {
                               day: "2-digit",
                               month: "short",
@@ -216,17 +216,17 @@ export default function ReservationList({ reservations }: Props) {
                             })}
                           </span>
                           {reservation.bookingRef && (
-                            <span className="font-mono text-[10px] bg-[var(--color-blue)]/5 px-2 py-0.5 rounded border border-[var(--color-blue)]/10">
-                              Ref: {reservation.bookingRef}
+                            <span className="rounded border border-[#173c59] bg-[#0d3350]/60 px-2 py-0.5 font-mono text-[10px] text-[var(--color-beige)]/80">
+                              ref: {reservation.bookingRef}
                             </span>
                           )}
                         </span>
                         <button
                           onClick={() => setPendingCancel(reservation.id)}
-                          className="self-start sm:self-auto text-[11px] font-medium text-red-600 hover:text-red-700 underline underline-offset-2 disabled:opacity-40"
+                          className="self-start text-[11px] lowercase tracking-wide text-[#ffd9d9] underline underline-offset-2 transition hover:text-[#ffbfbf] disabled:opacity-40 sm:self-auto"
                           disabled={busy}
                         >
-                          Cancel reservation
+                          cancel reservation
                         </button>
                       </div>
                     </div>
@@ -256,10 +256,10 @@ export default function ReservationList({ reservations }: Props) {
 function Info({ label, value }: { label: string; value: string }) {
   return (
     <div className="space-y-1">
-      <div className="text-[10px] uppercase tracking-wider text-[var(--color-blue)]/45 font-semibold">
+      <div className="text-[10px] lowercase tracking-wider text-[var(--color-beige)]/55">
         {label}
       </div>
-      <div className="font-medium tabular-nums text-[var(--color-blue)]">
+      <div className="tabular-nums text-[var(--color-beige)]">
         {value}
       </div>
     </div>
@@ -270,18 +270,18 @@ function StatusBadge({ status }: { status: "upcoming" | "past" }) {
   const isPast = status === "past";
   return (
     <span
-      className={`mt-2 md:mt-0 inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-medium uppercase tracking-wider ring-1 ${
+      className={`mt-2 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] lowercase tracking-wider ring-1 md:mt-0 ${
         isPast
-          ? "bg-white text-[var(--color-blue)]/40 ring-[var(--color-blue)]/20"
-          : "bg-[var(--color-blue)] text-[var(--color-beige)] ring-[var(--color-blue)]/30"
+          ? "bg-transparent text-[var(--color-beige)]/50 ring-[var(--color-beige)]/25"
+          : "bg-[#0d3350] text-[var(--color-beige)] ring-[#234d69]"
       }`}
     >
       <span
-        className={`w-1.5 h-1.5 rounded-full ${
-          isPast ? "bg-[var(--color-blue)]/30" : "bg-[var(--color-beige)]"
+        className={`h-1.5 w-1.5 rounded-full ${
+          isPast ? "bg-[var(--color-beige)]/40" : "bg-[var(--color-beige)]"
         }`}
       />
-      {isPast ? "Past" : "Upcoming"}
+      {isPast ? "past" : "upcoming"}
     </span>
   );
 }
@@ -305,25 +305,25 @@ function CancelDialog({
 
   return (
     <div
-      className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-[var(--color-blue)]/40 backdrop-blur-sm"
+      className="fixed inset-0 z-[200] flex items-center justify-center bg-black/70 p-4"
       role="dialog"
       aria-modal="true"
       aria-labelledby="cancel-title"
     >
-      <div className="w-full max-w-sm rounded-2xl bg-white shadow-xl border border-[var(--color-blue)]/10 ring-1 ring-[var(--color-blue)]/10 animate-[fadeIn_.25s_ease]">
-        <div className="px-6 pt-5 pb-4 space-y-4">
+      <div className="w-full max-w-sm border border-white/15 bg-[#3f5666]/92 text-[var(--color-beige)] shadow-[0_18px_55px_rgba(0,0,0,0.35)] backdrop-blur-sm animate-[fadeIn_.25s_ease]">
+        <div className="space-y-4 px-6 pb-5 pt-5">
           <h2
             id="cancel-title"
-            className="text-lg font-semibold tracking-wide text-[var(--color-blue)]"
+            className="border-b border-[#173c59] pb-2 text-[1.05rem] lowercase tracking-wide text-[var(--color-beige)]"
           >
-            Cancel reservation?
+            cancel reservation?
           </h2>
-          <p className="text-sm leading-relaxed text-[var(--color-blue)]/70">
-            This action will permanently remove the reservation. This cannot be
+          <p className="text-sm leading-relaxed lowercase text-[var(--color-beige)]/80">
+            this action will permanently remove the reservation. this cannot be
             undone.
           </p>
           {error && (
-            <div className="text-xs font-medium text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2">
+            <div className="rounded-md border border-[#8a3a30] bg-[#8a3a30]/25 px-3 py-2 text-xs lowercase text-[#ffd9d9]">
               {error}
             </div>
           )}
@@ -331,16 +331,16 @@ function CancelDialog({
             <button
               onClick={onClose}
               disabled={busy}
-              className="px-4 py-2 text-sm font-medium rounded-md bg-[var(--color-beige)]/70 text-[var(--color-blue)] hover:bg-[var(--color-beige)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-blue)]/40 disabled:opacity-40"
+              className="rounded-xl border border-[#173c59] px-4 py-2 text-sm lowercase tracking-wide text-[var(--color-beige)] transition hover:bg-[#0d3350]/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-beige)]/40 disabled:opacity-40"
             >
-              Keep
+              keep
             </button>
             <button
               onClick={onConfirm}
               disabled={busy}
-              className="relative px-5 py-2 text-sm font-semibold rounded-md bg-red-600 text-white shadow hover:bg-red-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-400 disabled:opacity-50"
+              className="rounded-xl bg-[#8a3a30] px-5 py-2 text-sm lowercase tracking-wide text-[var(--color-beige)] shadow transition hover:bg-[#9e4237] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#ffd9d9]/60 disabled:opacity-50"
             >
-              {busy ? "Cancelling..." : "Cancel"}
+              {busy ? "cancelling..." : "cancel"}
             </button>
           </div>
         </div>

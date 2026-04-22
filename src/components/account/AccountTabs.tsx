@@ -32,18 +32,18 @@ export default function AccountTabs({ reservations, initialTab }: Props) {
 
   return (
     <div className="space-y-6">
-      <div className="w-full bg-white rounded-xl p-2 shadow border border-[var(--color-blue)]/10 flex items-center gap-2 text-sm">
+      <div className="flex w-full items-center gap-2 border border-white/15 bg-[#3f5666]/82 p-2 text-sm shadow-[0_18px_55px_rgba(0,0,0,0.35)] backdrop-blur-sm">
         <TabButton
           active={tab === "bookings"}
           onClick={() => switchTab("bookings")}
         >
-          Bookings
+          bookings
         </TabButton>
         <TabButton
           active={tab === "profile"}
           onClick={() => switchTab("profile")}
         >
-          Profile
+          profile
         </TabButton>
       </div>
       {tab === "bookings" && <ReservationList reservations={reservations} />}
@@ -65,10 +65,10 @@ function TabButton({
     <button
       type="button"
       onClick={onClick}
-      className={`flex-1 py-2 rounded-lg font-medium transition ${
+      className={`flex-1 rounded-xl py-2 lowercase tracking-wide transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-beige)]/40 ${
         active
-          ? "bg-[var(--color-blue)] text-[var(--color-beige)] shadow-inner"
-          : "text-[var(--color-blue)] hover:bg-[var(--color-beige)]/60"
+          ? "bg-[#0d3350] text-[var(--color-beige)] shadow-inner"
+          : "text-[var(--color-beige)]/70 hover:bg-[#0d3350]/40 hover:text-[var(--color-beige)]"
       }`}
     >
       {children}

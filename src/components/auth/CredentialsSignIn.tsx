@@ -25,38 +25,38 @@ export default function CredentialsSignIn() {
   return (
     <form onSubmit={handleLogin} className="space-y-4">
       {error && (
-        <p className="text-sm text-red-500 bg-red-500/10 border border-red-500/30 px-3 py-2 rounded">
+        <p className="rounded-md border border-[#8a3a30] bg-[#8a3a30]/25 px-3 py-2 text-sm lowercase text-[#ffd9d9]">
           {error}
         </p>
       )}
-      <div className="space-y-1">
-        <label className="text-xs font-medium tracking-wide text-[var(--color-blue)]/80">
-          Email
+      <div className="flex flex-col gap-1">
+        <label className="text-sm lowercase text-[var(--color-beige)]/90">
+          email
         </label>
         <input
           type="email"
           required
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="w-full rounded-md bg-[var(--color-beige)]/35 border border-[var(--color-blue)]/15 focus:border-[var(--color-blue)] focus:ring-2 focus:ring-[var(--color-blue)]/25 px-3 py-2 text-sm placeholder-gray-500 outline-none transition"
+          className="h-10 w-full rounded-md border-2 border-[#0d3350] bg-[var(--color-beige)] px-3 text-sm text-[var(--color-blue)] outline-none transition placeholder:text-[var(--color-blue)]/45 focus:border-[#234d69]"
           placeholder="you@example.com"
         />
       </div>
-      <div className="space-y-1">
-        <label className="text-xs font-medium tracking-wide text-[var(--color-blue)]/80">
-          Password
+      <div className="flex flex-col gap-1">
+        <label className="text-sm lowercase text-[var(--color-beige)]/90">
+          password
         </label>
         <input
           type="password"
           required
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="w-full rounded-md bg-[var(--color-beige)]/35 border border-[var(--color-blue)]/15 focus:border-[var(--color-blue)] focus:ring-2 focus:ring-[var(--color-blue)]/25 px-3 py-2 text-sm placeholder-gray-500 outline-none transition"
+          className="h-10 w-full rounded-md border-2 border-[#0d3350] bg-[var(--color-beige)] px-3 text-sm text-[var(--color-blue)] outline-none transition placeholder:text-[var(--color-blue)]/45 focus:border-[#234d69]"
           placeholder="••••••••"
         />
       </div>
-      <button className="w-full relative overflow-hidden rounded-md bg-[var(--color-blue)] text-[var(--color-beige)] font-semibold text-sm py-2 shadow hover:bg-[#042c49] focus:outline-none focus:ring-2 focus:ring-[var(--color-blue)]/40 transition">
-        <span className="relative z-10">Sign In</span>
+      <button className="w-full rounded-xl bg-[#0d3350] py-2 text-sm lowercase tracking-wide text-[var(--color-beige)] transition hover:bg-[#123f61] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-beige)]/60">
+        sign in
       </button>
     </form>
   );

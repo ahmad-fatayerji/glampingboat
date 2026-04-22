@@ -6,9 +6,9 @@ export default function LogoutButton() {
   return (
     <button
       onClick={() => signOut({ callbackUrl: "/account" })}
-      className="px-4 py-1 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm"
+      className="rounded-xl bg-[#0d3350] px-4 py-1.5 text-xs lowercase tracking-wide text-[var(--color-beige)] transition hover:bg-[#123f61] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-beige)]/60"
     >
-      Logout
+      logout
     </button>
   );
 }

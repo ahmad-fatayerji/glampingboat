@@ -17,7 +17,7 @@ export default async function AccountPage({
 
   if (!session) {
     return (
-      <div className="min-h-screen bg-[var(--color-white)] flex items-center justify-center px-4 pt-40 pb-12">
+      <div className="min-h-screen flex items-center justify-center px-4 pt-40 pb-12">
         <AuthForms />
       </div>
     );
@@ -38,8 +38,8 @@ export default async function AccountPage({
       : "bookings";
 
   return (
-    <div className="min-h-screen bg-[var(--color-white)] px-4 pt-40 pb-24 flex flex-col items-center">
-      <div className="w-full max-w-5xl space-y-8">
+    <div className="min-h-screen px-4 pt-40 pb-24 flex flex-col items-center">
+      <div className="w-full max-w-5xl space-y-6">
         <AccountHeader email={session.user.email || ""} />
         <AccountTabs reservations={serialized} initialTab={initialTab} />
       </div>
@@ -49,18 +49,18 @@ export default async function AccountPage({
 
 function AccountHeader({ email }: { email: string }) {
   return (
-    <div className="w-full bg-white rounded-2xl p-6 md:p-8 shadow-lg border border-[var(--color-blue)]/10 space-y-4 text-[var(--color-blue)]">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <h1 className="text-2xl font-semibold tracking-wide">Your Account</h1>
-        <div className="text-sm flex items-center justify-between bg-[var(--color-beige)]/60 px-4 py-2 rounded-md w-full md:w-auto">
+    <div className="w-full border border-white/15 bg-[#3f5666]/82 px-6 py-5 md:px-8 md:py-6 shadow-[0_18px_55px_rgba(0,0,0,0.35)] backdrop-blur-sm space-y-4 text-[var(--color-beige)]">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <h1 className="border-b border-[#173c59] pb-2 text-[1.3rem] lowercase tracking-wide text-[var(--color-beige)] md:border-b-0 md:pb-0">
+          your account
+        </h1>
+        <div className="flex items-center justify-between gap-4 rounded-md border border-[#0d3350] bg-[var(--color-beige)] px-4 py-2 text-sm text-[var(--color-blue)] w-full md:w-auto">
           <span className="truncate font-medium">{email}</span>
-          <div className="ml-4">
-            <LogoutButton />
-          </div>
+          <LogoutButton />
         </div>
       </div>
-      <p className="text-xs text-[var(--color-blue)]/60">
-        Use the tabs below to manage bookings or update your profile.
+      <p className="text-xs lowercase tracking-wide text-[var(--color-beige)]/70">
+        use the tabs below to manage bookings or update your profile.
       </p>
     </div>
   );
@@ -68,20 +68,20 @@ function AccountHeader({ email }: { email: string }) {
 
 function AuthForms() {
   return (
-    <div className="w-full max-w-md bg-white rounded-2xl p-8 shadow-lg border border-[var(--color-blue)]/10 space-y-8 text-[var(--color-blue)]">
+    <div className="w-full max-w-md border border-white/15 bg-[#3f5666]/92 p-8 text-[var(--color-beige)] shadow-[0_18px_55px_rgba(0,0,0,0.35)] backdrop-blur-sm space-y-8">
       <CredentialsTabs />
-      <div className="relative flex items-center gap-4 text-[10px] uppercase tracking-wider text-[var(--color-blue)]/50">
-        <span className="flex-1 h-px bg-[var(--color-blue)]/15" />
+      <div className="relative flex items-center gap-4 text-[10px] uppercase tracking-wider text-[var(--color-beige)]/60">
+        <span className="flex-1 h-px bg-[#173c59]" />
         <span>or</span>
-        <span className="flex-1 h-px bg-[var(--color-blue)]/15" />
+        <span className="flex-1 h-px bg-[#173c59]" />
       </div>
-      <GoogleSignInButton />
+      <GoogleSignInButton dark />
       <div className="text-right -mt-4">
         <Link
           href="/forgot-password"
-          className="text-xs text-[var(--color-blue)]/60 hover:text-[var(--color-blue)] underline underline-offset-2"
+          className="text-xs lowercase text-[var(--color-beige)]/70 hover:text-[var(--color-beige)] underline underline-offset-2"
         >
-          Forgot password?
+          forgot password?
         </Link>
       </div>
     </div>
