@@ -202,10 +202,38 @@ const en = {
   logoHome: "Glamping Boat home",
   trademarkLabel: "Trademark",
   videoNotSupported: "Your browser does not support the video tag.",
+  seeAvailability: "see availability",
+  notAvailable: "not available",
+  arrivalDate: "arrival date",
+  departureDate: "departure date",
+  availableForChosenDates:
+    "glampingboat is available on the dates you have chosen",
+  notAvailableForChosenDates:
+    "glampingboat is not available on the dates you have chosen",
+  priceForNightsExcl:
+    "price for {nights} nights, excluding tourist tax and options",
+  disabilityHealthCure: "in a disability situation or health cure?",
+  contactUs: "contact us",
+  accommodationPrice: "Accommodation price",
+  excludingTax: "€ excluding tax",
+  vatLabel: "VAT 20.00%",
+  allTax: "€ all tax",
+  tourismTax: "Tourism tax",
+  fromTo: "From {start} to {end}",
+  nightsCalc: "({nights} nights x {rate}): {total}",
+  touristTaxCalc: "({adults} adults x {nights} nights x {rate})",
+  totalAmountLabel: "total amount",
+  depositOnBooking: "deposit 50% on booking",
+  balanceBeforeArrival: "balance 15 days before date of arrival",
+  contactDetails: "contact details",
+  paymentSection: "payment",
+  cancellationInsuranceTitle: "cancellation insurance",
+  cancellationInsuranceLabel:
+    "I would like to take out cancellation insurance for my holiday",
 } as const;
 
 export type TranslationKey = keyof typeof en;
-type Dictionary = Record<TranslationKey, string>;
+type Dictionary = Partial<Record<TranslationKey, string>> & { [key: string]: string | undefined };
 
 export const dictionaries: Record<Locale, Dictionary> = {
   en,

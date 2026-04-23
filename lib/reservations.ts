@@ -7,12 +7,62 @@ import type {
 } from "@/lib/types";
 
 const NIGHT_MS = 86_400_000;
-const BASE_NIGHTLY_PRICE_HT = 180;
 const VAT_RATE = 0.2;
-const TOURIST_TAX_PER_PERSON = 1.5;
-const DEPOSIT_RATE = 0.3;
+const DEPOSIT_RATE = 0.5;
 const SECURITY_DEPOSIT = 500;
-const LINEN_OPTION_PATTERN = /linge|lit/i;
+const LINEN_OPTION_PATTERN = /linge|lit|linen/i;
+
+const TOURIST_TAX_COMMUNITY_RATE = 0.05;
+const TOURIST_TAX_DEPARTMENT_UPLIFT = 0.1;
+
+type Season = "closed" | "veryLow" | "low" | "high" | "veryHigh";
+
+const SEASON_NIGHTLY_TTC: Record<Exclude<Season, "closed">, number> = {
+  veryLow: 228,
+  low: 228,
+  high: 242,
+  veryHigh: 285,
+};
+
+const SEASON_WEEKLY_TTC: Record<Exclude<Season, "closed">, number> = {
+  veryLow: 1590,
+  low: 1590,
+  high: 1690,
+  veryHigh: 1990,
+};
+
+const SEASON_WEEKEND_TTC: Record<Exclude<Season, "closed">, number> = {
+  veryLow: 690,
+  low: 690,
+  high: 725,
+  veryHigh: 855,
+};
+
+const MONTH_SEASON_BUCKETS: Record<number, [Season, Season, Season, Season]> = {
+  3: ["closed", "closed", "closed", "closed"], // April
+  4: ["low", "low", "high", "high"], // May
+  5: ["high", "high", "high", "high"], // June
+  6: ["high", "high", "veryHigh", "veryHigh"], // July
+  7: ["veryHigh", "veryHigh", "veryHigh", "high"], // August
+  8: ["high", "high", "low", "low"], // September
+  9: ["low", "low", "closed", "closed"], // October
+};
+
+function round2(value: number) {
+  return Math.round(value * 100) / 100;
+}
+
+function getSeasonForDate(date: Date): Season {
+  const month = date.getMonth();
+  const buckets = MONTH_SEASON_BUCKETS[month];
+  if (!buckets) {
+    return "closed";
+  }
+
+  const day = date.getDate();
+  const bucket = Math.min(3, Math.floor((day - 1) / 7));
+  return buckets[bucket];
+}
 
 export const RESERVATION_WITH_ITEMS_INCLUDE = {
   items: {
@@ -32,6 +82,87 @@ export function calculateNightCount(arrivalDate: Date, departureDate: Date) {
   );
 }
 
+export function isSeasonOpen(date: Date) {
+  return getSeasonForDate(date) !== "closed";
+}
+
+export function isRangeBookable(start: Date, end: Date) {
+  if (end.getTime() <= start.getTime()) {
+    return false;
+  }
+  const cursor = new Date(start);
+  cursor.setHours(0, 0, 0, 0);
+  while (cursor.getTime() < end.getTime()) {
+    if (!isSeasonOpen(cursor)) {
+      return false;
+    }
+    cursor.setDate(cursor.getDate() + 1);
+  }
+  return true;
+}
+
+export function calculateBaseTtc(start: Date, end: Date) {
+  const nights = calculateNightCount(start, end);
+  if (nights <= 0) {
+    return 0;
+  }
+
+  let total = 0;
+  let uniformSeason: Season | null = null;
+  let mixed = false;
+  const cursor = new Date(start);
+  cursor.setHours(0, 0, 0, 0);
+  for (let i = 0; i < nights; i += 1) {
+    const season = getSeasonForDate(cursor);
+    if (season === "closed") {
+      return 0;
+    }
+    if (uniformSeason === null) {
+      uniformSeason = season;
+    } else if (uniformSeason !== season) {
+      mixed = true;
+    }
+    total += SEASON_NIGHTLY_TTC[season];
+    cursor.setDate(cursor.getDate() + 1);
+  }
+
+  // Use weekend / weekly tariffs when the stay matches exactly and falls
+  // entirely inside a single season — that gives the published flat rate.
+  if (!mixed && uniformSeason) {
+    if (nights === 2) {
+      return SEASON_WEEKEND_TTC[uniformSeason];
+    }
+    if (nights === 7) {
+      return SEASON_WEEKLY_TTC[uniformSeason];
+    }
+  }
+
+  return total;
+}
+
+export function calculateTouristTaxTtc({
+  baseTtc,
+  adults,
+  children,
+  nights,
+}: {
+  baseTtc: number;
+  adults: number;
+  children: number;
+  nights: number;
+}) {
+  const totalPersons = Math.max(1, adults + children);
+  if (nights <= 0 || adults <= 0 || baseTtc <= 0) {
+    return 0;
+  }
+  const baseHt = baseTtc / (1 + VAT_RATE);
+  const perNightHt = baseHt / nights;
+  const perPersonNightlyHt = perNightHt / totalPersons;
+  const communityShare = perPersonNightlyHt * TOURIST_TAX_COMMUNITY_RATE;
+  const perAdultNight = communityShare * (1 + TOURIST_TAX_DEPARTMENT_UPLIFT);
+  return round2(perAdultNight * adults * nights);
+}
+
 export function calculateReservationPricingSummary({
   arrivalDate,
   departureDate,
@@ -47,17 +178,30 @@ export function calculateReservationPricingSummary({
 }): ReservationPricingSummary {
   const nights = calculateNightCount(arrivalDate, departureDate);
   const headCount = adults + children;
-  const basePriceHt = BASE_NIGHTLY_PRICE_HT * nights;
-  const optionSumHt = selectedOptions.reduce((sum, option) => {
+
+  const baseTtc = calculateBaseTtc(arrivalDate, departureDate);
+  const basePriceHt = round2(baseTtc / (1 + VAT_RATE));
+
+  const optionsTtc = selectedOptions.reduce((sum, option) => {
     const quantity = LINEN_OPTION_PATTERN.test(option.name) ? headCount : 1;
-    return sum + option.priceHt * quantity;
+    return sum + option.priceHt * quantity * (1 + VAT_RATE);
   }, 0);
-  const subtotalHt = basePriceHt + optionSumHt;
-  const tvaHt = subtotalHt * VAT_RATE;
-  const taxSejourTtc = TOURIST_TAX_PER_PERSON * nights * headCount;
-  const total = subtotalHt + tvaHt + taxSejourTtc;
-  const deposit = Number((total * DEPOSIT_RATE).toFixed(2));
-  const balance = Number((total - deposit).toFixed(2));
+  const optionSumHt = round2(optionsTtc / (1 + VAT_RATE));
+
+  const subtotalHt = round2(basePriceHt + optionSumHt);
+  const subtotalTtc = round2(baseTtc + optionsTtc);
+  const tvaHt = round2(subtotalTtc - subtotalHt);
+
+  const taxSejourTtc = calculateTouristTaxTtc({
+    baseTtc,
+    adults,
+    children,
+    nights,
+  });
+
+  const total = round2(subtotalTtc + taxSejourTtc);
+  const deposit = round2(total * DEPOSIT_RATE);
+  const balance = round2(total - deposit);
 
   return {
     nights,
@@ -81,8 +225,8 @@ export function normalizeReservationPricing(
   const tvaHt = pricing?.tvaHt ?? subtotalHt * VAT_RATE;
   const taxSejourTtc = pricing?.taxSejourTtc ?? 0;
   const totalTtc = pricing?.total ?? subtotalHt + tvaHt + taxSejourTtc;
-  const depositAmount = Number((totalTtc * DEPOSIT_RATE).toFixed(2));
-  const balanceAmount = Number((totalTtc - depositAmount).toFixed(2));
+  const depositAmount = round2(totalTtc * DEPOSIT_RATE);
+  const balanceAmount = round2(totalTtc - depositAmount);
 
   return {
     basePriceHt,

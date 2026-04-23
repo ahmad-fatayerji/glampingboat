@@ -9,5 +9,5 @@ export function useT() {
   const { locale } = useLanguage();
   const dict = dictionaries[locale] ?? dictionaries.en;
 
-  return (key: TranslationKey) => dict[key] ?? key;
+  return (key: TranslationKey) => dict[key] ?? dictionaries.en[key] ?? key;
 }

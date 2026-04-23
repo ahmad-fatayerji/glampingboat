@@ -7,6 +7,7 @@ import {
   type ChangeEvent,
   type FormEvent,
 } from "react";
+import { format } from "date-fns";
 import { useSession } from "next-auth/react";
 import { useT } from "@/components/Language/useT";
 import {
@@ -30,6 +31,9 @@ import { ADDRESS_FIELDS, NAME_FIELDS, PHONE_FIELDS } from "@/lib/types";
 interface BookingFormProps {
   arrivalDate: Date;
   departureDate: Date;
+  initialAdults?: number;
+  initialChildren?: number;
+  onBack?: () => void;
 }
 
 type BookingTextField =
@@ -52,7 +56,10 @@ type BookingInputEvent = ChangeEvent<
   HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
 >;
 
-const INITIAL_FORM: BookingFormState = {
+const buildInitialForm = (
+  adults: number,
+  childrenCount: number
+): BookingFormState => ({
   firstName: "",
   lastName: "",
   address: { number: "", street: "", city: "", state: "" },
@@ -66,10 +73,10 @@ const INITIAL_FORM: BookingFormState = {
   cancellation: false,
   acceptTerms: false,
   payFullNow: false,
-  adults: 2,
-  children: 0,
+  adults,
+  children: childrenCount,
   options: {},
-};
+});
 
 const BOOKING_OPTION_PREFIX = "opt_";
 const TEXT_FIELDS: readonly BookingTextField[] = [
@@ -89,6 +96,8 @@ const CHECKBOX_FIELDS: readonly BookingCheckboxField[] = [
   "payFullNow",
 ];
 
+const LINEN_PATTERN = /linge|lit|linen/i;
+
 function isAddressField(name: string): name is AddressField {
   return (ADDRESS_FIELDS as readonly string[]).includes(name);
 }
@@ -101,13 +110,26 @@ function isBookingCheckboxField(name: string): name is BookingCheckboxField {
   return (CHECKBOX_FIELDS as readonly string[]).includes(name);
 }
 
+function fmtEuro(value: number) {
+  return `€${value.toFixed(2)}`;
+}
+
+function fmtDate(date: Date) {
+  return format(date, "MM/dd/yyyy");
+}
+
 export default function BookingForm({
   arrivalDate,
   departureDate,
+  initialAdults = 2,
+  initialChildren = 0,
+  onBack,
 }: BookingFormProps) {
   const t = useT();
   const { data: session } = useSession();
-  const [form, setForm] = useState<BookingFormState>(INITIAL_FORM);
+  const [form, setForm] = useState<BookingFormState>(() =>
+    buildInitialForm(initialAdults, initialChildren)
+  );
   const [options, setOptions] = useState<OptionRecord[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -125,6 +147,15 @@ export default function BookingForm({
 
         if (active && Array.isArray(data)) {
           setOptions(data);
+          setForm((current) => {
+            const next = { ...current.options };
+            for (const opt of data) {
+              if (next[opt.id] === undefined) {
+                next[opt.id] = !LINEN_PATTERN.test(opt.name);
+              }
+            }
+            return { ...current, options: next };
+          });
         }
       } catch {
         if (active) {
@@ -179,7 +210,7 @@ export default function BookingForm({
           }));
         }
       } catch {
-        // Keep the empty form when the profile request fails.
+        // Keep the existing form data if the profile request fails.
       }
     }
 
@@ -190,6 +221,11 @@ export default function BookingForm({
     };
   }, [session]);
 
+  const selectedOptions = useMemo(
+    () => options.filter((option) => form.options[option.id]),
+    [options, form.options]
+  );
+
   const pricing = useMemo(
     () =>
       calculateReservationPricingSummary({
@@ -197,10 +233,18 @@ export default function BookingForm({
         departureDate,
         adults: form.adults,
         children: form.children,
-        selectedOptions: options.filter((option) => form.options[option.id]),
+        selectedOptions,
       }),
-    [arrivalDate, departureDate, form.adults, form.children, form.options, options]
+    [arrivalDate, departureDate, form.adults, form.children, selectedOptions]
   );
+
+  const headCount = form.adults + form.children;
+  const nightlyTtc = pricing.nights > 0
+    ? (pricing.basePriceHt * 1.2) / pricing.nights
+    : 0;
+  const taxPerAdultNight = form.adults > 0 && pricing.nights > 0
+    ? pricing.taxSejourTtc / (form.adults * pricing.nights)
+    : 0;
 
   const requiredProfileFields = useMemo(
     () =>
@@ -262,6 +306,13 @@ export default function BookingForm({
     if (isBookingTextField(name)) {
       updateTextField(name, value);
     }
+  };
+
+  const toggleOption = (id: string, value: boolean) => {
+    setForm((current) => ({
+      ...current,
+      options: { ...current.options, [id]: value },
+    }));
   };
 
   const selectedOptionIds = Object.entries(form.options)
@@ -376,19 +427,45 @@ export default function BookingForm({
 
   return (
     <div className="w-full text-[var(--color-beige)]">
+      {onBack && (
+        <button
+          type="button"
+          onClick={onBack}
+          className="mb-3 text-sm text-[var(--color-beige)]/80 hover:text-[var(--color-beige)]"
+        >
+          &lsaquo; {t("previous")}
+        </button>
+      )}
+
+      <PriceRecap
+        arrivalDate={arrivalDate}
+        departureDate={departureDate}
+        nights={pricing.nights}
+        nightlyTtc={nightlyTtc}
+        basePriceHt={pricing.basePriceHt}
+        baseTtc={pricing.basePriceHt * 1.2}
+        adults={form.adults}
+        taxPerAdultNight={taxPerAdultNight}
+        taxTtc={pricing.taxSejourTtc}
+        subtotalHt={pricing.subtotalHt}
+        tvaHt={pricing.tvaHt}
+        total={pricing.total}
+        deposit={pricing.deposit}
+        balance={pricing.balance}
+        options={options}
+        selectedOptions={form.options}
+        onToggleOption={toggleOption}
+        headCount={headCount}
+        t={t}
+      />
+
       <form
         onSubmit={handleSubmit}
-        className="grid grid-cols-1 gap-6 md:grid-cols-12"
+        className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-12"
       >
-        <div className="text-sm text-[var(--color-beige)]/80 md:col-span-12">
-          <p>
-            {t("arrival")}: {arrivalDate.toLocaleDateString()} &mdash;{" "}
-            {t("departure")}: {departureDate.toLocaleDateString()}
-          </p>
-        </div>
         <div className="md:col-span-7">
           <h2 className="mb-4 border-b border-[#173c59] pb-2 text-[1.05rem] tracking-wide text-[var(--color-beige)]">
-            {t("contact")}
+            {t("contactDetails")}
           </h2>
           {!session && (
             <p className="mb-4 text-sm text-[#ffd9d9]">
@@ -397,22 +474,14 @@ export default function BookingForm({
           )}
           <div className="mb-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
             {NAME_FIELDS.map((field) => (
-              <div key={field}>
-                <label
-                  htmlFor={field}
-                  className="block text-sm text-[var(--color-beige)]/90"
-                >
-                  {t(field)}
-                </label>
-                <input
-                  id={field}
-                  name={field}
-                  type="text"
-                  value={form[field]}
-                  onChange={handleChange}
-                  className="mt-1 h-10 w-full rounded-md border-2 border-[#0d3350] bg-[var(--color-beige)] px-3 text-[var(--color-blue)] outline-none transition placeholder:text-[var(--color-blue)]/45 focus:border-[#234d69]"
-                />
-              </div>
+              <Field
+                key={field}
+                id={field}
+                name={field}
+                label={t(field)}
+                value={form[field]}
+                onChange={handleChange}
+              />
             ))}
           </div>
           <label className="mb-2 block text-sm text-[var(--color-beige)]/90">
@@ -431,61 +500,38 @@ export default function BookingForm({
               />
             ))}
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+          <div className="mb-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
             {PHONE_FIELDS.map((field) => (
-              <div key={field}>
-                <label
-                  htmlFor={field}
-                  className="block text-sm text-[var(--color-beige)]/90"
-                >
-                  {t(field)}
-                </label>
-                <input
-                  id={field}
-                  type="tel"
-                  name={field}
-                  value={form[field]}
-                  onChange={handleChange}
-                  className="mt-1 h-10 w-full rounded-md border-2 border-[#0d3350] bg-[var(--color-beige)] px-3 text-[var(--color-blue)] outline-none transition placeholder:text-[var(--color-blue)]/45 focus:border-[#234d69]"
-                />
-              </div>
+              <Field
+                key={field}
+                id={field}
+                name={field}
+                label={t(field)}
+                value={form[field]}
+                onChange={handleChange}
+                type="tel"
+              />
             ))}
           </div>
           <div className="mb-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div>
-              <label
-                htmlFor="email"
-                className="block text-sm text-[var(--color-beige)]/90"
-              >
-                {t("email")}
-              </label>
-              <input
-                id="email"
-                type="email"
-                name="email"
-                value={form.email}
-                onChange={handleChange}
-                className="mt-1 h-10 w-full rounded-md border-2 border-[#0d3350] bg-[var(--color-beige)] px-3 text-[var(--color-blue)] outline-none transition placeholder:text-[var(--color-blue)]/45 focus:border-[#234d69]"
-              />
-            </div>
-            <div>
-              <label
-                htmlFor="birthDate"
-                className="block text-sm text-[var(--color-beige)]/90"
-              >
-                {t("birthDate")}
-              </label>
-              <input
-                id="birthDate"
-                type="date"
-                name="birthDate"
-                value={form.birthDate}
-                onChange={handleChange}
-                className="mt-1 h-10 w-full rounded-md border-2 border-[#0d3350] bg-[var(--color-beige)] px-3 text-[var(--color-blue)] outline-none transition placeholder:text-[var(--color-blue)]/45 focus:border-[#234d69]"
-              />
-            </div>
+            <Field
+              id="email"
+              name="email"
+              label={t("email")}
+              value={form.email}
+              onChange={handleChange}
+              type="email"
+            />
+            <Field
+              id="birthDate"
+              name="birthDate"
+              label={t("birthDate")}
+              value={form.birthDate}
+              onChange={handleChange}
+              type="date"
+            />
           </div>
-          <label className="inline-flex items-center mt-2">
+          <label className="mt-2 inline-flex items-center">
             <input
               type="checkbox"
               name="specialOffers"
@@ -493,170 +539,107 @@ export default function BookingForm({
               onChange={handleChange}
               className="h-4 w-4 accent-[#0d3350]"
             />
-            <span className="ml-2 text-sm">
-              {t("specialOffers")}
+            <span className="ml-2 text-sm">{t("specialOffers")}</span>
+          </label>
+
+          <h3 className="mt-8 mb-3 border-b border-[#173c59] pb-2 text-[1.05rem] tracking-wide text-[var(--color-beige)]">
+            {t("cancellationInsuranceTitle")}
+          </h3>
+          <label className="inline-flex items-start gap-2">
+            <input
+              type="checkbox"
+              name="cancellation"
+              checked={form.cancellation}
+              onChange={handleChange}
+              className="mt-0.5 h-4 w-4 accent-[#0d3350]"
+            />
+            <span className="text-sm">{t("cancellationInsuranceLabel")}</span>
+          </label>
+        </div>
+
+        <div className="md:col-span-5 flex flex-col">
+          <h2 className="mb-4 border-b border-[#173c59] pb-2 text-[1.05rem] tracking-wide text-[var(--color-beige)]">
+            {t("comments")}
+          </h2>
+          <textarea
+            name="comments"
+            value={form.comments}
+            onChange={handleChange}
+            placeholder={t("comments")}
+            className="h-40 w-full rounded-md border-2 border-[#0d3350] bg-[var(--color-beige)] p-3 text-[var(--color-blue)] outline-none transition placeholder:text-[var(--color-blue)]/45 focus:border-[#234d69]"
+          />
+          <div className="mt-6">
+            <label
+              htmlFor="discountCode"
+              className="mb-1 block text-sm text-[var(--color-beige)]/90"
+            >
+              {t("discountCode")}
+            </label>
+            <input
+              id="discountCode"
+              type="text"
+              name="discountCode"
+              value={form.discountCode}
+              onChange={handleChange}
+              className="h-10 w-full rounded-md border-2 border-[#0d3350] bg-[var(--color-beige)] px-3 text-[var(--color-blue)] outline-none transition focus:border-[#234d69]"
+            />
+          </div>
+
+          <h3 className="mt-8 mb-3 border-b border-[#173c59] pb-2 text-[1.05rem] tracking-wide text-[var(--color-beige)]">
+            {t("paymentSection")}
+          </h3>
+          <div className="text-sm text-[var(--color-beige)]/90">
+            <div className="flex items-center justify-between">
+              <span>{t("totalAmountLabel")}</span>
+              <span className="font-medium">{fmtEuro(pricing.total)}</span>
+            </div>
+            <div className="mt-1 flex items-center justify-between">
+              <span>{t("depositOnBooking")}</span>
+              <span>{fmtEuro(pricing.deposit)}</span>
+            </div>
+            <div className="mt-1 flex items-center justify-between">
+              <span>{t("balanceBeforeArrival")}</span>
+              <span>{fmtEuro(pricing.balance)}</span>
+            </div>
+          </div>
+          <label className="mt-3 inline-flex items-center">
+            <input
+              type="checkbox"
+              name="payFullNow"
+              checked={form.payFullNow}
+              onChange={handleChange}
+              className="h-4 w-4 accent-[#0d3350]"
+            />
+            <span className="ml-2 text-sm">{t("payFullNow")}</span>
+          </label>
+
+          <label className="mt-6 inline-flex items-start gap-2">
+            <input
+              type="checkbox"
+              name="acceptTerms"
+              checked={form.acceptTerms}
+              onChange={handleChange}
+              className="mt-0.5 h-4 w-4 accent-[#0d3350]"
+            />
+            <span className="text-sm">
+              {t("acceptTerms")}
             </span>
           </label>
-          <div className="mt-6 mb-4 grid grid-cols-2 gap-4">
-            <div>
-              <label className="mb-1 block text-sm text-[var(--color-beige)]/90">
-                {t("adults")}
-              </label>
-              <input
-                type="number"
-                name="adults"
-                min={1}
-                value={form.adults}
-                onChange={handleChange}
-                className="h-10 w-full rounded-md border-2 border-[#0d3350] bg-[var(--color-beige)] px-3 text-[var(--color-blue)] outline-none transition placeholder:text-[var(--color-blue)]/45 focus:border-[#234d69]"
-              />
-            </div>
-            <div>
-              <label className="mb-1 block text-sm text-[var(--color-beige)]/90">
-                {t("children")}
-              </label>
-              <input
-                type="number"
-                name="children"
-                min={0}
-                value={form.children}
-                onChange={handleChange}
-                className="h-10 w-full rounded-md border-2 border-[#0d3350] bg-[var(--color-beige)] px-3 text-[var(--color-blue)] outline-none transition placeholder:text-[var(--color-blue)]/45 focus:border-[#234d69]"
-              />
-            </div>
-          </div>
-          {options.length > 0 && (
-            <div className="mt-4">
-              <h3 className="mb-2 text-sm text-[var(--color-beige)]/90">
-                {t("options")}
-              </h3>
-              <div className="space-y-2">
-                {options.map((option) => (
-                  <label
-                    key={option.id}
-                    className="flex items-center gap-2 text-sm text-[var(--color-beige)]"
-                  >
-                    <input
-                      type="checkbox"
-                      name={`${BOOKING_OPTION_PREFIX}${option.id}`}
-                      checked={!!form.options[option.id]}
-                      onChange={handleChange}
-                      className="h-4 w-4 accent-[#0d3350]"
-                    />
-                    <span className="flex-1">{option.name}</span>
-                    <span className="text-xs text-[var(--color-beige)]/70">
-                      &euro;{option.priceHt.toFixed(2)}
-                    </span>
-                  </label>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-        <div className="md:col-span-5 flex flex-col justify-between">
-          <div>
-            <h2 className="mb-4 border-b border-[#173c59] pb-2 text-[1.05rem] tracking-wide text-[var(--color-beige)]">
-              {t("comments")}
-            </h2>
-            <textarea
-              name="comments"
-              value={form.comments}
-              onChange={handleChange}
-              placeholder={t("comments")}
-              className="h-40 w-full rounded-md border-2 border-[#0d3350] bg-[var(--color-beige)] p-3 text-[var(--color-blue)] outline-none transition placeholder:text-[var(--color-blue)]/45 focus:border-[#234d69]"
-            />
-            <div className="mt-6">
-              <label
-                htmlFor="discountCode"
-                className="mb-1 block text-sm text-[var(--color-beige)]/90"
-              >
-                {t("discountCode")}
-              </label>
-              <input
-                id="discountCode"
-                type="text"
-                name="discountCode"
-                value={form.discountCode}
-                onChange={handleChange}
-                className="h-10 w-full rounded-md border-2 border-[#0d3350] bg-[var(--color-beige)] px-3 text-[var(--color-blue)] outline-none transition placeholder:text-[var(--color-blue)]/45 focus:border-[#234d69]"
-              />
-            </div>
-            <PriceSummary
-              basePriceHt={pricing.basePriceHt}
-              optionSumHt={pricing.optionSumHt}
-              tvaHt={pricing.tvaHt}
-              taxSejourTtc={pricing.taxSejourTtc}
-              total={pricing.total}
-              deposit={pricing.deposit}
-              balance={pricing.balance}
-              t={t}
-            />
-            <label className="inline-flex items-center mt-4">
-              <input
-                type="checkbox"
-                name="payFullNow"
-                checked={form.payFullNow}
-                onChange={handleChange}
-                className="h-4 w-4 accent-[#0d3350]"
-              />
-              <span className="ml-2 text-sm">{t("payFullNow")}</span>
-            </label>
-          </div>
-          <div className="mt-8">
-            <label className="inline-flex items-center">
-              <input
-                type="checkbox"
-                name="cancellation"
-                checked={form.cancellation}
-                onChange={handleChange}
-                className="h-4 w-4 accent-[#0d3350]"
-              />
-              <span className="ml-2 text-sm">{t("cancellationInsurance")}</span>
-            </label>
-            <label className="inline-flex items-center ml-6 mt-2">
-              <input
-                type="checkbox"
-                name="acceptTerms"
-                checked={form.acceptTerms}
-                onChange={handleChange}
-                className="h-4 w-4 accent-[#0d3350]"
-              />
-              <span className="ml-2 text-sm underline cursor-pointer">
-                {t("acceptTerms")}
-              </span>
-            </label>
-            {error && <div className="mt-4 text-xs text-[#ffd9d9]">{error}</div>}
+
+          {error && <div className="mt-4 text-xs text-[#ffd9d9]">{error}</div>}
+
+          <div className="mt-6 flex justify-end">
             <button
               type="submit"
               disabled={!form.acceptTerms || submitting}
-              className="group mt-6 inline-flex items-center gap-3 rounded-xl bg-[#0d3350] px-6 py-2 text-2xl text-[var(--color-beige)] transition hover:bg-[#123f61] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-beige)]/60 disabled:cursor-not-allowed disabled:opacity-60"
+              className="group inline-flex items-center gap-3 rounded-md bg-[var(--color-blue)] px-6 py-2 text-sm font-medium text-[var(--color-beige)] transition hover:bg-[#06324d] disabled:cursor-not-allowed disabled:opacity-60"
             >
-              <span>{submitting ? t("saving") : t("pay")}</span>
-              <svg
-                aria-hidden="true"
-                viewBox="0 0 20 20"
-                className="h-5 w-5 transition-transform group-hover:translate-x-1"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M3 10H15"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                />
-                <path
-                  d="M10 5L15 10L10 15"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
+              <span>{submitting ? t("saving") : `${t("pay")} >`}</span>
             </button>
           </div>
         </div>
       </form>
+
       <ProfileCompletionModal
         open={showProfileModal}
         form={form}
@@ -670,38 +653,223 @@ export default function BookingForm({
       />
     </div>
   );
+
+  function Field({
+    id,
+    name,
+    label,
+    value,
+    onChange,
+    type = "text",
+  }: {
+    id: string;
+    name: string;
+    label: string;
+    value: string;
+    onChange: (event: BookingInputEvent) => void;
+    type?: string;
+  }) {
+    return (
+      <div>
+        <label
+          htmlFor={id}
+          className="block text-sm text-[var(--color-beige)]/90"
+        >
+          {label}
+        </label>
+        <input
+          id={id}
+          name={name}
+          type={type}
+          value={value}
+          onChange={onChange}
+          className="mt-1 h-10 w-full rounded-md border-2 border-[#0d3350] bg-[var(--color-beige)] px-3 text-[var(--color-blue)] outline-none transition focus:border-[#234d69]"
+        />
+      </div>
+    );
+  }
 }
 
-function PriceSummary({
-  basePriceHt,
-  optionSumHt,
-  tvaHt,
-  taxSejourTtc,
-  total,
-  deposit,
-  balance,
-  t,
-}: {
+interface PriceRecapProps {
+  arrivalDate: Date;
+  departureDate: Date;
+  nights: number;
+  nightlyTtc: number;
   basePriceHt: number;
-  optionSumHt: number;
+  baseTtc: number;
+  adults: number;
+  taxPerAdultNight: number;
+  taxTtc: number;
+  subtotalHt: number;
   tvaHt: number;
-  taxSejourTtc: number;
   total: number;
   deposit: number;
   balance: number;
+  options: OptionRecord[];
+  selectedOptions: Record<string, boolean>;
+  onToggleOption: (id: string, value: boolean) => void;
+  headCount: number;
   t: ReturnType<typeof useT>;
-}) {
+}
+
+function PriceRecap({
+  arrivalDate,
+  departureDate,
+  nights,
+  nightlyTtc,
+  basePriceHt,
+  baseTtc,
+  adults,
+  taxPerAdultNight,
+  taxTtc,
+  subtotalHt,
+  tvaHt,
+  total,
+  deposit,
+  balance,
+  options,
+  selectedOptions,
+  onToggleOption,
+  headCount,
+  t,
+}: PriceRecapProps) {
+  const baseVat = baseTtc - basePriceHt;
+
   return (
-    <div className="mt-6 text-sm space-y-1">
-      <p>{t("baseHt")} &euro;{basePriceHt.toFixed(2)}</p>
-      <p>{t("optionsHt")} &euro;{optionSumHt.toFixed(2)}</p>
-      <p>{t("tvaHt")} &euro;{tvaHt.toFixed(2)}</p>
-      <p>{t("touristTax")} &euro;{taxSejourTtc.toFixed(2)}</p>
-      <p className="font-medium">{t("total")} &euro;{total.toFixed(2)}</p>
-      <p>{t("deposit")} &euro;{deposit.toFixed(2)}</p>
-      <p>{t("balance")} &euro;{balance.toFixed(2)}</p>
+    <div className="rounded-lg bg-[var(--color-blue)]/40 p-4 text-sm text-[var(--color-beige)]">
+      <div className="grid grid-cols-[1fr_auto_auto_auto] gap-x-4 gap-y-1">
+        <div />
+        <div className="text-right text-[var(--color-beige)]/80">
+          {t("excludingTax")}
+        </div>
+        <div className="text-right text-[var(--color-beige)]/80">
+          {t("vatLabel")}
+        </div>
+        <div className="text-right text-[var(--color-beige)]/80">
+          {t("allTax")}
+        </div>
+
+        <div>
+          <div className="text-[var(--color-beige)]">
+            {t("accommodationPrice")}:
+          </div>
+          <div className="text-xs text-[var(--color-beige)]/70">
+            {t("fromTo")
+              .replace("{start}", fmtDate(arrivalDate))
+              .replace("{end}", fmtDate(departureDate))}
+          </div>
+          <div className="text-xs text-[var(--color-beige)]/70">
+            {t("nightsCalc")
+              .replace("{nights}", String(nights))
+              .replace("{rate}", fmtEuro(nightlyTtc))
+              .replace("{total}", fmtEuro(baseTtc))}
+          </div>
+        </div>
+        <div className="text-right">{fmtEuro(basePriceHt)}</div>
+        <div className="text-right">{fmtEuro(baseVat)}</div>
+        <div className="text-right">{fmtEuro(baseTtc)}</div>
+      </div>
+
+      {options.length > 0 && (
+        <div className="mt-4 grid grid-cols-[1fr_auto_auto_auto] gap-x-4 gap-y-2 border-t border-[var(--color-beige)]/20 pt-3">
+          <div className="text-[var(--color-beige)]">{t("options")}:</div>
+          <div className="text-right">{fmtEuro(sumOptionsHt(options, selectedOptions, headCount))}</div>
+          <div className="text-right">
+            {fmtEuro(sumOptionsHt(options, selectedOptions, headCount) * 0.2)}
+          </div>
+          <div className="text-right">
+            {fmtEuro(sumOptionsHt(options, selectedOptions, headCount) * 1.2)}
+          </div>
+
+          {options.map((option) => {
+            const selected = !!selectedOptions[option.id];
+            const isLinen = LINEN_PATTERN.test(option.name);
+            const qty = isLinen ? headCount : 1;
+            const lineHt = option.priceHt * qty;
+            return (
+              <div key={option.id} className="contents">
+                <label className="flex items-center gap-2 pl-2 text-xs">
+                  <input
+                    type="checkbox"
+                    checked={selected}
+                    onChange={(e) =>
+                      onToggleOption(option.id, e.target.checked)
+                    }
+                    className="h-4 w-4 accent-[var(--color-blue)]"
+                  />
+                  <span className="text-[var(--color-beige)]/85">
+                    {qty > 1 ? `${qty} × ` : ""}
+                    {option.name}
+                    {qty > 1 ? ` (${fmtEuro(option.priceHt)})` : ""}
+                  </span>
+                </label>
+                <div className="text-right text-xs text-[var(--color-beige)]/85">
+                  {selected ? fmtEuro(lineHt) : fmtEuro(0)}
+                </div>
+                <div className="text-right text-xs text-[var(--color-beige)]/85">
+                  {selected ? fmtEuro(lineHt * 0.2) : fmtEuro(0)}
+                </div>
+                <div className="text-right text-xs text-[var(--color-beige)]/85">
+                  {selected ? fmtEuro(lineHt * 1.2) : fmtEuro(0)}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      <div className="mt-4 grid grid-cols-[1fr_auto_auto_auto] gap-x-4 gap-y-1 border-t border-[var(--color-beige)]/20 pt-3">
+        <div>
+          <div>{t("tourismTax")}:</div>
+          <div className="text-xs text-[var(--color-beige)]/70">
+            {t("fromTo")
+              .replace("{start}", fmtDate(arrivalDate))
+              .replace("{end}", fmtDate(departureDate))}
+          </div>
+          <div className="text-xs text-[var(--color-beige)]/70">
+            {t("touristTaxCalc")
+              .replace("{adults}", String(adults))
+              .replace("{nights}", String(nights))
+              .replace("{rate}", fmtEuro(taxPerAdultNight))}
+          </div>
+        </div>
+        <div />
+        <div />
+        <div className="text-right">{fmtEuro(taxTtc)}</div>
+      </div>
+
+      <div className="mt-4 grid grid-cols-[1fr_auto_auto_auto] gap-x-4 border-t border-[var(--color-beige)]/30 pt-3 font-medium">
+        <div>{t("total")}:</div>
+        <div className="text-right">{fmtEuro(subtotalHt)}</div>
+        <div className="text-right">{fmtEuro(tvaHt)}</div>
+        <div className="text-right">{fmtEuro(total)}</div>
+      </div>
+
+      <div className="mt-4 flex flex-col items-end text-sm">
+        <div className="font-serif text-2xl text-[var(--color-beige)]">
+          {t("totalAmountLabel")} {fmtEuro(total)}
+        </div>
+        <div className="text-xs text-[var(--color-beige)]/85">
+          {t("depositOnBooking")} {fmtEuro(deposit)}
+        </div>
+        <div className="text-xs text-[var(--color-beige)]/85">
+          {t("balanceBeforeArrival")} {fmtEuro(balance)}
+        </div>
+      </div>
     </div>
   );
+}
+
+function sumOptionsHt(
+  options: OptionRecord[],
+  selected: Record<string, boolean>,
+  headCount: number
+) {
+  return options.reduce((sum, opt) => {
+    if (!selected[opt.id]) return sum;
+    const qty = LINEN_PATTERN.test(opt.name) ? headCount : 1;
+    return sum + opt.priceHt * qty;
+  }, 0);
 }
 
 function ProfileCompletionModal({
@@ -720,7 +888,7 @@ function ProfileCompletionModal({
   requiredFields: Array<
     (typeof PROFILE_REQUIRED_FIELDS)[number] & { label: string }
   >;
-  onChange: (event: BookingInputEvent) => void;
+  onChange: (event: ChangeEvent<HTMLInputElement>) => void;
   onClose: () => void;
   onSave: () => void;
   savingProfile: boolean;

@@ -4,15 +4,14 @@ import React, { useEffect, useRef, useState, type ReactNode } from "react";
 import { useSession } from "next-auth/react";
 import { AudioToggle } from "@/components/Audio/AudioToggle";
 import BoatSlideshow, { type BoatSlide } from "@/components/Boat/BoatSlideshow";
+import BookingCalendar from "@/components/Booking/BookingCalendar";
 import BookingForm from "@/components/Booking/BookingForm";
 import ContactForm from "@/components/Contact/ContactForm";
 import BuyDrawer from "@/components/Drawer/BuyDrawer";
 import DrawerSurface from "@/components/Drawer/DrawerSurface";
 import LegalTextDrawer from "@/components/Drawer/LegalTextDrawer";
 import VisionDrawer from "@/components/Drawer/VisionDrawer";
-import { useT } from "@/components/Language/useT";
 import LegalNoticesDrawer from "@/components/Legal/LegalNoticesDrawer";
-import MonthCalendar from "@/components/MonthCalendar";
 import NavBox from "@/components/NavBox/NavBox";
 import WaveToggle from "@/components/NavBox/WaveToggle";
 
@@ -81,7 +80,8 @@ export default function AppShell({ children, serverToday }: AppShellProps) {
   const [stage, setStage] = useState<Stage>("calendar");
   const [rangeStart, setRangeStart] = useState<Date | null>(null);
   const [rangeEnd, setRangeEnd] = useState<Date | null>(null);
-  const t = useT();
+  const [bookingAdults, setBookingAdults] = useState(2);
+  const [bookingChildren, setBookingChildren] = useState(2);
   const { data: session } = useSession();
   const touchStartX = useRef<number | null>(null);
   const touchStartY = useRef<number | null>(null);
@@ -134,22 +134,21 @@ export default function AppShell({ children, serverToday }: AppShellProps) {
     setDrawerOpen(true);
   };
 
-  const handleRangeSelect = (start: Date, end: Date) => {
+  const handleCalendarContinue = (params: {
+    arrival: Date;
+    departure: Date;
+    adults: number;
+    children: number;
+  }) => {
     if (!session) {
       window.location.href = "/account";
       return;
     }
 
-    setRangeStart(start);
-    setRangeEnd(end);
-  };
-
-  const handleNext = () => {
-    if (!session) {
-      window.location.href = "/account";
-      return;
-    }
-
+    setRangeStart(params.arrival);
+    setRangeEnd(params.departure);
+    setBookingAdults(params.adults);
+    setBookingChildren(params.children);
     setStage("form");
   };
 
@@ -209,53 +208,27 @@ export default function AppShell({ children, serverToday }: AppShellProps) {
 
         {stage === "calendar" && (
           <DrawerSurface>
-            {!session && (
-              <div className="mb-4 rounded-xl border border-[var(--color-blue)]/10 bg-[var(--color-beige)]/80 p-4 text-sm leading-relaxed text-[var(--color-blue)]">
-                <p className="mb-1 font-medium">
-                  {t("bookingSignInRequiredTitle")}
-                </p>
-                <p className="mb-3 opacity-80">
-                  {t("bookingSignInRequiredBody")}
-                </p>
-                <a
-                  href="/account"
-                  className="inline-flex items-center gap-1 rounded-full bg-[var(--color-blue)] px-4 py-1.5 text-xs font-semibold tracking-wide text-[var(--color-beige)] transition hover:bg-[#06324d] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-blue)]/40 focus-visible:ring-offset-2"
-                >
-                  {t("goToAccount")} &rarr;
-                </a>
-              </div>
-            )}
-            <MonthCalendar
-              availableDates={Array.from({ length: 31 }, (_, index) => index + 1)}
+            <BookingCalendar
               serverToday={serverToday}
-              onSelectRange={handleRangeSelect}
+              signedIn={!!session}
+              onContinue={handleCalendarContinue}
+              onContact={() => {
+                setStage("contact");
+                setDrawerOpen(true);
+              }}
             />
-            {rangeStart && rangeEnd && (
-              <div className="mt-4 flex items-center justify-between">
-                <div className="text-sm">
-                  <p>
-                    {t("arrival")}: {rangeStart.toLocaleDateString()}
-                  </p>
-                  <p>
-                    {t("departure")}: {rangeEnd.toLocaleDateString()}
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={handleNext}
-                  className="inline-flex items-center gap-2 rounded-full bg-[var(--color-blue)] px-6 py-2 font-semibold text-[var(--color-beige)] transition hover:bg-[#06324d]"
-                >
-                  <span>{t("next")}</span>
-                  <span>&rarr;</span>
-                </button>
-              </div>
-            )}
           </DrawerSurface>
         )}
 
         {stage === "form" && rangeStart && rangeEnd && (
           <DrawerSurface>
-            <BookingForm arrivalDate={rangeStart} departureDate={rangeEnd} />
+            <BookingForm
+              arrivalDate={rangeStart}
+              departureDate={rangeEnd}
+              initialAdults={bookingAdults}
+              initialChildren={bookingChildren}
+              onBack={() => setStage("calendar")}
+            />
           </DrawerSurface>
         )}
 
