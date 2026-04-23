@@ -15,8 +15,15 @@ type LanguageContextValue = {
   setLocale: (l: Locale) => void;
 };
 
+const FALLBACK_LANGUAGE_CONTEXT: LanguageContextValue = {
+  locale: "en",
+  setLocale: () => {
+    // No-op fallback to avoid hard render failures when provider isn't mounted yet.
+  },
+};
+
 const LanguageContext = createContext<LanguageContextValue | undefined>(
-  undefined
+  undefined,
 );
 const STORAGE_KEY = "site-locale";
 
@@ -51,6 +58,5 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
 
 export function useLanguage() {
   const ctx = useContext(LanguageContext);
-  if (!ctx) throw new Error("useLanguage must be used within LanguageProvider");
-  return ctx;
+  return ctx ?? FALLBACK_LANGUAGE_CONTEXT;
 }
