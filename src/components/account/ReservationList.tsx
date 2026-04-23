@@ -133,9 +133,10 @@ export default function ReservationList({ reservations }: Props) {
                           {nights === 1 ? t("nightSingular") : t("nightPlural")}
                         </span>
                         {reservation.bookingRef && (
-                          <span className="rounded border border-[#173c59] bg-[#0d3350]/60 px-2 py-0.5 font-mono text-[9px] tracking-tight text-[var(--color-beige)]/80">
-                            {reservation.bookingRef}
-                          </span>
+                          <BookingRefPill
+                            label={t("ref")}
+                            value={reservation.bookingRef}
+                          />
                         )}
                       </span>
                     </div>
@@ -228,9 +229,10 @@ export default function ReservationList({ reservations }: Props) {
                             })}
                           </span>
                           {reservation.bookingRef && (
-                            <span className="rounded border border-[#173c59] bg-[#0d3350]/60 px-2 py-0.5 font-mono text-[10px] text-[var(--color-beige)]/80">
-                              {t("ref")}: {reservation.bookingRef}
-                            </span>
+                            <BookingRefPill
+                              label={t("ref")}
+                              value={reservation.bookingRef}
+                            />
                           )}
                         </span>
                         <button
@@ -263,6 +265,19 @@ export default function ReservationList({ reservations }: Props) {
         t={t}
       />
     </div>
+  );
+}
+
+function BookingRefPill({ label, value }: { label: string; value: string }) {
+  return (
+    <span className="inline-flex w-fit items-center gap-1.5 rounded-md border border-[rgba(228,219,206,0.30)] bg-[rgba(228,219,206,0.12)] px-2.5 py-1 text-[11px] font-semibold leading-none text-[var(--color-beige)] shadow-[0_1px_0_rgba(255,255,255,0.12)_inset]">
+      <span className="font-sans uppercase tracking-[0.16em] text-[var(--color-beige)]/70">
+        {label}
+      </span>
+      <span className="font-mono tracking-[0.04em] text-[var(--color-beige)]">
+        {value}
+      </span>
+    </span>
   );
 }
 

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState, type ReactNode } from "react";
+import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { AudioToggle } from "@/components/Audio/AudioToggle";
 import BoatSlideshow, { type BoatSlide } from "@/components/Boat/BoatSlideshow";
@@ -75,6 +76,7 @@ const BOAT_SLIDES: BoatSlide[] = [
 ];
 
 export default function AppShell({ children, serverToday }: AppShellProps) {
+  const pathname = usePathname();
   const [navOpen, setNavOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [stage, setStage] = useState<Stage>("calendar");
@@ -85,11 +87,13 @@ export default function AppShell({ children, serverToday }: AppShellProps) {
   const { data: session } = useSession();
   const touchStartX = useRef<number | null>(null);
   const touchStartY = useRef<number | null>(null);
+  const isAccountRoute = pathname.startsWith("/account");
 
   useEffect(() => {
-    document.documentElement.dataset.drawer = drawerOpen ? "open" : "closed";
-    document.documentElement.dataset.drawerStage = drawerOpen ? stage : "closed";
-  }, [drawerOpen, stage]);
+    const visibleDrawerOpen = drawerOpen && !isAccountRoute;
+    document.documentElement.dataset.drawer = visibleDrawerOpen ? "open" : "closed";
+    document.documentElement.dataset.drawerStage = visibleDrawerOpen ? stage : "closed";
+  }, [drawerOpen, isAccountRoute, stage]);
 
   const openStage = (nextStage: Stage) => {
     if (drawerOpen && stage === nextStage) {
@@ -141,6 +145,8 @@ export default function AppShell({ children, serverToday }: AppShellProps) {
     children: number;
   }) => {
     if (!session) {
+      setNavOpen(false);
+      setDrawerOpen(false);
       window.location.href = "/account";
       return;
     }
@@ -168,97 +174,101 @@ export default function AppShell({ children, serverToday }: AppShellProps) {
   return (
     <>
       <AudioToggle />
-      <WaveToggle open={navOpen} toggle={() => setNavOpen((open) => !open)} />
+      {!isAccountRoute && (
+        <>
+          <WaveToggle open={navOpen} toggle={() => setNavOpen((open) => !open)} />
 
-      <div
-        className={`fixed bottom-4 left-4 z-40 transform transition-transform duration-300 ease-in-out ${
-          navOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
-      >
-        <NavBox
-          onVisionClick={() => openStage("vision")}
-          onBookClick={handleBookClick}
-          onBoatClick={() => openStage("boat")}
-          onBuyClick={() => openStage("buy")}
-          onContactClick={() => openStage("contact")}
-          onLegalClick={() => openStage("legal")}
-          onCookiesClick={() => openStage("cookies")}
-          onTermsClick={() => openStage("terms")}
-          activeItem={activeMenuItem}
-        />
-      </div>
-
-      <div
-        className={`fixed inset-y-0 right-0 z-50 w-full overflow-y-auto bg-transparent p-0 text-gray-100 transition-transform duration-300 ease-in-out sm:w-[82vw] lg:w-[72vw] xl:w-[64vw] ${
-          drawerOpen ? "translate-x-0" : "translate-x-full"
-        }`}
-        onTouchStart={handleTouchStart}
-        onTouchEnd={handleTouchEnd}
-      >
-        {stage === "vision" && (
-          <VisionDrawer onClose={() => setDrawerOpen(false)} />
-        )}
-
-        {stage === "boat" && (
-          <BoatSlideshow
-            slides={BOAT_SLIDES}
-            onClose={() => setDrawerOpen(false)}
-          />
-        )}
-
-        {stage === "calendar" && (
-          <DrawerSurface>
-            <BookingCalendar
-              serverToday={serverToday}
-              signedIn={!!session}
-              onContinue={handleCalendarContinue}
-              onContact={() => {
-                setStage("contact");
-                setDrawerOpen(true);
-              }}
+          <div
+            className={`fixed bottom-4 left-4 z-40 transform transition-transform duration-300 ease-in-out ${
+              navOpen ? "translate-x-0" : "-translate-x-full"
+            }`}
+          >
+            <NavBox
+              onVisionClick={() => openStage("vision")}
+              onBookClick={handleBookClick}
+              onBoatClick={() => openStage("boat")}
+              onBuyClick={() => openStage("buy")}
+              onContactClick={() => openStage("contact")}
+              onLegalClick={() => openStage("legal")}
+              onCookiesClick={() => openStage("cookies")}
+              onTermsClick={() => openStage("terms")}
+              activeItem={activeMenuItem}
             />
-          </DrawerSurface>
-        )}
+          </div>
 
-        {stage === "form" && rangeStart && rangeEnd && (
-          <DrawerSurface>
-            <BookingForm
-              arrivalDate={rangeStart}
-              departureDate={rangeEnd}
-              initialAdults={bookingAdults}
-              initialChildren={bookingChildren}
-              onBack={() => setStage("calendar")}
-            />
-          </DrawerSurface>
-        )}
+          <div
+            className={`fixed inset-y-0 right-0 z-50 w-full overflow-y-auto bg-transparent p-0 text-gray-100 transition-transform duration-300 ease-in-out sm:w-[82vw] lg:w-[72vw] xl:w-[64vw] ${
+              drawerOpen ? "translate-x-0" : "translate-x-full"
+            }`}
+            onTouchStart={handleTouchStart}
+            onTouchEnd={handleTouchEnd}
+          >
+            {stage === "vision" && (
+              <VisionDrawer onClose={() => setDrawerOpen(false)} />
+            )}
 
-        {stage === "buy" && (
-          <BuyDrawer
-            onBookClick={() => {
-              setRangeStart(null);
-              setRangeEnd(null);
-              setStage("calendar");
-              setDrawerOpen(true);
-            }}
-            onContactClick={() => {
-              setStage("contact");
-              setDrawerOpen(true);
-            }}
-          />
-        )}
+            {stage === "boat" && (
+              <BoatSlideshow
+                slides={BOAT_SLIDES}
+                onClose={() => setDrawerOpen(false)}
+              />
+            )}
 
-        {stage === "contact" && <ContactForm />}
+            {stage === "calendar" && (
+              <DrawerSurface>
+                <BookingCalendar
+                  serverToday={serverToday}
+                  signedIn={!!session}
+                  onContinue={handleCalendarContinue}
+                  onContact={() => {
+                    setStage("contact");
+                    setDrawerOpen(true);
+                  }}
+                />
+              </DrawerSurface>
+            )}
 
-        {stage === "legal" && (
-          <DrawerSurface className="border-white/10 bg-[rgba(24,34,30,0.42)] shadow-[0_18px_55px_rgba(0,0,0,0.22)] backdrop-blur-[1px]">
-            <LegalNoticesDrawer />
-          </DrawerSurface>
-        )}
+            {stage === "form" && rangeStart && rangeEnd && (
+              <DrawerSurface>
+                <BookingForm
+                  arrivalDate={rangeStart}
+                  departureDate={rangeEnd}
+                  initialAdults={bookingAdults}
+                  initialChildren={bookingChildren}
+                  onBack={() => setStage("calendar")}
+                />
+              </DrawerSurface>
+            )}
 
-        {stage === "cookies" && <LegalTextDrawer kind="cookies" />}
+            {stage === "buy" && (
+              <BuyDrawer
+                onBookClick={() => {
+                  setRangeStart(null);
+                  setRangeEnd(null);
+                  setStage("calendar");
+                  setDrawerOpen(true);
+                }}
+                onContactClick={() => {
+                  setStage("contact");
+                  setDrawerOpen(true);
+                }}
+              />
+            )}
 
-        {stage === "terms" && <LegalTextDrawer kind="terms" />}
-      </div>
+            {stage === "contact" && <ContactForm />}
+
+            {stage === "legal" && (
+              <DrawerSurface className="border-white/10 bg-[rgba(24,34,30,0.42)] shadow-[0_18px_55px_rgba(0,0,0,0.22)] backdrop-blur-[1px]">
+                <LegalNoticesDrawer />
+              </DrawerSurface>
+            )}
+
+            {stage === "cookies" && <LegalTextDrawer kind="cookies" />}
+
+            {stage === "terms" && <LegalTextDrawer kind="terms" />}
+          </div>
+        </>
+      )}
 
       {children}
     </>

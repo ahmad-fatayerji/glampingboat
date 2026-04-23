@@ -1,7 +1,7 @@
 import "./globals.css";
 import UserMenu from "@/components/UserMenu";
 import { Marcellus, Outfit } from "next/font/google";
-import Logo from "@/components/Logo";
+import RouteAwareLogo from "@/components/RouteAwareLogo";
 import AppShell from "@/components/AppShell";
 import BackgroundVideo from "@/components/BackgroundVideo";
 import { AudioProvider } from "@/components/Audio/AudioContext";
@@ -42,10 +42,7 @@ export default function RootLayout({
             <BackgroundVideo />
             {/* AudioProvider mounted once here, so audio persists across pages */}
             <AudioProvider src="/audio/bg-music.mp3">
-              {/* fixed logo */}
-              <div className="fixed top-24 left-5 z-40">
-                <Logo />
-              </div>
+              <RouteAwareLogo />
 
               {/* Your shell (nav menu, drawer, booking flow) */}
               <AppShell serverToday={serverToday}>{children}</AppShell>
