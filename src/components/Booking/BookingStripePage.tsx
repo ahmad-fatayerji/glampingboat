@@ -1,12 +1,19 @@
 "use client";
 
+import { useState } from "react";
 import { useT } from "@/components/Language/useT";
+import { getErrorMessage, readJsonResponse } from "@/lib/http";
 import type { ReservationSerialized } from "@/lib/types";
 
 interface BookingStripePageProps {
   reservation: ReservationSerialized;
   onBack: () => void;
-  onConfirm: () => void;
+}
+
+interface CheckoutSessionResponse {
+  sessionId?: string;
+  checkoutUrl?: string | null;
+  error?: string;
 }
 
 function euroFromCents(value: number) {
@@ -16,9 +23,10 @@ function euroFromCents(value: number) {
 export default function BookingStripePage({
   reservation,
   onBack,
-  onConfirm,
 }: BookingStripePageProps) {
   const t = useT();
+  const [redirecting, setRedirecting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const pendingPayment = reservation.payments[0];
   const amountDueCents =
     pendingPayment?.amountCents ?? reservation.depositAmountCents;
@@ -26,6 +34,39 @@ export default function BookingStripePage({
     pendingPayment?.purpose === "FULL"
       ? t("payFullNow")
       : t("depositOnBooking");
+
+  const handleCheckout = async () => {
+    setError(null);
+    setRedirecting(true);
+
+    try {
+      const response = await fetch("/api/stripe/checkout-session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reservationId: reservation.id }),
+      });
+
+      const json = await readJsonResponse<CheckoutSessionResponse>(
+        response,
+        {},
+      );
+
+      if (!response.ok || !json.sessionId) {
+        throw new Error(json.error || "Failed to create checkout session");
+      }
+
+      if (!json.checkoutUrl) {
+        throw new Error("Checkout URL is missing");
+      }
+
+      window.location.assign(json.checkoutUrl);
+    } catch (checkoutError) {
+      setError(
+        getErrorMessage(checkoutError, "Failed to start Stripe checkout"),
+      );
+      setRedirecting(false);
+    }
+  };
 
   return (
     <div className="w-full text-[var(--color-beige)]">
@@ -71,16 +112,19 @@ export default function BookingStripePage({
             </div>
             <button
               type="button"
-              onClick={onConfirm}
+              onClick={handleCheckout}
+              disabled={redirecting}
               className="mt-3 h-11 w-full rounded-md bg-[#635bff] text-sm font-semibold text-white transition hover:bg-[#5148e5]"
             >
-              {t("continueToConfirmation")}
+              {redirecting ? t("saving") : t("continueToCheckout")}
             </button>
           </div>
         </div>
 
+        {error && <p className="mt-4 text-xs text-[#d14343]">{error}</p>}
+
         <p className="mt-5 text-xs leading-relaxed text-[#687385]">
-          {t("checkoutPlaceholderNote")}
+          {t("checkoutLiveNote")}
         </p>
       </section>
     </div>

@@ -99,8 +99,12 @@ export default function AppShell({ children, serverToday }: AppShellProps) {
 
   useEffect(() => {
     const visibleDrawerOpen = drawerOpen && !isAccountRoute;
-    document.documentElement.dataset.drawer = visibleDrawerOpen ? "open" : "closed";
-    document.documentElement.dataset.drawerStage = visibleDrawerOpen ? stage : "closed";
+    document.documentElement.dataset.drawer = visibleDrawerOpen
+      ? "open"
+      : "closed";
+    document.documentElement.dataset.drawerStage = visibleDrawerOpen
+      ? stage
+      : "closed";
   }, [drawerOpen, isAccountRoute, stage]);
 
   const openStage = (nextStage: Stage) => {
@@ -197,7 +201,10 @@ export default function AppShell({ children, serverToday }: AppShellProps) {
       <AudioToggle />
       {!isAccountRoute && (
         <>
-          <WaveToggle open={navOpen} toggle={() => setNavOpen((open) => !open)} />
+          <WaveToggle
+            open={navOpen}
+            toggle={() => setNavOpen((open) => !open)}
+          />
 
           <div
             className={`fixed bottom-4 left-4 z-40 transform transition-transform duration-300 ease-in-out ${
@@ -279,7 +286,6 @@ export default function AppShell({ children, serverToday }: AppShellProps) {
                 <BookingStripePage
                   reservation={completedReservation}
                   onBack={() => setStage("form")}
-                  onConfirm={() => setStage("confirmation")}
                 />
               </DrawerSurface>
             )}

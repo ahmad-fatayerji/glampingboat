@@ -244,6 +244,9 @@ const en = {
   checkoutPlaceholderNote:
     "This is a local Checkout handoff placeholder. No live Stripe session is created yet and no card data is collected by this site.",
   continueToConfirmation: "Continue to confirmation",
+  continueToCheckout: "Continue to secure payment",
+  checkoutLiveNote:
+    "You will now be redirected to Stripe's secure hosted checkout to complete your payment.",
   bookingSuccessTitle: "Your booking has been successfully recorded",
   bookingSuccessBody:
     "You will receive a confirmation email once live payment processing is connected. You can also view the reservation in your account.",
