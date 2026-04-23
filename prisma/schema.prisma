@@ -13,6 +13,54 @@ datasource db {
   provider = "postgresql"
 }
 
+enum ReservationStatus {
+  DRAFT
+  PENDING_PAYMENT
+  CONFIRMED
+  CANCELLED
+  EXPIRED
+  REFUNDED
+}
+
+enum ReservationPaymentStatus {
+  UNPAID
+  CHECKOUT_OPEN
+  PAID_DEPOSIT
+  PAID_FULL
+  PAYMENT_FAILED
+  REFUND_PENDING
+  REFUNDED
+}
+
+enum BookingPaymentPurpose {
+  DEPOSIT
+  FULL
+  BALANCE
+  SECURITY_DEPOSIT
+}
+
+enum BookingPaymentStatus {
+  PENDING
+  CHECKOUT_OPEN
+  PAID
+  FAILED
+  EXPIRED
+  CANCELLED
+  REFUND_PENDING
+  REFUNDED
+}
+
+enum ReservationEventType {
+  CREATED
+  UPDATED
+  PAYMENT_CREATED
+  PAYMENT_SUCCEEDED
+  PAYMENT_FAILED
+  CANCELLED
+  EXPIRED
+  REFUNDED
+}
+
 model User {
   id                  String    @id @default(cuid()) @db.Text
   email               String    @unique
@@ -43,6 +91,9 @@ model Reservation {
 
   bookingRef String @unique // human friendly booking reference
 
+  status        ReservationStatus        @default(PENDING_PAYMENT)
+  paymentStatus ReservationPaymentStatus @default(UNPAID)
+
   startDate DateTime
   endDate   DateTime
   adults    Int
@@ -59,9 +110,61 @@ model Reservation {
   balanceAmount   Float
   securityDeposit Float
 
-  createdAt DateTime @default(now())
+  currency                   String @default("EUR")
+  baseAmountHtCents          Int    @default(0)
+  optionsAmountHtCents       Int    @default(0)
+  subtotalAmountHtCents      Int    @default(0)
+  vatAmountCents             Int    @default(0)
+  touristTaxAmountCents      Int    @default(0)
+  totalAmountTtcCents        Int    @default(0)
+  depositAmountCents         Int    @default(0)
+  balanceAmountCents         Int    @default(0)
+  securityDepositAmountCents Int    @default(50000)
+  paidAmountCents            Int    @default(0)
 
-  items ReservationOption[]
+  customerFirstName     String?
+  customerLastName      String?
+  customerEmail         String?
+  customerPhone         String?
+  customerMobile        String?
+  billingAddressNumber  String?
+  billingAddressStreet  String?
+  billingAddressCity    String?
+  billingAddressState   String?
+  locale                String  @default("en")
+  payFullNow            Boolean @default(false)
+
+  pricingVersion              String @default("2026-datas-tarifs-reservation")
+  touristTaxVersion           String @default("2026-decazeville-5pct-plus-dept10")
+  vatRate                     Float  @default(0.2)
+  touristTaxCommunityRate     Float  @default(0.05)
+  touristTaxDepartmentUplift  Float  @default(0.1)
+  selectedOptionsSnapshot     Json?
+  pricingSnapshot             Json?
+
+  termsAcceptedAt DateTime?
+  termsVersion    String?
+  termsLocale     String?
+  termsHash       String?
+  privacyVersion  String?
+  privacyHash     String?
+  consentIpAddress String?
+  consentUserAgent String?
+
+  cancelledAt     DateTime?
+  cancellationReason String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  items              ReservationOption[]
+  payments           BookingPayment[]
+  events             ReservationEvent[]
+  idempotencyRecords AppIdempotencyKey[]
+
+  @@index([userId, startDate])
+  @@index([status, startDate, endDate])
+  @@index([paymentStatus])
 }
 
 model Option {
@@ -82,6 +185,85 @@ model ReservationOption {
   optionId      String
   quantity      Int
   totalPriceHt  Float
+  totalPriceHtCents Int @default(0)
 
   @@unique([reservationId, optionId])
+}
+
+model BookingPayment {
+  id            String      @id @default(uuid())
+  reservation   Reservation @relation(fields: [reservationId], references: [id])
+  reservationId String
+
+  provider String                @default("stripe")
+  purpose  BookingPaymentPurpose
+  status   BookingPaymentStatus  @default(PENDING)
+
+  amountCents Int
+  currency    String @default("EUR")
+
+  stripeCheckoutSessionId String? @unique
+  stripePaymentIntentId   String? @unique
+  stripeCustomerId        String?
+  checkoutUrl             String?
+  idempotencyKey          String? @unique
+  stripeStatus            String?
+  stripePayload           Json?
+
+  expiresAt DateTime?
+  paidAt    DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  @@index([reservationId, purpose])
+  @@index([status])
+}
+
+model StripeWebhookEvent {
+  id              String   @id @default(uuid())
+  stripeEventId   String   @unique
+  type            String
+  apiVersion      String?
+  livemode        Boolean  @default(false)
+  stripeCreatedAt DateTime?
+  payload         Json
+  processedAt     DateTime?
+  processingError String?
+  attemptCount    Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @default(now()) @updatedAt
+
+  @@index([type])
+  @@index([processedAt])
+}
+
+model ReservationEvent {
+  id            String      @id @default(uuid())
+  reservation   Reservation @relation(fields: [reservationId], references: [id])
+  reservationId String
+  actorUserId   String?     @db.Text
+  type          ReservationEventType
+  fromStatus    ReservationStatus?
+  toStatus      ReservationStatus?
+  metadata      Json?
+  createdAt     DateTime    @default(now())
+
+  @@index([reservationId, createdAt])
+}
+
+model AppIdempotencyKey {
+  id            String       @id @default(uuid())
+  key           String       @unique
+  operation     String
+  userId        String?      @db.Text
+  reservation   Reservation? @relation(fields: [reservationId], references: [id])
+  reservationId String?
+  requestHash   String?
+  response      Json?
+  expiresAt     DateTime?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @default(now()) @updatedAt
+
+  @@index([operation])
+  @@index([userId])
 }

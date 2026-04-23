@@ -10,6 +10,7 @@ import {
 } from "react";
 import { format } from "date-fns";
 import { useSession } from "next-auth/react";
+import { useLanguage } from "@/components/Language/LanguageContext";
 import { useT } from "@/components/Language/useT";
 import {
   getMissingProfileFields,
@@ -17,7 +18,10 @@ import {
   PROFILE_REQUIRED_FIELDS,
   toProfileUpdatePayload,
 } from "@/lib/profile";
-import { calculateReservationPricingSummary } from "@/lib/reservations";
+import {
+  calculateReservationPricingSummary,
+  getOptionQuantity,
+} from "@/lib/reservations";
 import { getErrorMessage, readJsonResponse } from "@/lib/http";
 import { isPhoneField, sanitizePhoneNumber } from "@/lib/input";
 import type {
@@ -27,6 +31,7 @@ import type {
   OptionRecord,
   ProfileResponse,
   ReservationCreatePayload,
+  ReservationSerialized,
 } from "@/lib/types";
 import { ADDRESS_FIELDS, NAME_FIELDS, PHONE_FIELDS } from "@/lib/types";
 
@@ -36,6 +41,7 @@ interface BookingFormProps {
   initialAdults?: number;
   initialChildren?: number;
   onBack?: () => void;
+  onReserved?: (reservation: ReservationSerialized) => void;
 }
 
 type BookingTextField =
@@ -126,8 +132,10 @@ export default function BookingForm({
   initialAdults = 2,
   initialChildren = 0,
   onBack,
+  onReserved,
 }: BookingFormProps) {
   const t = useT();
+  const { locale } = useLanguage();
   const { data: session } = useSession();
   const [form, setForm] = useState<BookingFormState>(() =>
     buildInitialForm(initialAdults, initialChildren)
@@ -242,7 +250,7 @@ export default function BookingForm({
 
   const headCount = form.adults + form.children;
   const nightlyTtc = pricing.nights > 0
-    ? (pricing.basePriceHt * 1.2) / pricing.nights
+    ? pricing.baseTtc / pricing.nights
     : 0;
   const taxPerAdultNight = form.adults > 0 && pricing.nights > 0
     ? pricing.taxSejourTtc / (form.adults * pricing.nights)
@@ -328,19 +336,14 @@ export default function BookingForm({
 
     try {
       const payload: ReservationCreatePayload = {
-        startDate: arrivalDate.toISOString(),
-        endDate: departureDate.toISOString(),
+        startDate: format(arrivalDate, "yyyy-MM-dd"),
+        endDate: format(departureDate, "yyyy-MM-dd"),
         adults: form.adults,
         children: form.children,
         optionIds: selectedOptionIds,
-        pricing: {
-          basePriceHt: pricing.basePriceHt,
-          optionSumHt: pricing.optionSumHt,
-          subtotalHt: pricing.subtotalHt,
-          tvaHt: pricing.tvaHt,
-          taxSejourTtc: pricing.taxSejourTtc,
-          total: pricing.total,
-        },
+        payFullNow: form.payFullNow,
+        acceptTerms: form.acceptTerms,
+        locale,
       };
 
       const response = await fetch("/api/reservations", {
@@ -360,7 +363,19 @@ export default function BookingForm({
       }
 
       if (!response.ok) {
-        throw new Error(t("failedCreateReservation"));
+        const json = await readJsonResponse<ApiErrorResponse>(response, {
+          error: t("failedCreateReservation"),
+        });
+        throw new Error(json.error || t("failedCreateReservation"));
+      }
+
+      const reservation = await readJsonResponse<ReservationSerialized | null>(
+        response,
+        null
+      );
+      if (reservation && onReserved) {
+        onReserved(reservation);
+        return;
       }
 
       window.location.href = "/account";
@@ -446,7 +461,7 @@ export default function BookingForm({
         nights={pricing.nights}
         nightlyTtc={nightlyTtc}
         basePriceHt={pricing.basePriceHt}
-        baseTtc={pricing.basePriceHt * 1.2}
+        baseTtc={pricing.baseTtc}
         adults={form.adults}
         taxPerAdultNight={taxPerAdultNight}
         taxTtc={pricing.taxSejourTtc}
@@ -790,8 +805,7 @@ function PriceRecap({
 
           {options.map((option) => {
             const selected = !!selectedOptions[option.id];
-            const isLinen = LINEN_PATTERN.test(option.name);
-            const qty = isLinen ? headCount : 1;
+            const qty = getOptionQuantity(option, headCount);
             const lineHt = option.priceHt * qty;
             return (
               <div key={option.id} className="contents">
@@ -874,7 +888,7 @@ function sumOptionsHt(
 ) {
   return options.reduce((sum, opt) => {
     if (!selected[opt.id]) return sum;
-    const qty = LINEN_PATTERN.test(opt.name) ? headCount : 1;
+    const qty = getOptionQuantity(opt, headCount);
     return sum + opt.priceHt * qty;
   }, 0);
 }

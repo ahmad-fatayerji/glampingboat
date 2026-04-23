@@ -40,6 +40,12 @@ interface BookingCalendarProps {
 
 const DATE_FORMAT = "MM/dd/yyyy";
 
+type AvailabilityRange = {
+  id: string;
+  startDate: string;
+  endDate: string;
+};
+
 function parseDate(value: string): Date | null {
   const parsed = parse(value, DATE_FORMAT, new Date());
   return isValid(parsed) ? parsed : null;
@@ -72,6 +78,9 @@ export default function BookingCalendar({
   const [departureText, setDepartureText] = useState("");
   const [adults, setAdults] = useState(2);
   const [children, setChildren] = useState(2);
+  const [reservedRanges, setReservedRanges] = useState<
+    Array<{ id: string; start: Date; end: Date }>
+  >([]);
 
   useEffect(() => {
     setArrivalText(formatDate(arrival));
@@ -80,6 +89,37 @@ export default function BookingCalendar({
   useEffect(() => {
     setDepartureText(formatDate(departure));
   }, [departure]);
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadAvailability() {
+      try {
+        const response = await fetch("/api/reservations?availability=1");
+        if (!response.ok) return;
+        const data = (await response.json()) as AvailabilityRange[];
+        if (!active || !Array.isArray(data)) return;
+
+        setReservedRanges(
+          data.map((range) => ({
+            id: range.id,
+            start: startOfDay(new Date(range.startDate)),
+            end: startOfDay(new Date(range.endDate)),
+          }))
+        );
+      } catch {
+        if (active) {
+          setReservedRanges([]);
+        }
+      }
+    }
+
+    loadAvailability();
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const months = [current, addMonths(current, 1)];
 
@@ -107,16 +147,17 @@ export default function BookingCalendar({
   const handleDayClick = (date: Date) => {
     const day = startOfDay(date);
     if (day < today) return;
-    if (!isSeasonOpen(day)) return;
 
     if (!arrival || (arrival && departure)) {
+      if (!isSeasonOpen(day) || isReservedNight(day)) return;
       setArrival(day);
       setDeparture(null);
       return;
     }
 
     if (day > arrival) {
-      if (!isRangeBookable(arrival, day)) {
+      if (!isRangeSelectable(arrival, day)) {
+        if (!isSeasonOpen(day) || isReservedNight(day)) return;
         setArrival(day);
         setDeparture(null);
         return;
@@ -128,14 +169,31 @@ export default function BookingCalendar({
     setArrival(day);
   };
 
+  const isReservedNight = (date: Date) =>
+    reservedRanges.some((range) => date >= range.start && date < range.end);
+
+  const overlapsReservedRange = (start: Date, end: Date) =>
+    reservedRanges.some((range) => start < range.end && end > range.start);
+
+  const isRangeSelectable = (start: Date, end: Date) =>
+    start >= today &&
+    end > start &&
+    isRangeBookable(start, end) &&
+    !overlapsReservedRange(start, end);
+
   const renderDay = (day: number, monthDate: Date) => {
     const date = startOfDay(
       new Date(monthDate.getFullYear(), monthDate.getMonth(), day)
     );
 
     const isPast = date < today;
-    const isOpen = isSeasonOpen(date);
-    const available = isOpen && !isPast;
+    const isReserved = isReservedNight(date);
+    const selectingDeparture = Boolean(arrival && !departure && date > arrival);
+    const available =
+      !isPast &&
+      (selectingDeparture
+        ? isRangeSelectable(arrival as Date, date)
+        : isSeasonOpen(date) && !isReserved);
 
     const inSelected =
       arrival && departure && date >= arrival && date <= departure;
@@ -170,7 +228,9 @@ export default function BookingCalendar({
 
     const style = !available
       ? {
-          backgroundColor: "rgba(15, 36, 56, 0.55)",
+          backgroundColor: isReserved
+            ? "rgba(104, 44, 38, 0.55)"
+            : "rgba(15, 36, 56, 0.55)",
           backgroundImage:
             "repeating-linear-gradient(45deg,rgba(255,255,255,0.18) 0 2px,transparent 2px 6px)",
         }
@@ -197,7 +257,7 @@ export default function BookingCalendar({
   const nights =
     arrival && departure ? calculateNightCount(arrival, departure) : 0;
   const rangeOk =
-    arrival && departure && nights > 0 && isRangeBookable(arrival, departure);
+    arrival && departure && nights > 0 && isRangeSelectable(arrival, departure);
 
   const pricing = useMemo(() => {
     if (!rangeOk || !arrival || !departure) return null;
@@ -214,7 +274,11 @@ export default function BookingCalendar({
     setArrivalText(event.target.value);
     const parsed = parseDate(event.target.value);
     if (parsed) {
-      setArrival(startOfDay(parsed));
+      const day = startOfDay(parsed);
+      setArrival(day);
+      if (departure && !isRangeSelectable(day, departure)) {
+        setDeparture(null);
+      }
     }
   };
 

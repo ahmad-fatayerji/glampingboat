@@ -9,6 +9,7 @@
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
+    "test": "tsx --test tests/**/*.test.ts",
     "optimize:images": "node scripts/optimize-boat-images.mjs",
     "prisma:generate": "prisma generate"
   },

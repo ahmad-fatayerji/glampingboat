@@ -87,6 +87,7 @@ export interface OptionRecord {
 }
 
 export interface ReservationPricing {
+  baseTtc: number;
   basePriceHt: number;
   optionSumHt: number;
   subtotalHt: number;
@@ -107,7 +108,9 @@ export interface ReservationCreatePayload {
   adults: number;
   children: number;
   optionIds: string[];
-  pricing: ReservationPricing;
+  payFullNow: boolean;
+  acceptTerms: boolean;
+  locale: string;
 }
 
 export interface ReservationOptionSerialized {
@@ -116,13 +119,37 @@ export interface ReservationOptionSerialized {
   reservationId: string;
   quantity: number;
   totalPriceHt: number;
+  totalPriceHtCents: number;
   option: Required<OptionRecord>;
+}
+
+export interface BookingPaymentSerialized {
+  id: string;
+  reservationId: string;
+  provider: string;
+  purpose: string;
+  status: string;
+  amountCents: number;
+  currency: string;
+  stripeCheckoutSessionId: string | null;
+  stripePaymentIntentId: string | null;
+  stripeCustomerId: string | null;
+  checkoutUrl: string | null;
+  idempotencyKey: string | null;
+  stripeStatus: string | null;
+  stripePayload: unknown;
+  expiresAt: string | null;
+  paidAt: string | null;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface ReservationSerialized {
   id: string;
   userId: string;
   bookingRef?: string;
+  status: string;
+  paymentStatus: string;
   startDate: string;
   endDate: string;
   adults: number;
@@ -136,8 +163,24 @@ export interface ReservationSerialized {
   depositAmount: number;
   balanceAmount: number;
   securityDeposit: number;
+  currency: string;
+  baseAmountHtCents: number;
+  optionsAmountHtCents: number;
+  subtotalAmountHtCents: number;
+  vatAmountCents: number;
+  touristTaxAmountCents: number;
+  totalAmountTtcCents: number;
+  depositAmountCents: number;
+  balanceAmountCents: number;
+  securityDepositAmountCents: number;
+  paidAmountCents: number;
+  payFullNow: boolean;
+  cancelledAt: string | null;
+  cancellationReason: string | null;
   createdAt: string;
+  updatedAt: string;
   items: ReservationOptionSerialized[];
+  payments: BookingPaymentSerialized[];
 }
 
 export interface ApiErrorResponse {

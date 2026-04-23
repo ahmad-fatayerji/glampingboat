@@ -6,7 +6,9 @@ import { useSession } from "next-auth/react";
 import { AudioToggle } from "@/components/Audio/AudioToggle";
 import BoatSlideshow, { type BoatSlide } from "@/components/Boat/BoatSlideshow";
 import BookingCalendar from "@/components/Booking/BookingCalendar";
+import BookingCheckoutHandoff from "@/components/Booking/BookingCheckoutHandoff";
 import BookingForm from "@/components/Booking/BookingForm";
+import BookingSpecPreview from "@/components/Booking/BookingSpecPreview";
 import ContactForm from "@/components/Contact/ContactForm";
 import BuyDrawer from "@/components/Drawer/BuyDrawer";
 import DrawerSurface from "@/components/Drawer/DrawerSurface";
@@ -15,6 +17,7 @@ import VisionDrawer from "@/components/Drawer/VisionDrawer";
 import LegalNoticesDrawer from "@/components/Legal/LegalNoticesDrawer";
 import NavBox from "@/components/NavBox/NavBox";
 import WaveToggle from "@/components/NavBox/WaveToggle";
+import type { ReservationSerialized } from "@/lib/types";
 
 interface AppShellProps {
   children: ReactNode;
@@ -25,7 +28,9 @@ type Stage =
   | "vision"
   | "boat"
   | "calendar"
+  | "preview"
   | "form"
+  | "checkout"
   | "buy"
   | "contact"
   | "legal"
@@ -84,6 +89,8 @@ export default function AppShell({ children, serverToday }: AppShellProps) {
   const [rangeEnd, setRangeEnd] = useState<Date | null>(null);
   const [bookingAdults, setBookingAdults] = useState(2);
   const [bookingChildren, setBookingChildren] = useState(2);
+  const [completedReservation, setCompletedReservation] =
+    useState<ReservationSerialized | null>(null);
   const { data: session } = useSession();
   const touchStartX = useRef<number | null>(null);
   const touchStartY = useRef<number | null>(null);
@@ -135,6 +142,7 @@ export default function AppShell({ children, serverToday }: AppShellProps) {
     setStage("calendar");
     setRangeStart(null);
     setRangeEnd(null);
+    setCompletedReservation(null);
     setDrawerOpen(true);
   };
 
@@ -155,7 +163,8 @@ export default function AppShell({ children, serverToday }: AppShellProps) {
     setRangeEnd(params.departure);
     setBookingAdults(params.adults);
     setBookingChildren(params.children);
-    setStage("form");
+    setCompletedReservation(null);
+    setStage("preview");
   };
 
   const activeMenuItem =
@@ -163,7 +172,11 @@ export default function AppShell({ children, serverToday }: AppShellProps) {
       ? "ourVision"
       : drawerOpen && stage === "boat"
         ? "boat"
-        : drawerOpen && (stage === "calendar" || stage === "form")
+        : drawerOpen &&
+            (stage === "calendar" ||
+              stage === "preview" ||
+              stage === "form" ||
+              stage === "checkout")
           ? "book"
           : drawerOpen && stage === "buy"
             ? "buy"
@@ -228,6 +241,19 @@ export default function AppShell({ children, serverToday }: AppShellProps) {
               </DrawerSurface>
             )}
 
+            {stage === "preview" && rangeStart && rangeEnd && (
+              <DrawerSurface>
+                <BookingSpecPreview
+                  arrivalDate={rangeStart}
+                  departureDate={rangeEnd}
+                  adults={bookingAdults}
+                  childrenCount={bookingChildren}
+                  onBack={() => setStage("calendar")}
+                  onContinue={() => setStage("form")}
+                />
+              </DrawerSurface>
+            )}
+
             {stage === "form" && rangeStart && rangeEnd && (
               <DrawerSurface>
                 <BookingForm
@@ -235,7 +261,20 @@ export default function AppShell({ children, serverToday }: AppShellProps) {
                   departureDate={rangeEnd}
                   initialAdults={bookingAdults}
                   initialChildren={bookingChildren}
-                  onBack={() => setStage("calendar")}
+                  onBack={() => setStage("preview")}
+                  onReserved={(reservation) => {
+                    setCompletedReservation(reservation);
+                    setStage("checkout");
+                  }}
+                />
+              </DrawerSurface>
+            )}
+
+            {stage === "checkout" && completedReservation && (
+              <DrawerSurface>
+                <BookingCheckoutHandoff
+                  reservation={completedReservation}
+                  onClose={() => setDrawerOpen(false)}
                 />
               </DrawerSurface>
             )}
@@ -245,6 +284,7 @@ export default function AppShell({ children, serverToday }: AppShellProps) {
                 onBookClick={() => {
                   setRangeStart(null);
                   setRangeEnd(null);
+                  setCompletedReservation(null);
                   setStage("calendar");
                   setDrawerOpen(true);
                 }}

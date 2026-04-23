@@ -211,7 +211,7 @@ const en = {
   notAvailableForChosenDates:
     "glampingboat is not available on the dates you have chosen",
   priceForNightsExcl:
-    "price for {nights} nights, excluding tourist tax and options",
+    "price for {nights} nights, including tourist tax and excluding options",
   disabilityHealthCure: "in a disability situation or health cure?",
   contactUs: "contact us",
   accommodationPrice: "Accommodation price",
@@ -230,6 +230,30 @@ const en = {
   cancellationInsuranceTitle: "cancellation insurance",
   cancellationInsuranceLabel:
     "I would like to take out cancellation insurance for my holiday",
+  bookingPreviewTitle: "Step aboard the glampingboat",
+  bookingPreviewBody:
+    "A simple, lightweight and eco-friendly river stay with sleeping area, kitchenette, bathroom, deck, and a slow route through the Lot Valley.",
+  pricePreviewIncludesTax:
+    "Includes accommodation and tourist tax. Options are selected on the next step.",
+  bookingNatureTitle: "Protected river nature",
+  bookingNatureBody:
+    "The booking area sits in a protected natural-interest zone for fauna and flora. The boat is designed for slow, low-impact navigation.",
+  checkoutReadyTitle: "Hosted Checkout is ready for the next integration step.",
+  checkoutReadyBody:
+    "The reservation, legal consent, pricing snapshot, and pending Stripe payment record are now stored. Live Stripe redirect can be connected next.",
+  checkoutPlaceholderNote:
+    "This is a local Checkout handoff placeholder. No live Stripe session is created yet and no card data is collected by this site.",
+  continueToConfirmation: "Continue to confirmation",
+  bookingSuccessTitle: "Your booking has been successfully recorded",
+  bookingSuccessBody:
+    "You will receive a confirmation email once live payment processing is connected. You can also view the reservation in your account.",
+  viewAccount: "View account",
+  reservationCancelled: "Cancelled",
+  paymentPending: "Payment pending",
+  depositPaid: "Deposit paid",
+  paidFull: "Paid in full",
+  refunded: "Refunded",
+  unpaid: "Unpaid",
 } as const;
 
 export type TranslationKey = keyof typeof en;

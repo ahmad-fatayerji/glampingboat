@@ -18,6 +18,14 @@ export function getNumber(
   return typeof field === "number" && Number.isFinite(field) ? field : undefined;
 }
 
+export function getBoolean(
+  value: Record<string, unknown>,
+  key: string
+): boolean | undefined {
+  const field = value[key];
+  return typeof field === "boolean" ? field : undefined;
+}
+
 export function getStringArray(
   value: Record<string, unknown>,
   key: string

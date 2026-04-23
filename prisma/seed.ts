@@ -46,7 +46,7 @@ async function main() {
     },
     {
       name: "Frais de nettoyage",
-      priceHt: 75.0,
+      priceHt: 62.5,
       description: "Nettoyage final du bateau",
     },
   ] as const;

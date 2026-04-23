@@ -61,7 +61,17 @@ export default function ReservationList({ reservations }: Props) {
         throw new Error(json.error || t("failedToCancel"));
       }
 
-      setList((current) => current.filter((reservation) => reservation.id !== id));
+      const updated = await readJsonResponse<ReservationSerialized | null>(
+        response,
+        null
+      );
+      if (updated?.id) {
+        setList((current) =>
+          current.map((reservation) =>
+            reservation.id === updated.id ? updated : reservation
+          )
+        );
+      }
       setPendingCancel(null);
     } catch (cancelError) {
       setError(getErrorMessage(cancelError, t("unexpectedError")));
@@ -102,7 +112,8 @@ export default function ReservationList({ reservations }: Props) {
           const nights = nightsBetween(reservation.startDate, reservation.endDate);
           const isExpanded = expanded === reservation.id;
           const endPast = new Date(reservation.endDate).getTime() < now - 86400000;
-          const status = endPast ? "past" : "upcoming";
+          const cancelled = reservation.status === "CANCELLED";
+          const status = cancelled ? "cancelled" : endPast ? "past" : "upcoming";
 
           return (
             <li key={reservation.id} className="group">
@@ -140,10 +151,7 @@ export default function ReservationList({ reservations }: Props) {
                         )}
                       </span>
                     </div>
-                    <StatusBadge
-                      label={endPast ? t("past") : t("upcoming")}
-                      status={status}
-                    />
+                    <StatusBadge label={statusLabel(status, t)} status={status} />
                   </div>
                   <div className="flex items-center gap-8 pr-1 text-sm">
                     <span className="tabular-nums text-[var(--color-beige)]">
@@ -176,7 +184,7 @@ export default function ReservationList({ reservations }: Props) {
                 >
                   <div className="overflow-hidden">
                     <div className="space-y-5 border-t border-[#173c59] bg-[#0d3350]/15 px-6 pb-6 pt-4 text-sm">
-                      <div className="grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-6">
+                      <div className="grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-7">
                         <Info label={t("baseHt")} value={euro(reservation.basePriceHt)} />
                         <Info
                           label={t("optionsHt")}
@@ -194,6 +202,10 @@ export default function ReservationList({ reservations }: Props) {
                         <Info
                           label={t("balance")}
                           value={euro(reservation.balanceAmount)}
+                        />
+                        <Info
+                          label={t("paymentSection")}
+                          value={paymentStatusLabel(reservation.paymentStatus, t)}
                         />
                       </div>
                       {reservation.items.length > 0 && (
@@ -235,13 +247,19 @@ export default function ReservationList({ reservations }: Props) {
                             />
                           )}
                         </span>
-                        <button
-                          onClick={() => setPendingCancel(reservation.id)}
-                          className="self-start text-[11px] tracking-wide text-[#ffd9d9] underline underline-offset-2 transition hover:text-[#ffbfbf] disabled:opacity-40 sm:self-auto"
-                          disabled={busy}
-                        >
-                          {t("cancelReservation")}
-                        </button>
+                        {cancelled ? (
+                          <span className="text-[11px] tracking-wide text-[var(--color-beige)]/55">
+                            {t("reservationCancelled")}
+                          </span>
+                        ) : (
+                          <button
+                            onClick={() => setPendingCancel(reservation.id)}
+                            className="self-start text-[11px] tracking-wide text-[#ffd9d9] underline underline-offset-2 transition hover:text-[#ffbfbf] disabled:opacity-40 sm:self-auto"
+                            disabled={busy}
+                          >
+                            {t("cancelReservation")}
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -281,6 +299,29 @@ function BookingRefPill({ label, value }: { label: string; value: string }) {
   );
 }
 
+function statusLabel(
+  status: "upcoming" | "past" | "cancelled",
+  t: ReturnType<typeof useT>
+) {
+  if (status === "cancelled") return t("reservationCancelled");
+  return status === "past" ? t("past") : t("upcoming");
+}
+
+function paymentStatusLabel(status: string, t: ReturnType<typeof useT>) {
+  switch (status) {
+    case "CHECKOUT_OPEN":
+      return t("paymentPending");
+    case "PAID_DEPOSIT":
+      return t("depositPaid");
+    case "PAID_FULL":
+      return t("paidFull");
+    case "REFUNDED":
+      return t("refunded");
+    default:
+      return t("unpaid");
+  }
+}
+
 function Info({ label, value }: { label: string; value: string }) {
   return (
     <div className="space-y-1">
@@ -299,20 +340,27 @@ function StatusBadge({
   status,
 }: {
   label: string;
-  status: "upcoming" | "past";
+  status: "upcoming" | "past" | "cancelled";
 }) {
   const isPast = status === "past";
+  const isCancelled = status === "cancelled";
   return (
     <span
       className={`mt-2 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] tracking-wider ring-1 md:mt-0 ${
-        isPast
+        isCancelled
+          ? "bg-[#8a3a30]/35 text-[#ffd9d9] ring-[#8a3a30]/70"
+          : isPast
           ? "bg-transparent text-[var(--color-beige)]/50 ring-[var(--color-beige)]/25"
           : "bg-[#0d3350] text-[var(--color-beige)] ring-[#234d69]"
       }`}
     >
       <span
         className={`h-1.5 w-1.5 rounded-full ${
-          isPast ? "bg-[var(--color-beige)]/40" : "bg-[var(--color-beige)]"
+          isCancelled
+            ? "bg-[#ffd9d9]"
+            : isPast
+              ? "bg-[var(--color-beige)]/40"
+              : "bg-[var(--color-beige)]"
         }`}
       />
       {label}

@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@auth";
 import { prisma } from "@/lib/prisma";
 import { getErrorMessage } from "@/lib/http";
+import {
+  RESERVATION_WITH_ITEMS_INCLUDE,
+  serializeReservation,
+} from "@/lib/reservations";
 
 export async function DELETE(
   _req: NextRequest,
@@ -20,10 +24,44 @@ export async function DELETE(
       return NextResponse.json({ error: "Not found" }, { status: 404 });
     }
 
-    await prisma.reservationOption.deleteMany({ where: { reservationId: id } });
-    await prisma.reservation.delete({ where: { id } });
+    if (reservation.status === "CANCELLED") {
+      const existing = await prisma.reservation.findUnique({
+        where: { id },
+        include: RESERVATION_WITH_ITEMS_INCLUDE,
+      });
+      return NextResponse.json(existing ? serializeReservation(existing) : { ok: true });
+    }
 
-    return NextResponse.json({ ok: true });
+    const updated = await prisma.$transaction(async (tx) => {
+      await tx.reservationEvent.create({
+        data: {
+          reservationId: id,
+          actorUserId: session.user.id,
+          type: "CANCELLED",
+          fromStatus: reservation.status,
+          toStatus: "CANCELLED",
+          metadata: {
+            reason: "user_cancelled_before_live_stripe",
+          },
+        },
+      });
+
+      return tx.reservation.update({
+        where: { id },
+        data: {
+          status: "CANCELLED",
+          paymentStatus:
+            reservation.paymentStatus === "REFUNDED"
+              ? "REFUNDED"
+              : "UNPAID",
+          cancelledAt: new Date(),
+          cancellationReason: "user_cancelled_before_live_stripe",
+        },
+        include: RESERVATION_WITH_ITEMS_INCLUDE,
+      });
+    });
+
+    return NextResponse.json(serializeReservation(updated));
   } catch (error) {
     console.error(error);
     return NextResponse.json(
