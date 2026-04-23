@@ -369,12 +369,12 @@ export default function BookingForm({
         throw new Error(json.error || t("failedCreateReservation"));
       }
 
-      const reservation = await readJsonResponse<ReservationSerialized | null>(
+      const created = await readJsonResponse<ReservationSerialized | null>(
         response,
         null
       );
-      if (reservation && onReserved) {
-        onReserved(reservation);
+      if (created && onReserved) {
+        onReserved(created);
         return;
       }
 
@@ -656,6 +656,7 @@ export default function BookingForm({
               <span>{submitting ? t("saving") : `${t("pay")} >`}</span>
             </button>
           </div>
+
         </div>
       </form>
 
