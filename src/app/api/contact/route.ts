@@ -6,6 +6,7 @@ import {
   getMailerAddress,
 } from "@/lib/mailer";
 import { getErrorMessage } from "@/lib/http";
+import { sanitizePhoneNumber } from "@/lib/input";
 import { getString, isRecord } from "@/lib/type-guards";
 
 const lastSubmissions = new Map<string, number>();
@@ -19,8 +20,8 @@ function parseContactPayload(payload: unknown) {
   return {
     firstName: getString(payload, "firstName") ?? "",
     lastName: getString(payload, "lastName") ?? "",
-    phone: getString(payload, "phone") ?? "",
-    mobile: getString(payload, "mobile") ?? "",
+    phone: sanitizePhoneNumber(getString(payload, "phone") ?? ""),
+    mobile: sanitizePhoneNumber(getString(payload, "mobile") ?? ""),
     email: getString(payload, "email") ?? "",
     message: getString(payload, "message") ?? "",
     address: {

@@ -2,6 +2,7 @@
 
 import { useState, type ChangeEvent, type FormEvent } from "react";
 import { useT } from "@/components/Language/useT";
+import { isPhoneField, sanitizePhoneNumber } from "@/lib/input";
 import type { AddressField, ContactFormData } from "@/lib/types";
 import { ADDRESS_FIELDS, NAME_FIELDS, PHONE_FIELDS } from "@/lib/types";
 
@@ -55,7 +56,12 @@ export default function ContactForm() {
     field: K,
     value: ContactFormData[K]
   ) => {
-    setForm((current) => ({ ...current, [field]: value }));
+    const nextValue =
+      typeof value === "string" && isPhoneField(field)
+        ? sanitizePhoneNumber(value)
+        : value;
+
+    setForm((current) => ({ ...current, [field]: nextValue }));
   };
 
   const handleChange = (
@@ -125,6 +131,7 @@ export default function ContactForm() {
         type={type}
         value={form[field]}
         onChange={handleChange}
+        inputMode={type === "tel" ? "tel" : undefined}
         className={inputClassName}
         required={field === "firstName" || field === "lastName" || field === "email"}
       />

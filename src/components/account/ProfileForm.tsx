@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type FormEvent, type InputHTMLAttributes } from "react";
 import { readJsonResponse, getErrorMessage } from "@/lib/http";
 import { useT } from "@/components/Language/useT";
 import {
@@ -8,6 +8,7 @@ import {
   toProfileFormData,
   toProfileUpdatePayload,
 } from "@/lib/profile";
+import { isPhoneField, sanitizePhoneNumber } from "@/lib/input";
 import type { ProfileFormData, ProfileResponse } from "@/lib/types";
 
 export default function ProfileForm() {
@@ -54,10 +55,15 @@ export default function ProfileForm() {
     field: K,
     value: ProfileFormData[K]
   ) => {
-    setData((current) => ({ ...current, [field]: value }));
+    const nextValue =
+      typeof value === "string" && isPhoneField(field)
+        ? sanitizePhoneNumber(value)
+        : value;
+
+    setData((current) => ({ ...current, [field]: nextValue }));
   };
 
-  const handleSubmit = async (event: React.FormEvent) => {
+  const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
     setSaving(true);
     setMessage(null);
@@ -150,11 +156,15 @@ export default function ProfileForm() {
           label={t("phone")}
           value={data.phone}
           onChange={(value) => update("phone", value)}
+          type="tel"
+          inputMode="tel"
         />
         <Field
           label={t("mobile")}
           value={data.mobile}
           onChange={(value) => update("mobile", value)}
+          type="tel"
+          inputMode="tel"
         />
         <Field
           label={t("birthDate")}
@@ -224,12 +234,14 @@ function Field({
   onChange,
   type = "text",
   disabled = false,
+  inputMode,
 }: {
   label: string;
   value: string;
   onChange?: (value: string) => void;
   type?: string;
   disabled?: boolean;
+  inputMode?: InputHTMLAttributes<HTMLInputElement>["inputMode"];
 }) {
   return (
     <label className="flex flex-col gap-1 text-sm text-[var(--color-beige)]/90">
@@ -238,6 +250,7 @@ function Field({
         type={type}
         value={value}
         disabled={disabled}
+        inputMode={inputMode}
         onChange={(event) => onChange?.(event.target.value)}
         className="h-10 w-full rounded-md border-2 border-[#0d3350] bg-[var(--color-beige)] px-3 text-sm text-[var(--color-blue)] outline-none transition placeholder:text-[var(--color-blue)]/45 focus:border-[#234d69] disabled:opacity-60"
       />

@@ -7,6 +7,7 @@ import {
   toProfileUpdatePayload,
   USER_PROFILE_SELECT,
 } from "@/lib/profile";
+import { sanitizePhoneNumber } from "@/lib/input";
 import { getString, isRecord } from "@/lib/type-guards";
 
 export async function PUT(req: NextRequest) {
@@ -21,8 +22,8 @@ export async function PUT(req: NextRequest) {
       ? toProfileUpdatePayload({
           firstName: getString(body, "firstName") ?? "",
           lastName: getString(body, "lastName") ?? "",
-          phone: getString(body, "phone") ?? "",
-          mobile: getString(body, "mobile") ?? "",
+          phone: sanitizePhoneNumber(getString(body, "phone") ?? ""),
+          mobile: sanitizePhoneNumber(getString(body, "mobile") ?? ""),
           birthDate: getString(body, "birthDate") ?? "",
           addressNumber: getString(body, "addressNumber") ?? "",
           addressStreet: getString(body, "addressStreet") ?? "",

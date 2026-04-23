@@ -6,6 +6,7 @@ import {
   useState,
   type ChangeEvent,
   type FormEvent,
+  type InputHTMLAttributes,
 } from "react";
 import { format } from "date-fns";
 import { useSession } from "next-auth/react";
@@ -18,6 +19,7 @@ import {
 } from "@/lib/profile";
 import { calculateReservationPricingSummary } from "@/lib/reservations";
 import { getErrorMessage, readJsonResponse } from "@/lib/http";
+import { isPhoneField, sanitizePhoneNumber } from "@/lib/input";
 import type {
   AddressField,
   ApiErrorResponse,
@@ -263,7 +265,8 @@ export default function BookingForm({
   };
 
   const updateTextField = (field: BookingTextField, value: string) => {
-    setForm((current) => ({ ...current, [field]: value }));
+    const nextValue = isPhoneField(field) ? sanitizePhoneNumber(value) : value;
+    setForm((current) => ({ ...current, [field]: nextValue }));
   };
 
   const updateCheckboxField = (field: BookingCheckboxField, value: boolean) => {
@@ -510,6 +513,7 @@ export default function BookingForm({
                 value={form[field]}
                 onChange={handleChange}
                 type="tel"
+                inputMode="tel"
               />
             ))}
           </div>
@@ -661,6 +665,7 @@ export default function BookingForm({
     value,
     onChange,
     type = "text",
+    inputMode,
   }: {
     id: string;
     name: string;
@@ -668,6 +673,7 @@ export default function BookingForm({
     value: string;
     onChange: (event: BookingInputEvent) => void;
     type?: string;
+    inputMode?: InputHTMLAttributes<HTMLInputElement>["inputMode"];
   }) {
     return (
       <div>
@@ -682,6 +688,7 @@ export default function BookingForm({
           name={name}
           type={type}
           value={value}
+          inputMode={inputMode}
           onChange={onChange}
           className="mt-1 h-10 w-full rounded-md border-2 border-[#0d3350] bg-[var(--color-beige)] px-3 text-[var(--color-blue)] outline-none transition focus:border-[#234d69]"
         />
@@ -929,10 +936,11 @@ function ProfileCompletionModal({
                   <span className="ml-1 text-[#ffd9d9]">*</span>
                 </label>
                 <input
-                  type="text"
+                  type={isPhoneField(baseName) ? "tel" : "text"}
                   name={baseName}
                   value={getProfileFieldValue(form, field.key)}
                   onChange={onChange}
+                  inputMode={isPhoneField(baseName) ? "tel" : undefined}
                   className={`h-10 rounded-md border-2 bg-[var(--color-beige)] px-3 text-sm text-[var(--color-blue)] outline-none transition placeholder:text-[var(--color-blue)]/45 focus:border-[#234d69] ${
                     missing ? "border-[#c65a4a]" : "border-[#0d3350]"
                   }`}
