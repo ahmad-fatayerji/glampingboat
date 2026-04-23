@@ -9,7 +9,7 @@ export default function LogoutButton() {
   return (
     <button
       onClick={() => signOut({ callbackUrl: "/account" })}
-      className="rounded-xl bg-[#0d3350] px-4 py-1.5 text-xs tracking-wide text-[var(--color-beige)] transition hover:bg-[#123f61] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-beige)]/60"
+      className="rounded-full bg-[var(--color-beige)] px-4 py-1.5 text-xs font-medium tracking-wide text-[var(--color-blue)] transition hover:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-beige)]/60"
     >
       {t("logoutMenu")}
     </button>
