@@ -3,6 +3,8 @@ import Stripe from "stripe";
 import { prisma } from "@/lib/prisma";
 import { getStripeServerClient } from "@/lib/stripe";
 
+const OPEN_PAYMENT_STATUSES = ["PENDING", "CHECKOUT_OPEN"] as const;
+
 function getWebhookSecret() {
     const secret = process.env.STRIPE_WEBHOOK_SECRET;
     if (!secret) {
@@ -10,6 +12,18 @@ function getWebhookSecret() {
     }
 
     return secret;
+}
+
+function getReservationPaidStatus(paidAmountCents: number, totalAmountCents: number) {
+    if (paidAmountCents >= totalAmountCents) {
+        return "PAID_FULL";
+    }
+
+    if (paidAmountCents > 0) {
+        return "PAID_DEPOSIT";
+    }
+
+    return "UNPAID";
 }
 
 async function processCheckoutCompleted(event: Stripe.Event) {
@@ -33,12 +47,12 @@ async function processCheckoutCompleted(event: Stripe.Event) {
         return;
     }
 
-    const reservationPaymentStatus =
-        payment.purpose === "FULL" ? "PAID_FULL" : "PAID_DEPOSIT";
-
     await prisma.$transaction(async (tx) => {
-        await tx.bookingPayment.update({
-            where: { id: payment.id },
+        const updatedPayment = await tx.bookingPayment.updateMany({
+            where: {
+                id: payment.id,
+                status: { not: "PAID" },
+            },
             data: {
                 status: "PAID",
                 stripeStatus: session.status,
@@ -54,16 +68,54 @@ async function processCheckoutCompleted(event: Stripe.Event) {
             },
         });
 
+        if (updatedPayment.count === 0) {
+            return;
+        }
+
+        const paidAmountCents = payment.reservation.paidAmountCents + payment.amountCents;
+        const reservationPaymentStatus = getReservationPaidStatus(
+            paidAmountCents,
+            payment.reservation.totalAmountTtcCents
+        );
+
         await tx.reservation.update({
             where: { id: payment.reservationId },
             data: {
                 paymentStatus: reservationPaymentStatus,
                 status: "CONFIRMED",
-                paidAmountCents: {
-                    increment: payment.amountCents,
-                },
+                paidAmountCents,
             },
         });
+
+        const remainingAmountCents = Math.max(
+            0,
+            payment.reservation.totalAmountTtcCents - paidAmountCents
+        );
+        if (remainingAmountCents > 0 && payment.purpose === "DEPOSIT") {
+            const existingBalancePayment = await tx.bookingPayment.findFirst({
+                where: {
+                    reservationId: payment.reservationId,
+                    purpose: "BALANCE",
+                    status: { in: [...OPEN_PAYMENT_STATUSES, "PAID"] },
+                },
+                select: { id: true },
+            });
+
+            if (!existingBalancePayment) {
+                await tx.bookingPayment.create({
+                    data: {
+                        reservationId: payment.reservationId,
+                        provider: "stripe",
+                        purpose: "BALANCE",
+                        status: "PENDING",
+                        amountCents: remainingAmountCents,
+                        currency: payment.currency,
+                        idempotencyKey: `checkout:${payment.reservation.bookingRef}:balance`,
+                        stripeStatus: "not_created",
+                    },
+                });
+            }
+        }
 
         await tx.reservationEvent.create({
             data: {
@@ -75,6 +127,8 @@ async function processCheckoutCompleted(event: Stripe.Event) {
                     paymentId: payment.id,
                     amountCents: payment.amountCents,
                     currency: payment.currency,
+                    paidAmountCents,
+                    remainingAmountCents,
                 },
             },
         });
@@ -85,11 +139,19 @@ async function processCheckoutExpired(event: Stripe.Event) {
     const session = event.data.object as Stripe.Checkout.Session;
     const payment = await prisma.bookingPayment.findFirst({
         where: { stripeCheckoutSessionId: session.id },
+        include: {
+            reservation: true,
+        },
     });
 
-    if (!payment) {
+    if (!payment || payment.status === "PAID") {
         return;
     }
+
+    const reservationPaymentStatus = getReservationPaidStatus(
+        payment.reservation.paidAmountCents,
+        payment.reservation.totalAmountTtcCents
+    );
 
     await prisma.$transaction(async (tx) => {
         await tx.bookingPayment.update({
@@ -108,7 +170,7 @@ async function processCheckoutExpired(event: Stripe.Event) {
         await tx.reservation.update({
             where: { id: payment.reservationId },
             data: {
-                paymentStatus: "UNPAID",
+                paymentStatus: reservationPaymentStatus,
             },
         });
 
@@ -132,11 +194,22 @@ async function processPaymentFailed(event: Stripe.Event) {
         where: {
             stripePaymentIntentId: paymentIntent.id,
         },
+        include: {
+            reservation: true,
+        },
     });
 
-    if (!payment) {
+    if (!payment || payment.status === "PAID") {
         return;
     }
+
+    const reservationPaymentStatus =
+        payment.reservation.paidAmountCents > 0
+            ? getReservationPaidStatus(
+                payment.reservation.paidAmountCents,
+                payment.reservation.totalAmountTtcCents
+            )
+            : "PAYMENT_FAILED";
 
     await prisma.$transaction(async (tx) => {
         await tx.bookingPayment.update({
@@ -155,7 +228,7 @@ async function processPaymentFailed(event: Stripe.Event) {
         await tx.reservation.update({
             where: { id: payment.reservationId },
             data: {
-                paymentStatus: "PAYMENT_FAILED",
+                paymentStatus: reservationPaymentStatus,
             },
         });
 

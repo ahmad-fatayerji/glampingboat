@@ -38,7 +38,6 @@ export interface BookingFormState {
   comments: string;
   discountCode: string;
   specialOffers: boolean;
-  cancellation: boolean;
   acceptTerms: boolean;
   payFullNow: boolean;
   adults: number;

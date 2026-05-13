@@ -59,7 +59,6 @@ const en = {
   depositDue: "Deposit 50% on booking",
   balanceDue: "Balance 15 days before arrival",
   payFullNow: "Pay the full price now",
-  cancellationInsurance: "I would like cancellation insurance",
   acceptTerms: "I have read and accept the terms and conditions",
   pay: "Pay",
   birthDate: "Birth Date",
@@ -227,9 +226,6 @@ const en = {
   balanceBeforeArrival: "balance 15 days before date of arrival",
   contactDetails: "contact details",
   paymentSection: "payment",
-  cancellationInsuranceTitle: "cancellation insurance",
-  cancellationInsuranceLabel:
-    "I would like to take out cancellation insurance for my holiday",
   bookingPreviewTitle: "Step aboard the glampingboat",
   bookingPreviewBody:
     "A simple, lightweight and eco-friendly river stay with sleeping area, kitchenette, bathroom, deck, and a slow route through the Lot Valley.",
@@ -322,7 +318,6 @@ export const dictionaries: Record<Locale, Dictionary> = {
     depositDue: "Acompte de 50 % à la réservation",
     balanceDue: "Solde 15 jours avant l'arrivée",
     payFullNow: "Payer le montant total maintenant",
-    cancellationInsurance: "Je souhaite une assurance annulation",
     acceptTerms: "J'ai lu et j'accepte les conditions générales",
     pay: "Payer",
     birthDate: "Date de naissance",
@@ -528,7 +523,6 @@ export const dictionaries: Record<Locale, Dictionary> = {
     depositDue: "Anzahlung 50% bei Buchung",
     balanceDue: "Rest 15 Tage vor Ankunft",
     payFullNow: "Gesamtbetrag jetzt zahlen",
-    cancellationInsurance: "Ich moechte eine Reiseruecktrittsversicherung",
     acceptTerms: "Ich akzeptiere die AGB",
     pay: "Bezahlen",
     birthDate: "Geburtsdatum",
@@ -734,7 +728,6 @@ export const dictionaries: Record<Locale, Dictionary> = {
     depositDue: "Aanbetaling 50% bij boeking",
     balanceDue: "Saldo 15 dagen voor aankomst",
     payFullNow: "Volledige prijs nu betalen",
-    cancellationInsurance: "Ik wil een annuleringsverzekering",
     acceptTerms: "Ik ga akkoord met de voorwaarden",
     pay: "Betalen",
     birthDate: "Geboortedatum",
@@ -943,8 +936,6 @@ export const dictionaries: Record<Locale, Dictionary> = {
       "\u041e\u0441\u0442\u0430\u0442\u043e\u043a \u0437\u0430 15 \u0434\u043d\u0435\u0439 \u0434\u043e \u043f\u0440\u0438\u0431\u044b\u0442\u0438\u044f",
     payFullNow:
       "\u041e\u043f\u043b\u0430\u0442\u0438\u0442\u044c \u043f\u043e\u043b\u043d\u043e\u0441\u0442\u044c\u044e \u0441\u0435\u0439\u0447\u0430\u0441",
-    cancellationInsurance:
-      "\u0425\u043e\u0447\u0443 \u0441\u0442\u0440\u0430\u0445\u043e\u0432\u043a\u0443 \u043e\u0442 \u043e\u0442\u043c\u0435\u043d\u044b",
     acceptTerms:
       "\u042f \u043f\u0440\u0438\u043d\u0438\u043c\u0430\u044e \u0443\u0441\u043b\u043e\u0432\u0438\u044f",
     pay: "\u041e\u043f\u043b\u0430\u0442\u0438\u0442\u044c",
@@ -1189,7 +1180,6 @@ export const dictionaries: Record<Locale, Dictionary> = {
     depositDue: "Deposito 50% al reservar",
     balanceDue: "Saldo 15 dias antes de la llegada",
     payFullNow: "Pagar todo ahora",
-    cancellationInsurance: "Quiero seguro de cancelacion",
     acceptTerms: "Acepto los terminos y condiciones",
     pay: "Pagar",
     birthDate: "Fecha de nacimiento",
@@ -1395,7 +1385,6 @@ export const dictionaries: Record<Locale, Dictionary> = {
     depositDue: "Acconto 50% alla prenotazione",
     balanceDue: "Saldo 15 giorni prima dell'arrivo",
     payFullNow: "Paga l'intero importo ora",
-    cancellationInsurance: "Desidero l'assicurazione annullamento",
     acceptTerms: "Accetto i termini e le condizioni",
     pay: "Paga",
     birthDate: "Data di nascita",

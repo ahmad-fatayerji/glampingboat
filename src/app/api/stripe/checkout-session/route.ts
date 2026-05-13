@@ -10,6 +10,34 @@ interface CreateCheckoutSessionPayload {
 
 const ELIGIBLE_PAYMENT_STATUSES = new Set(["PENDING", "CHECKOUT_OPEN"]);
 
+function canCreateCheckoutForReservation(reservation: {
+    status: string;
+    paymentStatus: string;
+    paidAmountCents: number;
+}) {
+    if (reservation.status === "PENDING_PAYMENT") {
+        return true;
+    }
+
+    return (
+        reservation.status === "CONFIRMED" &&
+        reservation.paidAmountCents > 0 &&
+        ["PAID_DEPOSIT", "CHECKOUT_OPEN"].includes(reservation.paymentStatus)
+    );
+}
+
+function getExpectedPaymentPurpose(reservation: {
+    paymentStatus: string;
+    payFullNow: boolean;
+    paidAmountCents: number;
+}) {
+    if (reservation.paidAmountCents > 0 && reservation.paymentStatus !== "PAID_FULL") {
+        return "BALANCE";
+    }
+
+    return reservation.payFullNow ? "FULL" : "DEPOSIT";
+}
+
 export async function POST(req: NextRequest) {
     const authSession = await auth();
 
@@ -47,21 +75,48 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: "Reservation not found" }, { status: 404 });
         }
 
-        if (reservation.status !== "PENDING_PAYMENT") {
+        if (!canCreateCheckoutForReservation(reservation)) {
             return NextResponse.json(
                 { error: "Reservation is not in a payable state" },
                 { status: 409 }
             );
         }
 
-        const expectedPurpose = reservation.payFullNow ? "FULL" : "DEPOSIT";
-        const payment =
+        const expectedPurpose = getExpectedPaymentPurpose(reservation);
+        let payment =
             reservation.payments.find(
                 (entry) =>
                     entry.purpose === expectedPurpose &&
                     ELIGIBLE_PAYMENT_STATUSES.has(entry.status)
-            ) ??
-            reservation.payments.find((entry) => ELIGIBLE_PAYMENT_STATUSES.has(entry.status));
+            );
+
+        if (!payment && expectedPurpose !== "BALANCE") {
+            payment = reservation.payments.find((entry) =>
+                ELIGIBLE_PAYMENT_STATUSES.has(entry.status)
+            );
+        }
+
+        if (!payment && expectedPurpose === "BALANCE") {
+            const balanceDueCents = Math.max(
+                0,
+                reservation.totalAmountTtcCents - reservation.paidAmountCents
+            );
+
+            if (balanceDueCents > 0) {
+                payment = await prisma.bookingPayment.create({
+                    data: {
+                        reservationId: reservation.id,
+                        provider: "stripe",
+                        purpose: "BALANCE",
+                        status: "PENDING",
+                        amountCents: balanceDueCents,
+                        currency: reservation.currency,
+                        idempotencyKey: `checkout:${reservation.bookingRef}:balance`,
+                        stripeStatus: "not_created",
+                    },
+                });
+            }
+        }
 
         if (!payment) {
             return NextResponse.json(
@@ -110,7 +165,9 @@ export async function POST(req: NextRequest) {
                                 name:
                                     payment.purpose === "FULL"
                                         ? "Glamping Boat booking (full payment)"
-                                        : "Glamping Boat booking (deposit)",
+                                        : payment.purpose === "BALANCE"
+                                          ? "Glamping Boat booking (balance)"
+                                          : "Glamping Boat booking (deposit)",
                                 description: reservation.bookingRef
                                     ? `Booking ${reservation.bookingRef}`
                                     : `Reservation ${reservation.id}`,

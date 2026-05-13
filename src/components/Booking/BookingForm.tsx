@@ -56,7 +56,6 @@ type BookingTextField =
 
 type BookingCheckboxField =
   | "specialOffers"
-  | "cancellation"
   | "acceptTerms"
   | "payFullNow";
 
@@ -78,7 +77,6 @@ const buildInitialForm = (
   comments: "",
   discountCode: "",
   specialOffers: false,
-  cancellation: false,
   acceptTerms: false,
   payFullNow: false,
   adults,
@@ -99,7 +97,6 @@ const TEXT_FIELDS: readonly BookingTextField[] = [
 ];
 const CHECKBOX_FIELDS: readonly BookingCheckboxField[] = [
   "specialOffers",
-  "cancellation",
   "acceptTerms",
   "payFullNow",
 ];
@@ -561,19 +558,6 @@ export default function BookingForm({
             <span className="ml-2 text-sm">{t("specialOffers")}</span>
           </label>
 
-          <h3 className="mt-8 mb-3 border-b border-[#173c59] pb-2 text-[1.05rem] tracking-wide text-[var(--color-beige)]">
-            {t("cancellationInsuranceTitle")}
-          </h3>
-          <label className="inline-flex items-start gap-2">
-            <input
-              type="checkbox"
-              name="cancellation"
-              checked={form.cancellation}
-              onChange={handleChange}
-              className="mt-0.5 h-4 w-4 accent-[#0d3350]"
-            />
-            <span className="text-sm">{t("cancellationInsuranceLabel")}</span>
-          </label>
         </div>
 
         <div className="md:col-span-5 flex flex-col">

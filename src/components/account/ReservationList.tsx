@@ -26,6 +26,7 @@ export default function ReservationList({ reservations }: Props) {
   const [filter, setFilter] = useState<"all" | "upcoming" | "past">("upcoming");
   const [list, setList] = useState(reservations);
   const [pendingCancel, setPendingCancel] = useState<string | null>(null);
+  const [pendingCheckout, setPendingCheckout] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -80,6 +81,33 @@ export default function ReservationList({ reservations }: Props) {
     }
   }
 
+  async function handleCheckout(id: string) {
+    setPendingCheckout(id);
+    setError(null);
+
+    try {
+      const response = await fetch("/api/stripe/checkout-session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reservationId: id }),
+      });
+      const json = await readJsonResponse<{
+        sessionId?: string;
+        checkoutUrl?: string | null;
+        error?: string;
+      }>(response, {});
+
+      if (!response.ok || !json.sessionId || !json.checkoutUrl) {
+        throw new Error(json.error || t("unexpectedError"));
+      }
+
+      window.location.assign(json.checkoutUrl);
+    } catch (checkoutError) {
+      setError(getErrorMessage(checkoutError, t("unexpectedError")));
+      setPendingCheckout(null);
+    }
+  }
+
   return (
     <div className="space-y-4 border border-white/15 bg-[#3f5666]/82 p-5 shadow-[0_18px_55px_rgba(0,0,0,0.35)] backdrop-blur-sm md:p-6">
       <div className="flex flex-col gap-4 border-b border-[#173c59] pb-3 sm:flex-row sm:items-end sm:justify-between">
@@ -107,6 +135,11 @@ export default function ReservationList({ reservations }: Props) {
           ))}
         </div>
       </div>
+      {error && !pendingCancel && (
+        <div className="rounded-md border border-[#8a3a30] bg-[#8a3a30]/25 px-3 py-2 text-xs text-[#ffd9d9]">
+          {error}
+        </div>
+      )}
       <ul className="space-y-3">
         {filtered.map((reservation) => {
           const nights = nightsBetween(reservation.startDate, reservation.endDate);
@@ -114,6 +147,19 @@ export default function ReservationList({ reservations }: Props) {
           const endPast = new Date(reservation.endDate).getTime() < now - 86400000;
           const cancelled = reservation.status === "CANCELLED";
           const status = cancelled ? "cancelled" : endPast ? "past" : "upcoming";
+          const latestPaidPayment = reservation.payments
+            .filter((payment) => payment.status === "PAID" && payment.paidAt)
+            .sort(
+              (left, right) =>
+                new Date(right.paidAt || 0).getTime() -
+                new Date(left.paidAt || 0).getTime()
+            )[0];
+          const canPay =
+            !cancelled &&
+            !endPast &&
+            ["CHECKOUT_OPEN", "PAID_DEPOSIT", "PAYMENT_FAILED", "UNPAID"].includes(
+              reservation.paymentStatus
+            );
 
           return (
             <li key={reservation.id} className="group">
@@ -246,8 +292,28 @@ export default function ReservationList({ reservations }: Props) {
                               value={reservation.bookingRef}
                             />
                           )}
+                          {latestPaidPayment?.paidAt && (
+                            <span>
+                              {paymentMadeLabel(latestPaidPayment.purpose, t)}{" "}
+                              {fmt(latestPaidPayment.paidAt, {
+                                day: "2-digit",
+                                month: "short",
+                                year: "numeric",
+                              })}
+                            </span>
+                          )}
                         </span>
-                        {cancelled ? (
+                        {canPay ? (
+                          <button
+                            onClick={() => handleCheckout(reservation.id)}
+                            className="self-start rounded-xl border border-[#173c59] px-4 py-2 text-[11px] tracking-wide text-[var(--color-beige)] transition hover:bg-[#0d3350]/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-beige)]/40 disabled:opacity-40 sm:self-auto"
+                            disabled={busy || pendingCheckout === reservation.id}
+                          >
+                            {pendingCheckout === reservation.id
+                              ? t("saving")
+                              : t("continueToCheckout")}
+                          </button>
+                        ) : cancelled ? (
                           <span className="text-[11px] tracking-wide text-[var(--color-beige)]/55">
                             {t("reservationCancelled")}
                           </span>
@@ -317,9 +383,17 @@ function paymentStatusLabel(status: string, t: ReturnType<typeof useT>) {
       return t("paidFull");
     case "REFUNDED":
       return t("refunded");
+    case "PAYMENT_FAILED":
+      return t("unpaid");
     default:
       return t("unpaid");
   }
+}
+
+function paymentMadeLabel(purpose: string, t: ReturnType<typeof useT>) {
+  if (purpose === "DEPOSIT") return t("depositPaid");
+  if (purpose === "FULL" || purpose === "BALANCE") return t("paidFull");
+  return t("paymentSection");
 }
 
 function Info({ label, value }: { label: string; value: string }) {
