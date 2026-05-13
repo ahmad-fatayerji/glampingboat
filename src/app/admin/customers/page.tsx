@@ -140,12 +140,6 @@ export default async function AdminCustomersPage({
                   </p>
                   <p>Compte cree le {dateFmt.format(customer.createdAt)}</p>
                   <p>Total paye: {money(paidCents)}</p>
-                  <p>
-                    Email:{" "}
-                    <Link href={`mailto:${customer.email}`} className="admin-link">
-                      ouvrir
-                    </Link>
-                  </p>
                 </div>
               </div>
 

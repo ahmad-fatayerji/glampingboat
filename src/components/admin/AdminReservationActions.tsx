@@ -19,7 +19,8 @@ export default function AdminReservationActions({
     url: string
   ) {
     event.preventDefault();
-    const form = new FormData(event.currentTarget);
+    const formElement = event.currentTarget;
+    const form = new FormData(formElement);
     const payload = Object.fromEntries(form.entries());
     setBusy(action);
     setMessage(null);
@@ -36,7 +37,7 @@ export default function AdminReservationActions({
         throw new Error(json.error || "Action impossible");
       }
 
-      event.currentTarget.reset();
+      formElement.reset();
       setMessage("Action enregistree.");
       router.refresh();
     } catch (submissionError) {
@@ -75,7 +76,7 @@ export default function AdminReservationActions({
           name="internalNote"
           required
           rows={3}
-          className="admin-input w-full rounded-md px-3 py-2 text-sm"
+          className="admin-input resize-y rounded-md px-3 py-2 text-sm"
           placeholder="Information visible uniquement par les admins"
         />
         <button
@@ -94,9 +95,9 @@ export default function AdminReservationActions({
             `/api/admin/reservations/${reservationId}/manual-payment`
           )
         }
-        className="admin-card grid gap-3 rounded-md p-3 md:grid-cols-[1fr_1fr]"
+        className="admin-card grid min-w-0 gap-3 rounded-md p-3"
       >
-        <h3 className="md:col-span-2 text-sm font-semibold">Paiement manuel</h3>
+        <h3 className="text-sm font-semibold">Paiement manuel</h3>
         <select
           name="purpose"
           required
@@ -119,11 +120,11 @@ export default function AdminReservationActions({
         <input
           name="note"
           placeholder="Note facultative"
-          className="admin-input h-10 rounded-md px-3 text-sm md:col-span-2"
+          className="admin-input h-10 rounded-md px-3 text-sm"
         />
         <button
           disabled={busy === "manual-payment"}
-          className="admin-button rounded-md px-4 py-2 text-sm font-medium md:w-fit"
+          className="admin-button w-full rounded-md px-4 py-2 text-sm font-medium"
         >
           Enregistrer le paiement
         </button>
@@ -150,7 +151,7 @@ export default function AdminReservationActions({
         />
         <button
           disabled={busy === "cancel"}
-          className="admin-danger-button rounded-md px-4 py-2 text-sm disabled:opacity-55"
+          className="admin-danger-button w-full rounded-md px-4 py-2 text-sm disabled:opacity-55"
         >
           Confirmer l&apos;annulation
         </button>

@@ -27,13 +27,13 @@ export default async function AdminLayout({ children }: { children: ReactNode })
 
   return (
     <main className="admin-shell px-4 pb-10 pt-32 md:px-8">
-      <div className="mx-auto grid w-full max-w-7xl gap-6 lg:grid-cols-[15rem_1fr]">
+      <div className="mx-auto grid w-full max-w-[92rem] gap-6 lg:grid-cols-[15rem_minmax(0,1fr)]">
         <aside className="admin-sidebar h-fit p-3">
           <div className="border-b border-[var(--admin-line)] px-3 pb-3">
             <p className="admin-eyebrow">
               Administration
             </p>
-            <p className="mt-2 break-all text-sm font-medium">
+            <p className="mt-2 overflow-hidden text-ellipsis text-sm font-medium leading-tight">
               {session.user.email}
             </p>
             <p className="admin-muted mt-1 text-xs">

@@ -63,7 +63,7 @@ export default async function AdminReservationDetailPage({
         </div>
       </header>
 
-      <div className="grid gap-5 xl:grid-cols-[1fr_22rem]">
+      <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_26rem]">
         <div className="space-y-5">
           <Panel title="Sejour">
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -229,7 +229,7 @@ function Panel({
   children: React.ReactNode;
 }) {
   return (
-    <section className="admin-surface p-4">
+    <section className="admin-surface p-5">
       <h2 className="mb-3 border-b border-[var(--admin-line)] pb-2 text-lg">{title}</h2>
       {children}
     </section>

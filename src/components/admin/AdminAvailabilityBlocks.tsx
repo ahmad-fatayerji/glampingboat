@@ -22,7 +22,8 @@ export default function AdminAvailabilityBlocks({
 
   async function createBlock(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const form = new FormData(event.currentTarget);
+    const formElement = event.currentTarget;
+    const form = new FormData(formElement);
     setBusy(true);
     setMessage(null);
     setError(null);
@@ -38,7 +39,7 @@ export default function AdminAvailabilityBlocks({
         throw new Error(json.error || "Blocage impossible");
       }
 
-      event.currentTarget.reset();
+      formElement.reset();
       setMessage("Blocage ajoute.");
       router.refresh();
     } catch (createError) {

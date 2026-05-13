@@ -86,6 +86,9 @@ body {
 }
 
 .admin-input {
+  box-sizing: border-box;
+  min-width: 0;
+  width: 100%;
   border: 1px solid #173c59;
   background: var(--admin-field);
   color: var(--admin-ink);
@@ -106,8 +109,12 @@ body {
 }
 
 .admin-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   background: var(--color-blue);
   color: var(--color-beige);
+  text-align: center;
   transition: background-color 0.2s ease, transform 0.2s ease;
 }
 
@@ -120,8 +127,12 @@ body {
 }
 
 .admin-danger-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   background: #8f3128;
   color: white;
+  text-align: center;
 }
 
 .admin-pill {
