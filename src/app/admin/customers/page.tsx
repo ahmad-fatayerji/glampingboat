@@ -98,13 +98,13 @@ export default async function AdminCustomersPage({
             `${customer.firstName ?? ""} ${customer.lastName ?? ""}`.trim() ||
             customer.name ||
             "Client";
-          const profileComplete = Boolean(
-            customer.firstName &&
-              customer.lastName &&
-              customer.phone &&
-              customer.addressCity &&
-              customer.addressStreet
-          );
+          const missingProfileFields = [
+            !customer.firstName ? "Prenom" : null,
+            !customer.lastName ? "Nom" : null,
+            !customer.phone ? "Telephone" : null,
+            !customer.addressStreet ? "Adresse" : null,
+            !customer.addressCity ? "Ville" : null,
+          ].filter((field): field is string => Boolean(field));
           const paidCents = customer.reservations.reduce(
             (sum, reservation) => sum + reservation.paidAmountCents,
             0
@@ -122,9 +122,7 @@ export default async function AdminCustomersPage({
                 </div>
                 <div className="flex flex-wrap gap-2 text-xs">
                   <Badge>{customer.role}</Badge>
-                  <Badge tone={profileComplete ? "ok" : "warn"}>
-                    {profileComplete ? "Profil complet" : "Profil incomplet"}
-                  </Badge>
+                  <ProfileStatusBadge missingFields={missingProfileFields} />
                   <Badge>{customer._count.reservations} reservation(s)</Badge>
                 </div>
                 <div className="grid gap-1 text-sm text-[var(--admin-ink)] sm:grid-cols-2">
@@ -210,6 +208,24 @@ function Badge({
       }`}
     >
       {children}
+    </span>
+  );
+}
+
+function ProfileStatusBadge({ missingFields }: { missingFields: string[] }) {
+  if (!missingFields.length) {
+    return <Badge tone="ok">Profil complet</Badge>;
+  }
+
+  return (
+    <span className="group relative inline-flex w-fit" tabIndex={0}>
+      <Badge tone="warn">Profil incomplet</Badge>
+      <span className="pointer-events-none absolute left-0 top-full z-20 mt-2 hidden min-w-52 rounded-md border border-[#173c59] bg-[#0d3350] p-3 text-xs font-normal text-[var(--color-beige)] shadow-[0_14px_35px_rgba(0,0,0,0.32)] group-hover:block group-focus:block">
+        <span className="block font-medium">Champs manquants</span>
+        <span className="admin-muted mt-1 block">
+          {missingFields.join(", ")}
+        </span>
+      </span>
     </span>
   );
 }
