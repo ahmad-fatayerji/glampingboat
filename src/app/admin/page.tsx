@@ -66,10 +66,10 @@ export default async function AdminDashboardPage() {
   return (
     <div className="space-y-6">
       <header>
-        <p className="text-sm uppercase tracking-[0.24em] text-[#637687]">
+        <p className="admin-eyebrow">
           Operations
         </p>
-        <h1 className="mt-2 text-3xl text-[#102b3f]">Tableau de bord</h1>
+        <h1 className="mt-2 text-3xl">Tableau de bord</h1>
       </header>
 
       <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
@@ -94,17 +94,17 @@ export default async function AdminDashboardPage() {
             {blocks.map((block) => (
               <div
                 key={block.id}
-                className="grid gap-1 rounded-md border border-[#d9cbb8] bg-[#fbf8f3] px-3 py-2 text-sm md:grid-cols-[1fr_auto]"
+                className="admin-row grid gap-1 rounded-md px-3 py-2 text-sm md:grid-cols-[1fr_auto]"
               >
                 <span>{block.reason}</span>
-                <span className="text-[#637687]">
+                <span className="admin-muted">
                   {dateFmt.format(block.startDate)} - {dateFmt.format(block.endDate)}
                 </span>
               </div>
             ))}
           </div>
         ) : (
-          <p className="text-sm text-[#637687]">Aucun blocage actif.</p>
+          <p className="admin-muted text-sm">Aucun blocage actif.</p>
         )}
       </Panel>
     </div>
@@ -113,8 +113,8 @@ export default async function AdminDashboardPage() {
 
 function Metric({ label, value }: { label: string; value: string }) {
   return (
-    <div className="border border-[#d9cbb8] bg-white/88 p-4 shadow-[0_10px_30px_rgba(16,43,63,0.08)]">
-      <p className="text-xs uppercase tracking-[0.18em] text-[#637687]">{label}</p>
+    <div className="admin-surface p-4">
+      <p className="admin-eyebrow">{label}</p>
       <p className="mt-3 text-2xl font-semibold">{value}</p>
     </div>
   );
@@ -130,10 +130,10 @@ function Panel({
   children: React.ReactNode;
 }) {
   return (
-    <section className="border border-[#d9cbb8] bg-white/88 p-4 shadow-[0_10px_30px_rgba(16,43,63,0.08)]">
-      <div className="mb-3 flex items-center justify-between gap-3 border-b border-[#d9cbb8] pb-2">
+    <section className="admin-surface p-4">
+      <div className="mb-3 flex items-center justify-between gap-3 border-b border-[var(--admin-line)] pb-2">
         <h2 className="text-lg">{title}</h2>
-        <Link href={href} className="text-sm text-[#0d5680] hover:underline">
+        <Link href={href} className="admin-link text-sm">
           Ouvrir
         </Link>
       </div>
@@ -159,7 +159,7 @@ function ReservationRows({
   empty: string;
 }) {
   if (!reservations.length) {
-    return <p className="text-sm text-[#637687]">{empty}</p>;
+    return <p className="admin-muted text-sm">{empty}</p>;
   }
 
   return (
@@ -168,7 +168,7 @@ function ReservationRows({
         <Link
           key={reservation.id}
           href={`/admin/reservations/${reservation.id}`}
-          className="grid gap-1 rounded-md border border-[#d9cbb8] bg-[#fbf8f3] px-3 py-2 text-sm transition hover:border-[#9fb0bb] md:grid-cols-[1fr_auto_auto]"
+          className="admin-row grid gap-1 rounded-md px-3 py-2 text-sm md:grid-cols-[1fr_auto_auto]"
         >
           <span>
             {reservation.bookingRef} -{" "}
@@ -176,7 +176,7 @@ function ReservationRows({
               ? `${reservation.customerFirstName ?? ""} ${reservation.customerLastName ?? ""}`.trim()
               : reservation.customerEmail ?? "Client"}
           </span>
-          <span className="text-[#637687]">
+          <span className="admin-muted">
             {dateFmt.format(reservation.startDate)} - {dateFmt.format(reservation.endDate)}
           </span>
           <span>{money(reservation.totalAmountTtcCents)}</span>

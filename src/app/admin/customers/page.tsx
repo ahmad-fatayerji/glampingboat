@@ -74,20 +74,20 @@ export default async function AdminCustomersPage({
   return (
     <div className="space-y-5">
       <header>
-        <p className="text-sm uppercase tracking-[0.24em] text-[#637687]">
+        <p className="admin-eyebrow">
           Comptes
         </p>
         <h1 className="mt-2 text-3xl">Clients</h1>
       </header>
 
-      <form className="grid gap-3 border border-[#d9cbb8] bg-white/88 p-4 shadow-[0_10px_30px_rgba(16,43,63,0.08)] md:grid-cols-[1fr_auto]">
+      <form className="admin-surface grid gap-3 p-4 md:grid-cols-[1fr_auto]">
         <input
           name="q"
           defaultValue={search ?? ""}
           placeholder="Nom, email, telephone"
-          className="h-10 rounded-md border border-[#cdbda8] bg-[#fbf8f3] px-3 text-sm outline-none focus:border-[#527086]"
+          className="admin-input h-10 rounded-md px-3 text-sm"
         />
-        <button className="h-10 rounded-md bg-[#102b3f] px-4 text-sm text-white transition hover:bg-[#183d58]">
+        <button className="admin-button h-10 rounded-md px-4 text-sm font-medium">
           Rechercher
         </button>
       </form>
@@ -113,12 +113,12 @@ export default async function AdminCustomersPage({
           return (
             <article
               key={customer.id}
-              className="grid gap-4 border border-[#d9cbb8] bg-white/88 p-4 shadow-[0_10px_30px_rgba(16,43,63,0.08)] xl:grid-cols-[1.1fr_1fr_auto]"
+              className="admin-surface grid gap-4 p-4 xl:grid-cols-[1.1fr_1fr_auto]"
             >
               <div className="space-y-2">
                 <div>
                   <h2 className="text-lg">{name}</h2>
-                  <p className="break-all text-sm text-[#637687]">{customer.email}</p>
+                  <p className="admin-muted break-all text-sm">{customer.email}</p>
                 </div>
                 <div className="flex flex-wrap gap-2 text-xs">
                   <Badge>{customer.role}</Badge>
@@ -127,11 +127,11 @@ export default async function AdminCustomersPage({
                   </Badge>
                   <Badge>{customer._count.reservations} reservation(s)</Badge>
                 </div>
-                <div className="grid gap-1 text-sm text-[#344b5b] sm:grid-cols-2">
+                <div className="grid gap-1 text-sm text-[var(--admin-ink)] sm:grid-cols-2">
                   <p>
                     Telephone:{" "}
                     {customer.phone ? (
-                      <Link href={`tel:${customer.phone}`} className="text-[#0d5680]">
+                      <Link href={`tel:${customer.phone}`} className="admin-link">
                         {customer.phone}
                       </Link>
                     ) : (
@@ -142,7 +142,7 @@ export default async function AdminCustomersPage({
                   <p>Total paye: {money(paidCents)}</p>
                   <p>
                     Email:{" "}
-                    <Link href={`mailto:${customer.email}`} className="text-[#0d5680]">
+                    <Link href={`mailto:${customer.email}`} className="admin-link">
                       ouvrir
                     </Link>
                   </p>
@@ -150,7 +150,7 @@ export default async function AdminCustomersPage({
               </div>
 
               <div className="space-y-2">
-                <p className="text-xs uppercase tracking-[0.16em] text-[#637687]">
+                <p className="admin-eyebrow">
                   Dernieres reservations
                 </p>
                 {customer.reservations.length ? (
@@ -158,17 +158,17 @@ export default async function AdminCustomersPage({
                     <Link
                       key={reservation.id}
                       href={`/admin/reservations/${reservation.id}`}
-                      className="block rounded-md border border-[#d9cbb8] bg-[#fbf8f3] px-3 py-2 text-sm hover:border-[#9fb0bb]"
+                      className="admin-row block rounded-md px-3 py-2 text-sm"
                     >
                       <span className="font-medium">{reservation.bookingRef}</span>
-                      <span className="ml-2 text-[#637687]">
+                      <span className="admin-muted ml-2">
                         {dateFmt.format(reservation.startDate)} -{" "}
                         {dateFmt.format(reservation.endDate)}
                       </span>
                     </Link>
                   ))
                 ) : (
-                  <p className="text-sm text-[#637687]">Aucune reservation.</p>
+                  <p className="admin-muted text-sm">Aucune reservation.</p>
                 )}
               </div>
 
@@ -180,7 +180,7 @@ export default async function AdminCustomersPage({
                     disabled={customer.id === session.user.id}
                   />
                 ) : (
-                  <p className="text-sm text-[#637687]">
+                  <p className="admin-muted text-sm">
                     Roles geres par le super admin.
                   </p>
                 )}
@@ -189,7 +189,7 @@ export default async function AdminCustomersPage({
           );
         })}
         {!customers.length && (
-          <p className="border border-[#d9cbb8] bg-white/88 p-8 text-center text-sm text-[#637687]">
+          <p className="admin-surface admin-muted p-8 text-center text-sm">
             Aucun client trouve.
           </p>
         )}
@@ -209,10 +209,10 @@ function Badge({
     <span
       className={`rounded-full px-2.5 py-1 font-medium ${
         tone === "ok"
-          ? "bg-[#e7f3e7] text-[#2d6840]"
+          ? "admin-pill-ok"
           : tone === "warn"
-            ? "bg-[#fff2d8] text-[#805914]"
-            : "bg-[#e9dfd1] text-[#4c4033]"
+            ? "admin-pill-warn"
+            : "admin-pill"
       }`}
     >
       {children}

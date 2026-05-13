@@ -46,13 +46,13 @@ export default function AdminRoleSelect({
         defaultValue={value}
         disabled={disabled || saving}
         onChange={(event) => updateRole(event.target.value as UserRole)}
-        className="h-9 rounded-md border border-[#cdbda8] bg-[#fbf8f3] px-2 text-sm disabled:opacity-55"
+        className="admin-input h-9 rounded-md px-2 text-sm disabled:opacity-55"
       >
         <option value="CUSTOMER">Client</option>
         <option value="ADMIN">Admin</option>
         <option value="SUPER_ADMIN">Super admin</option>
       </select>
-      {error && <p className="max-w-56 text-xs text-[#8f3128]">{error}</p>}
+      {error && <p className="max-w-56 text-xs text-[#ffd8d2]">{error}</p>}
     </div>
   );
 }

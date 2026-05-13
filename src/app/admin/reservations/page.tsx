@@ -39,20 +39,20 @@ export default async function AdminReservationsPage({
     <div className="space-y-5">
       <header className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
         <div>
-          <p className="text-sm uppercase tracking-[0.24em] text-[#637687]">
+          <p className="admin-eyebrow">
             Gestion
           </p>
           <h1 className="mt-2 text-3xl">Reservations</h1>
         </div>
-        <p className="text-sm text-[#637687]">{reservations.length} resultat(s)</p>
+        <p className="admin-muted text-sm">{reservations.length} resultat(s)</p>
       </header>
 
-      <form className="grid gap-3 border border-[#d9cbb8] bg-white/88 p-4 shadow-[0_10px_30px_rgba(16,43,63,0.08)] md:grid-cols-[1fr_auto_auto_auto_auto]">
+      <form className="admin-surface grid gap-3 p-4 md:grid-cols-[1fr_auto_auto_auto_auto]">
         <input
           name="q"
           defaultValue={q ?? ""}
           placeholder="Reference, client, email, telephone"
-          className="h-10 rounded-md border border-[#cdbda8] bg-[#fbf8f3] px-3 text-sm outline-none focus:border-[#527086]"
+          className="admin-input h-10 rounded-md px-3 text-sm"
         />
         <Select name="timing" defaultValue={timing} options={timingOptions} />
         <Select name="status" defaultValue={status} options={statusOptions} />
@@ -61,13 +61,13 @@ export default async function AdminReservationsPage({
           defaultValue={paymentStatus}
           options={paymentOptions}
         />
-        <button className="h-10 rounded-md bg-[#102b3f] px-4 text-sm text-white transition hover:bg-[#183d58]">
+        <button className="admin-button h-10 rounded-md px-4 text-sm font-medium">
           Rechercher
         </button>
       </form>
 
-      <section className="overflow-hidden border border-[#d9cbb8] bg-white/88 shadow-[0_10px_30px_rgba(16,43,63,0.08)]">
-        <div className="hidden grid-cols-[1.2fr_1.4fr_1fr_1fr_1fr_auto] gap-3 border-b border-[#d9cbb8] bg-[#efe7dc] px-4 py-3 text-xs uppercase tracking-[0.16em] text-[#637687] lg:grid">
+      <section className="admin-surface overflow-hidden">
+        <div className="admin-eyebrow hidden grid-cols-[1.2fr_1.4fr_1fr_1fr_1fr_auto] gap-3 border-b border-[var(--admin-line)] bg-[rgba(228,219,206,0.08)] px-4 py-3 lg:grid">
           <span>Reference</span>
           <span>Client</span>
           <span>Dates</span>
@@ -75,16 +75,16 @@ export default async function AdminReservationsPage({
           <span>Total</span>
           <span />
         </div>
-        <div className="divide-y divide-[#e3d7c7]">
+        <div className="divide-y divide-[var(--admin-line)]">
           {reservations.map((reservation) => (
             <Link
               key={reservation.id}
               href={`/admin/reservations/${reservation.id}`}
-              className="grid gap-2 px-4 py-4 text-sm transition hover:bg-[#fbf8f3] lg:grid-cols-[1.2fr_1.4fr_1fr_1fr_1fr_auto] lg:items-center"
+              className="grid gap-2 px-4 py-4 text-sm transition hover:bg-[var(--admin-hover)] lg:grid-cols-[1.2fr_1.4fr_1fr_1fr_1fr_auto] lg:items-center"
             >
               <div>
                 <p className="font-semibold">{reservation.bookingRef}</p>
-                <p className="text-xs text-[#637687]">
+                <p className="admin-muted text-xs">
                   creee le {dateFmt.format(reservation.createdAt)}
                 </p>
               </div>
@@ -92,7 +92,7 @@ export default async function AdminReservationsPage({
                 <p>
                   {customerName(reservation) || "Client"}
                 </p>
-                <p className="break-all text-xs text-[#637687]">
+                <p className="admin-muted break-all text-xs">
                   {reservation.customerEmail ?? reservation.user.email}
                 </p>
               </div>
@@ -105,11 +105,11 @@ export default async function AdminReservationsPage({
                 <Badge tone="payment">{reservation.paymentStatus}</Badge>
               </div>
               <p>{money(reservation.totalAmountTtcCents)}</p>
-              <span className="text-[#0d5680]">Ouvrir</span>
+              <span className="admin-link">Ouvrir</span>
             </Link>
           ))}
           {!reservations.length && (
-            <p className="px-4 py-8 text-center text-sm text-[#637687]">
+            <p className="admin-muted px-4 py-8 text-center text-sm">
               Aucune reservation trouvee.
             </p>
           )}
@@ -136,7 +136,7 @@ function Select({
     <select
       name={name}
       defaultValue={defaultValue}
-      className="h-10 rounded-md border border-[#cdbda8] bg-[#fbf8f3] px-3 text-sm outline-none focus:border-[#527086]"
+      className="admin-input h-10 rounded-md px-3 text-sm"
     >
       {options.map((option) => (
         <option key={option.value} value={option.value}>
@@ -158,8 +158,8 @@ function Badge({
     <span
       className={`rounded-full px-2.5 py-1 text-[11px] font-medium ${
         tone === "payment"
-          ? "bg-[#dfeaf0] text-[#24475c]"
-          : "bg-[#e9dfd1] text-[#4c4033]"
+          ? "admin-pill-blue"
+          : "admin-pill"
       }`}
     >
       {children}

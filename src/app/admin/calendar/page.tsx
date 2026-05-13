@@ -38,14 +38,14 @@ export default async function AdminCalendarPage() {
   return (
     <div className="space-y-5">
       <header>
-        <p className="text-sm uppercase tracking-[0.24em] text-[#637687]">
+        <p className="admin-eyebrow">
           Disponibilite
         </p>
         <h1 className="mt-2 text-3xl">Calendrier</h1>
       </header>
 
-      <section className="border border-[#d9cbb8] bg-white/88 p-4 shadow-[0_10px_30px_rgba(16,43,63,0.08)]">
-        <h2 className="mb-3 border-b border-[#d9cbb8] pb-2 text-lg">
+      <section className="admin-surface p-4">
+        <h2 className="mb-3 border-b border-[var(--admin-line)] pb-2 text-lg">
           Reservations bloquantes
         </h2>
         <div className="grid gap-2 lg:grid-cols-2">
@@ -53,15 +53,15 @@ export default async function AdminCalendarPage() {
             <Link
               key={reservation.id}
               href={`/admin/reservations/${reservation.id}`}
-              className="rounded-md border border-[#d9cbb8] bg-[#fbf8f3] p-3 text-sm transition hover:border-[#9fb0bb]"
+              className="admin-row rounded-md p-3 text-sm"
             >
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <span className="font-medium">{reservation.bookingRef}</span>
-                <span className="rounded-full bg-[#dfeaf0] px-2.5 py-1 text-xs">
+                <span className="admin-pill-blue rounded-full px-2.5 py-1 text-xs">
                   {reservation.status}
                 </span>
               </div>
-              <p className="mt-1 text-[#637687]">
+              <p className="admin-muted mt-1">
                 {dateFmt.format(reservation.startDate)} -{" "}
                 {dateFmt.format(reservation.endDate)}
               </p>
@@ -75,7 +75,7 @@ export default async function AdminCalendarPage() {
             </Link>
           ))}
           {!reservations.length && (
-            <p className="text-sm text-[#637687]">Aucune reservation a venir.</p>
+            <p className="admin-muted text-sm">Aucune reservation a venir.</p>
           )}
         </div>
       </section>

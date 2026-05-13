@@ -56,8 +56,8 @@ export default function AdminReservationActions({
         <p
           className={`rounded-md px-3 py-2 text-sm ${
             error
-              ? "border border-[#b65c50] bg-[#fff0ee] text-[#8f3128]"
-              : "border border-[#80a68d] bg-[#eef8f1] text-[#2d6840]"
+              ? "border border-[#b65c50] bg-[#5a1e1a]/70 text-[#ffe1dc]"
+              : "border border-[#80a68d] bg-[#1f4c32]/70 text-[#e1f5e6]"
           }`}
         >
           {error || message}
@@ -68,19 +68,19 @@ export default function AdminReservationActions({
         onSubmit={(event) =>
           submitJson(event, "note", `/api/admin/reservations/${reservationId}`)
         }
-        className="space-y-3 rounded-md border border-[#d9cbb8] bg-[#fbf8f3] p-3"
+        className="admin-card space-y-3 rounded-md p-3"
       >
         <h3 className="text-sm font-semibold">Note interne</h3>
         <textarea
           name="internalNote"
           required
           rows={3}
-          className="w-full rounded-md border border-[#cdbda8] bg-white px-3 py-2 text-sm outline-none focus:border-[#527086]"
+          className="admin-input w-full rounded-md px-3 py-2 text-sm"
           placeholder="Information visible uniquement par les admins"
         />
         <button
           disabled={busy === "note"}
-          className="rounded-md bg-[#102b3f] px-4 py-2 text-sm text-white disabled:opacity-55"
+          className="admin-button rounded-md px-4 py-2 text-sm font-medium"
         >
           Ajouter la note
         </button>
@@ -94,13 +94,13 @@ export default function AdminReservationActions({
             `/api/admin/reservations/${reservationId}/manual-payment`
           )
         }
-        className="grid gap-3 rounded-md border border-[#d9cbb8] bg-[#fbf8f3] p-3 md:grid-cols-[1fr_1fr]"
+        className="admin-card grid gap-3 rounded-md p-3 md:grid-cols-[1fr_1fr]"
       >
         <h3 className="md:col-span-2 text-sm font-semibold">Paiement manuel</h3>
         <select
           name="purpose"
           required
-          className="h-10 rounded-md border border-[#cdbda8] bg-white px-3 text-sm"
+          className="admin-input h-10 rounded-md px-3 text-sm"
         >
           <option value="DEPOSIT">Acompte</option>
           <option value="BALANCE">Solde</option>
@@ -114,16 +114,16 @@ export default function AdminReservationActions({
           min="0.01"
           step="0.01"
           placeholder="Montant EUR"
-          className="h-10 rounded-md border border-[#cdbda8] bg-white px-3 text-sm"
+          className="admin-input h-10 rounded-md px-3 text-sm"
         />
         <input
           name="note"
           placeholder="Note facultative"
-          className="h-10 rounded-md border border-[#cdbda8] bg-white px-3 text-sm md:col-span-2"
+          className="admin-input h-10 rounded-md px-3 text-sm md:col-span-2"
         />
         <button
           disabled={busy === "manual-payment"}
-          className="rounded-md bg-[#102b3f] px-4 py-2 text-sm text-white disabled:opacity-55 md:w-fit"
+          className="admin-button rounded-md px-4 py-2 text-sm font-medium md:w-fit"
         >
           Enregistrer le paiement
         </button>
@@ -137,20 +137,20 @@ export default function AdminReservationActions({
             `/api/admin/reservations/${reservationId}/cancel`
           )
         }
-        className="space-y-3 rounded-md border border-[#d9b9b4] bg-[#fff7f5] p-3"
+        className="space-y-3 rounded-md border border-[#d9b9b4] bg-[#5a1e1a]/35 p-3"
       >
-        <h3 className="text-sm font-semibold text-[#8f3128]">
+        <h3 className="text-sm font-semibold text-[#ffd8d2]">
           Annuler la reservation
         </h3>
         <input
           name="reason"
           required
           placeholder="Motif obligatoire"
-          className="h-10 w-full rounded-md border border-[#d9b9b4] bg-white px-3 text-sm"
+          className="admin-input h-10 w-full rounded-md px-3 text-sm"
         />
         <button
           disabled={busy === "cancel"}
-          className="rounded-md bg-[#8f3128] px-4 py-2 text-sm text-white disabled:opacity-55"
+          className="admin-danger-button rounded-md px-4 py-2 text-sm disabled:opacity-55"
         >
           Confirmer l&apos;annulation
         </button>

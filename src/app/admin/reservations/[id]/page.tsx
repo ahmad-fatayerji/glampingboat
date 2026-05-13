@@ -50,12 +50,12 @@ export default async function AdminReservationDetailPage({
         <div>
           <Link
             href="/admin/reservations"
-            className="text-sm text-[#0d5680] hover:underline"
+            className="admin-link text-sm"
           >
             Retour aux reservations
           </Link>
           <h1 className="mt-2 text-3xl">{reservation.bookingRef}</h1>
-          <p className="mt-1 text-sm text-[#637687]">{customerDisplay}</p>
+          <p className="admin-muted mt-1 text-sm">{customerDisplay}</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Badge>{reservation.status}</Badge>
@@ -134,7 +134,7 @@ export default async function AdminReservationDetailPage({
 
           <Panel title="Options">
             {reservation.items.length ? (
-              <div className="divide-y divide-[#e3d7c7]">
+              <div className="divide-y divide-[var(--admin-line)]">
                 {reservation.items.map((item) => (
                   <div
                     key={item.id}
@@ -147,13 +147,13 @@ export default async function AdminReservationDetailPage({
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-[#637687]">Aucune option.</p>
+              <p className="admin-muted text-sm">Aucune option.</p>
             )}
           </Panel>
 
           <Panel title="Paiements">
             {reservation.payments.length ? (
-              <div className="divide-y divide-[#e3d7c7]">
+              <div className="divide-y divide-[var(--admin-line)]">
                 {reservation.payments.map((payment) => (
                   <div
                     key={payment.id}
@@ -164,29 +164,29 @@ export default async function AdminReservationDetailPage({
                     </span>
                     <span>{payment.status}</span>
                     <span>{money(payment.amountCents)}</span>
-                    <span className="text-[#637687]">
+                    <span className="admin-muted">
                       {payment.paidAt ? dateTimeFmt.format(payment.paidAt) : "-"}
                     </span>
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-[#637687]">Aucun paiement.</p>
+              <p className="admin-muted text-sm">Aucun paiement.</p>
             )}
           </Panel>
 
           <Panel title="Historique">
-            <div className="divide-y divide-[#e3d7c7]">
+            <div className="divide-y divide-[var(--admin-line)]">
               {reservation.events.map((event) => (
                 <div key={event.id} className="py-3 text-sm">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <span className="font-medium">{event.type}</span>
-                    <span className="text-[#637687]">
+                    <span className="admin-muted">
                       {dateTimeFmt.format(event.createdAt)}
                     </span>
                   </div>
                   {event.metadata ? (
-                    <pre className="mt-2 overflow-x-auto rounded-md bg-[#f4eee5] p-2 text-xs text-[#344b5b]">
+                    <pre className="mt-2 overflow-x-auto rounded-md bg-[rgba(244,234,219,0.12)] p-2 text-xs text-[var(--admin-ink)]">
                       {JSON.stringify(event.metadata, null, 2)}
                     </pre>
                   ) : null}
@@ -229,8 +229,8 @@ function Panel({
   children: React.ReactNode;
 }) {
   return (
-    <section className="border border-[#d9cbb8] bg-white/88 p-4 shadow-[0_10px_30px_rgba(16,43,63,0.08)]">
-      <h2 className="mb-3 border-b border-[#d9cbb8] pb-2 text-lg">{title}</h2>
+    <section className="admin-surface p-4">
+      <h2 className="mb-3 border-b border-[var(--admin-line)] pb-2 text-lg">{title}</h2>
       {children}
     </section>
   );
@@ -246,7 +246,7 @@ function Info({
   href?: string;
 }) {
   const content = href ? (
-    <Link href={href} className="break-words text-[#0d5680] hover:underline">
+    <Link href={href} className="admin-link break-words">
       {value}
     </Link>
   ) : (
@@ -255,7 +255,7 @@ function Info({
 
   return (
     <div>
-      <p className="text-xs uppercase tracking-[0.16em] text-[#637687]">{label}</p>
+      <p className="admin-eyebrow">{label}</p>
       <p className="mt-1 text-sm">{content}</p>
     </div>
   );
@@ -272,8 +272,8 @@ function Badge({
     <span
       className={`rounded-full px-3 py-1 text-xs font-medium ${
         tone === "payment"
-          ? "bg-[#dfeaf0] text-[#24475c]"
-          : "bg-[#e9dfd1] text-[#4c4033]"
+          ? "admin-pill-blue"
+          : "admin-pill"
       }`}
     >
       {children}
