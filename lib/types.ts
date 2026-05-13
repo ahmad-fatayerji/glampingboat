@@ -182,6 +182,18 @@ export interface ReservationSerialized {
   payments: BookingPaymentSerialized[];
 }
 
+export interface AvailabilityBlock {
+  id: string;
+  startDate: string | Date;
+  endDate: string | Date;
+  type: string;
+  reason: string;
+  note: string | null;
+  actorUserId: string | null;
+  createdAt: string | Date;
+  updatedAt: string | Date;
+}
+
 export interface ApiErrorResponse {
   error: string;
 }

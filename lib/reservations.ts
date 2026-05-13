@@ -1,4 +1,5 @@
 import type {
+  AvailabilityBlock as PrismaAvailabilityBlock,
   Prisma,
   PrismaClient,
   ReservationStatus,
@@ -367,6 +368,13 @@ export function buildActiveReservationOverlapWhere(start: Date, end: Date) {
   } satisfies Prisma.ReservationWhereInput;
 }
 
+export function buildAvailabilityBlockOverlapWhere(start: Date, end: Date) {
+  return {
+    startDate: { lt: end },
+    endDate: { gt: start },
+  } satisfies Prisma.AvailabilityBlockWhereInput;
+}
+
 export async function generateBookingReference(
   client: Pick<PrismaClient, "reservation">
 ) {
@@ -428,5 +436,17 @@ export function serializeReservationOptionLine(
     optionId: line.option.id,
     quantity: line.quantity,
     totalPriceHt: line.totalPriceHt,
+  };
+}
+
+export function serializeAvailabilityBlock(
+  block: PrismaAvailabilityBlock
+) {
+  return {
+    ...block,
+    startDate: block.startDate.toISOString(),
+    endDate: block.endDate.toISOString(),
+    createdAt: block.createdAt.toISOString(),
+    updatedAt: block.updatedAt.toISOString(),
   };
 }

@@ -32,6 +32,12 @@ enum ReservationPaymentStatus {
   REFUNDED
 }
 
+enum UserRole {
+  CUSTOMER
+  ADMIN
+  SUPER_ADMIN
+}
+
 enum BookingPaymentPurpose {
   DEPOSIT
   FULL
@@ -59,6 +65,19 @@ enum ReservationEventType {
   CANCELLED
   EXPIRED
   REFUNDED
+  ADMIN_UPDATED
+  ADMIN_NOTE
+  MANUAL_PAYMENT_RECORDED
+  AVAILABILITY_BLOCK_CREATED
+  AVAILABILITY_BLOCK_DELETED
+}
+
+enum AvailabilityBlockType {
+  MAINTENANCE
+  OWNER_USE
+  CLEANING_BUFFER
+  PRIVATE_HOLD
+  OTHER
 }
 
 model User {
@@ -78,10 +97,12 @@ model User {
   addressState        String?
   resetToken          String?
   resetTokenExpiresAt DateTime?
+  role                UserRole  @default(CUSTOMER)
   createdAt           DateTime  @default(now())
   updatedAt           DateTime  @updatedAt
 
   reservations Reservation[]
+  availabilityBlocks AvailabilityBlock[] @relation("AvailabilityBlockActor")
 }
 
 model Reservation {
@@ -266,4 +287,20 @@ model AppIdempotencyKey {
 
   @@index([operation])
   @@index([userId])
+}
+
+model AvailabilityBlock {
+  id          String                @id @default(uuid())
+  startDate   DateTime
+  endDate     DateTime
+  type        AvailabilityBlockType @default(OTHER)
+  reason      String
+  note        String?
+  actorUser   User?                 @relation("AvailabilityBlockActor", fields: [actorUserId], references: [id], onDelete: SetNull)
+  actorUserId String?               @db.Text
+  createdAt   DateTime              @default(now())
+  updatedAt   DateTime              @default(now()) @updatedAt
+
+  @@index([startDate, endDate])
+  @@index([type])
 }

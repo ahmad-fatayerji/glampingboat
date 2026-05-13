@@ -134,7 +134,7 @@ function IntroDescriptionSlide() {
             The boat respects the water cycle with a closed-loop system for
             fresh water supply and grey water treatment on board; the boat
             operates sustainably, with no need to top up fresh water or empty
-            grey water. Equipped with a glamping tent, you'll enjoy every
+            grey water. Equipped with a glamping tent, you&apos;ll enjoy every
             comfort on board.
           </p>
         </div>
@@ -502,7 +502,7 @@ function BathroomSlide() {
           </div>
           <p className="italic text-[var(--color-beige)]/75">
             The boat is equipped with an on-board biological water treatment
-            plant that does not use chlorine. To ensure the system's daily
+            plant that does not use chlorine. To ensure the system&apos;s daily
             treatment capacity, keep water consumption on board to a strict
             minimum and use non-biocidal hygiene products. Please inform us at
             the time of booking if you are taking any antibiotics.

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signIn, signOut, useSession } from "next-auth/react";
+import { isAdminRole } from "@/lib/admin-roles";
 import { useT } from "@/components/Language/useT";
 
 export default function UserMenu() {
@@ -28,7 +29,7 @@ export default function UserMenu() {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  if (pathname.startsWith("/account")) return null;
+  if (pathname.startsWith("/account") || pathname.startsWith("/admin")) return null;
 
   return (
     <div ref={ref} className="fixed top-4 right-4 z-50 profile-shift-with-drawer">
@@ -94,6 +95,15 @@ export default function UserMenu() {
               >
                 {t("profileMenu")}
               </Link>
+              {isAdminRole(session.user.role) && (
+                <Link
+                  href="/admin"
+                  className="block rounded-md px-4 py-3 text-[var(--color-beige)] transition hover:bg-[#0d3350]/40"
+                  onClick={() => setOpen(false)}
+                >
+                  Admin
+                </Link>
+              )}
               <button
                 type="button"
                 onClick={() => signOut({ callbackUrl: "/" })}

@@ -96,16 +96,17 @@ export default function AppShell({ children, serverToday }: AppShellProps) {
   const touchStartX = useRef<number | null>(null);
   const touchStartY = useRef<number | null>(null);
   const isAccountRoute = pathname.startsWith("/account");
+  const isAdminRoute = pathname.startsWith("/admin");
 
   useEffect(() => {
-    const visibleDrawerOpen = drawerOpen && !isAccountRoute;
+    const visibleDrawerOpen = drawerOpen && !isAccountRoute && !isAdminRoute;
     document.documentElement.dataset.drawer = visibleDrawerOpen
       ? "open"
       : "closed";
     document.documentElement.dataset.drawerStage = visibleDrawerOpen
       ? stage
       : "closed";
-  }, [drawerOpen, isAccountRoute, stage]);
+  }, [drawerOpen, isAccountRoute, isAdminRoute, stage]);
 
   const openStage = (nextStage: Stage) => {
     if (drawerOpen && stage === nextStage) {
@@ -199,7 +200,7 @@ export default function AppShell({ children, serverToday }: AppShellProps) {
   return (
     <>
       <AudioToggle />
-      {!isAccountRoute && (
+      {!isAccountRoute && !isAdminRoute && (
         <>
           <WaveToggle
             open={navOpen}

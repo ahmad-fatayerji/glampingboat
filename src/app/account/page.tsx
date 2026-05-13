@@ -2,6 +2,7 @@ import { auth } from "@auth";
 import AccountAuthPanel from "@/components/account/AccountAuthPanel";
 import AccountHeader from "@/components/account/AccountHeader";
 import AccountTabs from "@/components/account/AccountTabs";
+import { isAdminRole } from "@/lib/admin-roles";
 import { prisma } from "@/lib/prisma";
 import { RESERVATION_WITH_ITEMS_INCLUDE, serializeReservation } from "@/lib/reservations";
 import type { AccountTab } from "@/lib/types";
@@ -38,7 +39,10 @@ export default async function AccountPage({
   return (
     <div className="min-h-screen px-4 pt-40 pb-24 flex flex-col items-center">
       <div className="w-full max-w-5xl space-y-6">
-        <AccountHeader email={session.user.email || ""} />
+        <AccountHeader
+          email={session.user.email || ""}
+          canAccessAdmin={isAdminRole(session.user.role)}
+        />
         <AccountTabs reservations={serialized} initialTab={initialTab} />
       </div>
     </div>

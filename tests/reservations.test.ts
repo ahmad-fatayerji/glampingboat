@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
+  buildAvailabilityBlockOverlapWhere,
   buildReservationOptionLines,
   calculateBaseTtc,
   calculateReservationPricingSummary,
@@ -8,6 +9,7 @@ import {
   isRangeBookable,
   isSeasonOpen,
 } from "../lib/reservations";
+import { getReservationPaymentStatus } from "../lib/admin-data";
 import type { OptionRecord } from "../lib/types";
 
 function localDate(value: string) {
@@ -110,5 +112,25 @@ describe("reservation pricing", () => {
         { id: "cleaning", quantity: 1, totalPriceHt: 62.5 },
       ]
     );
+  });
+
+  it("builds availability block overlap filters for admin blocks", () => {
+    assert.deepEqual(
+      buildAvailabilityBlockOverlapWhere(
+        localDate("2026-06-01"),
+        localDate("2026-06-08")
+      ),
+      {
+        startDate: { lt: localDate("2026-06-08") },
+        endDate: { gt: localDate("2026-06-01") },
+      }
+    );
+  });
+
+  it("derives reservation payment status from manually recorded payments", () => {
+    assert.equal(getReservationPaymentStatus(0, 10000), "UNPAID");
+    assert.equal(getReservationPaymentStatus(5000, 10000), "PAID_DEPOSIT");
+    assert.equal(getReservationPaymentStatus(10000, 10000), "PAID_FULL");
+    assert.equal(getReservationPaymentStatus(12000, 10000), "PAID_FULL");
   });
 });

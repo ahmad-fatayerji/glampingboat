@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { getErrorMessage } from "@/lib/http";
 import { isProfileComplete, USER_PROFILE_SELECT } from "@/lib/profile";
 import {
+  buildAvailabilityBlockOverlapWhere,
   buildActiveReservationOverlapWhere,
   buildPricingSnapshot,
   buildReservationOptionLines,
@@ -16,6 +17,7 @@ import {
   PRICING_VERSION,
   RESERVATION_CURRENCY,
   RESERVATION_WITH_ITEMS_INCLUDE,
+  serializeAvailabilityBlock,
   serializeReservation,
   TERMS_HASH,
   TERMS_VERSION,
@@ -91,22 +93,34 @@ export async function GET(req: NextRequest) {
   }
 
   const today = startOfDay(new Date());
-  const reservations = await prisma.reservation.findMany({
-    where: {
-      status: { in: ["PENDING_PAYMENT", "CONFIRMED"] },
-      endDate: { gte: today },
-    },
-    orderBy: { startDate: "asc" },
-    select: AVAILABILITY_SELECT,
-  });
+  const [reservations, blocks] = await Promise.all([
+    prisma.reservation.findMany({
+      where: {
+        status: { in: ["PENDING_PAYMENT", "CONFIRMED"] },
+        endDate: { gte: today },
+      },
+      orderBy: { startDate: "asc" },
+      select: AVAILABILITY_SELECT,
+    }),
+    prisma.availabilityBlock.findMany({
+      where: { endDate: { gte: today } },
+      orderBy: { startDate: "asc" },
+    }),
+  ]);
 
   return NextResponse.json(
-    reservations.map((reservation) => ({
-      id: reservation.id,
-      startDate: reservation.startDate.toISOString(),
-      endDate: reservation.endDate.toISOString(),
-      status: reservation.status,
-    }))
+    [
+      ...reservations.map((reservation) => ({
+        id: reservation.id,
+        startDate: reservation.startDate.toISOString(),
+        endDate: reservation.endDate.toISOString(),
+        status: reservation.status,
+      })),
+      ...blocks.map((block) => ({
+        ...serializeAvailabilityBlock(block),
+        status: "BLOCKED",
+      })),
+    ].sort((left, right) => left.startDate.localeCompare(right.startDate))
   );
 }
 
@@ -217,6 +231,15 @@ export async function POST(req: NextRequest) {
         throw new Error("Dates are already reserved");
       }
 
+      const blocked = await tx.availabilityBlock.findFirst({
+        where: buildAvailabilityBlockOverlapWhere(start, end),
+        select: { id: true },
+      });
+
+      if (blocked) {
+        throw new Error("Dates are blocked by the owner");
+      }
+
       const bookingRef = await generateBookingReference(tx);
       const reservation = await tx.reservation.create({
         data: {
@@ -299,7 +322,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(serializeReservation(reservation), { status: 201 });
   } catch (error) {
     const message = getErrorMessage(error, "Server error");
-    const status = /already reserved/i.test(message) ? 409 : 500;
+    const status = /already reserved|blocked by the owner/i.test(message)
+      ? 409
+      : 500;
     console.error(error);
     return NextResponse.json({ error: message }, { status });
   }
