@@ -75,8 +75,8 @@ const BOAT_SLIDES: BoatSlide[] = [
     label: "Exterior",
   },
   {
-    src: "/images/boat/optimized/plan 3d couleur.webp",
-    alt: "Boat floor plan",
+    src: "/images/boat/Plan bateau 2 no text.png",
+    alt: "Boat floor plan with feature labels",
     label: "3D plan",
   },
 ];

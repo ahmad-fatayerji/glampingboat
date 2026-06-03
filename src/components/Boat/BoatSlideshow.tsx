@@ -257,55 +257,6 @@ const SingleImagePage = memo(function SingleImagePage({
   );
 });
 
-const DropMarker = memo(function DropMarker({
-  number,
-  className,
-}: {
-  number: string;
-  className: string;
-}) {
-  return (
-    <div className={`absolute ${className}`}>
-      <svg viewBox="0 0 100 120" className="h-full w-full" aria-hidden="true">
-        <path
-          d="M50 6 C34 26 16 46 16 67 a34 34 0 0 0 68 0 C84 46 66 26 50 6 Z"
-          fill="rgba(245, 241, 231, 0.72)"
-          stroke="#002038"
-          strokeWidth="5"
-        />
-      </svg>
-      <span className="absolute inset-0 flex items-center justify-center pt-2 text-[1.35rem] font-medium text-[#002038] sm:text-[1.8rem]">
-        {number}
-      </span>
-    </div>
-  );
-});
-
-const AccessibilityBadge = memo(function AccessibilityBadge({
-  className,
-}: {
-  className: string;
-}) {
-  return (
-    <div className={`absolute ${className}`} aria-hidden="true">
-      <svg viewBox="0 0 120 120" className="h-full w-full">
-        <circle
-          cx="60"
-          cy="60"
-          r="50"
-          fill="rgba(245, 241, 231, 0.08)"
-          stroke="rgba(245, 241, 231, 0.6)"
-          strokeWidth="5"
-        />
-        <path
-          d="M62 24a7 7 0 1 1 0 14a7 7 0 0 1 0-14Zm-7 19h15v9h-7v18c0 3 2 5 5 5h9c10 0 18 8 18 18c0 1-1 2-2 2h-7c-1 0-2-1-2-2c0-4-3-8-8-8h-9c-8 0-14-6-14-14V58h-8c-2 0-4-2-4-4s2-4 4-4h10V43Zm-4 36c7 12 20 19 34 19c5 0 9-1 14-3c1-1 3 0 3 1l3 6c1 1 0 3-1 4c-6 3-13 5-20 5c-18 0-34-10-43-26c-1-1 0-3 1-4l6-3c1-1 2 0 3 1Z"
-          fill="rgba(245, 241, 231, 0.78)"
-        />
-      </svg>
-    </div>
-  );
-});
-
 const PlanPage = memo(function PlanPage({
   slide,
   onPrev,
@@ -316,7 +267,7 @@ const PlanPage = memo(function PlanPage({
   closeLabel,
   sleepingText,
   kitchenetteText,
-  deckText,
+  centerText,
   electricMotorText,
   clearWaterText,
   blackWaterText,
@@ -332,7 +283,7 @@ const PlanPage = memo(function PlanPage({
   closeLabel: string;
   sleepingText: string;
   kitchenetteText: string;
-  deckText: string;
+  centerText: string;
   electricMotorText: string;
   clearWaterText: string;
   blackWaterText: string;
@@ -348,54 +299,59 @@ const PlanPage = memo(function PlanPage({
       nextLabel={nextLabel}
       closeLabel={closeLabel}
     >
-      <div className="flex h-full min-h-[calc(100vh-4rem)] items-start justify-center bg-[rgba(255,255,255,0.08)] sm:min-h-[calc(100vh-5rem)]">
+      <div className="flex h-full min-h-[calc(100vh-4rem)] items-center justify-center bg-transparent sm:min-h-[calc(100vh-5rem)]">
         <div className="relative w-full max-w-[1701px]">
           <div className="relative aspect-[1701/1134] w-full">
-            <Image
-              src={slide.src}
-              alt={slide.alt}
-              fill
-              sizes={DRAWER_IMAGE_SIZES}
-              priority
-              quality={78}
-              className="object-cover"
-            />
+            <div className="absolute inset-x-0 top-0 h-[64%]">
+              <Image
+                src={slide.src}
+                alt={slide.alt}
+                fill
+                sizes={DRAWER_IMAGE_SIZES}
+                priority
+                quality={88}
+                className="object-contain"
+              />
+            </div>
 
-            <DropMarker number="1" className="left-[14.6%] top-[53.5%] h-[12%] w-[8.3%]" />
-            <DropMarker number="2" className="left-[41%] top-[53.5%] h-[12%] w-[8.3%]" />
-            <DropMarker number="3" className="left-[72.8%] top-[53.5%] h-[12%] w-[8.3%]" />
-            <AccessibilityBadge className="left-[45.1%] top-[49.7%] h-[16.5%] w-[11.3%]" />
+            <div className="absolute inset-x-0 bottom-0 h-[39%] bg-[rgba(31,61,84,0.84)] px-[clamp(1rem,2.2vw,2.5rem)] py-[clamp(0.8rem,1.5vw,1.6rem)] text-[var(--color-beige)] backdrop-blur-[1px]">
+              <div className="absolute left-[4%] top-[7%] min-w-0 text-[clamp(0.78rem,1.05vw,1.15rem)] leading-[1.45]">
+                <p>
+                  <span className="mr-[clamp(0.55rem,1vw,1.2rem)] font-light">1</span>
+                  <span className="font-semibold">{sleepingText}</span>
+                </p>
+                <p>
+                  <span className="mr-[clamp(0.55rem,1vw,1.2rem)] font-light">2</span>
+                  <span className="font-semibold">{kitchenetteText}</span>
+                </p>
+                <p>
+                  <span className="mr-[clamp(0.55rem,1vw,1.2rem)] font-light">3</span>
+                  <span className="font-semibold">{centerText}</span>
+                </p>
+              </div>
 
-            <div className="absolute inset-x-0 top-[62.5%] bottom-0 flex bg-[rgba(31,61,84,0.84)] text-[var(--color-beige)] backdrop-blur-[1px]">
-              <div className="grid min-h-0 w-full grid-rows-[auto_1fr_auto] gap-3 px-[clamp(1rem,2vw,2rem)] py-[clamp(0.9rem,1.7vw,1.4rem)]">
-                <div className="grid gap-3 md:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] md:items-start">
-                  <div className="min-w-0 text-[clamp(0.8rem,1vw,1.08rem)] font-light leading-[1.35]">
-                    <p>1 {sleepingText}</p>
-                    <p>2 {kitchenetteText}</p>
-                    <p>3 {deckText}</p>
-                  </div>
+              <div className="absolute right-[4%] top-[9%] max-w-[42%] text-right font-light leading-[1.14]">
+                <p className="text-[clamp(1.05rem,2vw,2.25rem)]">
+                  {electricMotorText}
+                </p>
+              </div>
 
-                  <div className="min-w-0 text-left font-light leading-[1.08] md:text-right">
-                    <p className="text-[clamp(1.2rem,2vw,2.25rem)]">{electricMotorText}</p>
-                    <p className="mt-1 text-[clamp(0.95rem,1.55vw,1.55rem)]">
-                      {clearWaterText}
-                    </p>
-                    <p className="mt-1 text-[clamp(0.95rem,1.55vw,1.55rem)]">
-                      {blackWaterText}
-                    </p>
-                  </div>
-                </div>
+              <div className="absolute inset-x-[4%] top-[29%] text-right font-light leading-[1.14]">
+                <p className="text-[clamp(0.92rem,1.48vw,1.62rem)]">
+                  {clearWaterText}
+                </p>
+                <p className="text-[clamp(0.92rem,1.48vw,1.62rem)]">
+                  {blackWaterText}
+                </p>
+              </div>
 
-                <div />
-
-                <div className="flex flex-col gap-1 text-[#001f38] md:flex-row md:items-end md:justify-between md:gap-5">
-                  <p className="min-w-0 text-[clamp(2rem,4.7vw,4.25rem)] font-light leading-none tracking-[0.02em]">
-                    {noChoresText}
-                  </p>
-                  <p className="min-w-0 text-[clamp(1.2rem,2.7vw,2.9rem)] font-light leading-none md:text-right">
-                    {noLicenceBoatText}
-                  </p>
-                </div>
+              <div className="absolute inset-x-[4%] bottom-[7%] flex items-end justify-between gap-5 text-[#002038]">
+                <p className="min-w-0 text-[clamp(2rem,4.6vw,4.25rem)] font-light leading-none tracking-[0.08em]">
+                  {noChoresText}
+                </p>
+                <p className="min-w-0 pb-[0.45%] text-right text-[clamp(1.1rem,2.6vw,2.9rem)] font-light leading-none">
+                  {noLicenceBoatText}
+                </p>
               </div>
             </div>
           </div>
@@ -438,7 +394,7 @@ export default function BoatSlideshow({
     () => ({
       sleepingText: t("boatPlanSleeping"),
       kitchenetteText: t("boatPlanKitchenette"),
-      deckText: t("boatPlanDeck"),
+      centerText: t("boatPlanDeck"),
       electricMotorText: t("boatPlanElectricMotor"),
       clearWaterText: t("boatPlanClearWater"),
       blackWaterText: t("boatPlanBlackWater"),
