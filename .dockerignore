@@ -12,6 +12,7 @@
 **/.env
 **/.git
 **/.gitignore
+**/.next
 **/.project
 **/.settings
 **/.toolstarget
@@ -28,6 +29,9 @@
 **/node_modules
 **/npm-debug.log
 **/obj
+**/generated
+**/*.tsbuildinfo
+**/.env*
 **/secrets.dev.yaml
 **/values.dev.yaml
 LICENSE

@@ -47,6 +47,22 @@ function getInitialRoleForEmail(email: string): UserRole {
     : "CUSTOMER";
 }
 
+export function isGoogleAuthEnabled() {
+  if (process.env.ENABLE_GOOGLE_AUTH === "false") {
+    return false;
+  }
+
+  const clientId = process.env.GOOGLE_CLIENT_ID;
+  const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+
+  return Boolean(
+    clientId &&
+      clientSecret &&
+      !clientId.includes("your-google-client-id") &&
+      !clientSecret.includes("your-google-client-secret")
+  );
+}
+
 export const authOptions: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
   session: { strategy: "jwt" },
@@ -116,10 +132,14 @@ export const authOptions: NextAuthOptions = {
         };
       },
     }),
-    GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-    }),
+    ...(isGoogleAuthEnabled()
+      ? [
+          GoogleProvider({
+            clientId: process.env.GOOGLE_CLIENT_ID!,
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+          }),
+        ]
+      : []),
   ],
   callbacks: {
     async signIn({ account, profile }) {

@@ -1,4 +1,4 @@
-import { auth } from "@auth";
+import { auth, isGoogleAuthEnabled } from "@auth";
 import AccountAuthPanel from "@/components/account/AccountAuthPanel";
 import AccountHeader from "@/components/account/AccountHeader";
 import AccountTabs from "@/components/account/AccountTabs";
@@ -6,6 +6,8 @@ import { isAdminRole } from "@/lib/admin-roles";
 import { prisma } from "@/lib/prisma";
 import { RESERVATION_WITH_ITEMS_INCLUDE, serializeReservation } from "@/lib/reservations";
 import type { AccountTab } from "@/lib/types";
+
+export const dynamic = "force-dynamic";
 
 export default async function AccountPage({
   searchParams,
@@ -17,7 +19,7 @@ export default async function AccountPage({
   if (!session) {
     return (
       <div className="min-h-screen flex items-center justify-center px-4 pt-40 pb-12">
-        <AccountAuthPanel />
+        <AccountAuthPanel googleAuthEnabled={isGoogleAuthEnabled()} />
       </div>
     );
   }

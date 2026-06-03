@@ -4,6 +4,8 @@ import AdminReservationActions from "@/components/admin/AdminReservationActions"
 import { ADMIN_RESERVATION_INCLUDE } from "@/lib/admin-data";
 import { prisma } from "@/lib/prisma";
 
+export const dynamic = "force-dynamic";
+
 const money = (cents: number) =>
   new Intl.NumberFormat("fr-FR", {
     style: "currency",

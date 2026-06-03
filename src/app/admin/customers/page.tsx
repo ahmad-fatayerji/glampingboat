@@ -4,6 +4,8 @@ import { requireAdmin } from "@/lib/admin";
 import { isSuperAdminRole } from "@/lib/admin-roles";
 import { prisma } from "@/lib/prisma";
 
+export const dynamic = "force-dynamic";
+
 const dateFmt = new Intl.DateTimeFormat("fr-FR", {
   day: "2-digit",
   month: "short",

@@ -4,6 +4,8 @@ import { prisma } from "@/lib/prisma";
 import { startOfToday } from "@/lib/admin-data";
 import { serializeAvailabilityBlock } from "@/lib/reservations";
 
+export const dynamic = "force-dynamic";
+
 const dateFmt = new Intl.DateTimeFormat("fr-FR", {
   day: "2-digit",
   month: "short",

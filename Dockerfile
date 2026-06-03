@@ -1,6 +1,7 @@
 # Stage 1: Build stage using a Node.js version supported by Next.js and Prisma
 FROM node:22-alpine AS builder
 WORKDIR /app
+ENV DATABASE_URL="postgresql://postgres:postgres@localhost:5432/glampingboat?schema=public"
 
 # Copy package files and install dependencies
 COPY package.json package-lock.json ./
@@ -20,6 +21,8 @@ COPY --from=builder /app/package.json ./
 COPY --from=builder /app/package-lock.json ./
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/generated ./generated
+COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
 COPY --from=builder /app/public ./public
 
 # Install only production dependencies

@@ -1,0 +1,147 @@
+name: Deploy production
+
+on:
+  push:
+    branches:
+      - master
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Normalize image name
+        id: image
+        run: echo "name=${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ steps.image.outputs.name }}:${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ steps.image.outputs.name }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Install SSH key
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          printf '%s\n' "${{ secrets.SERVER_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H "${{ secrets.SERVER_HOST }}" >> ~/.ssh/known_hosts
+
+      - name: Copy compose file
+        run: |
+          ssh -i ~/.ssh/deploy_key "${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}" "mkdir -p '${{ secrets.DEPLOY_PATH }}'"
+          scp -i ~/.ssh/deploy_key compose.prod.yaml "${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:${{ secrets.DEPLOY_PATH }}/compose.prod.yaml"
+
+      - name: Deploy on server
+        env:
+          IMAGE: ${{ env.REGISTRY }}/${{ steps.image.outputs.name }}:${{ github.sha }}
+          APP_PORT: ${{ secrets.APP_PORT || '80' }}
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+          NEXTAUTH_URL: ${{ secrets.NEXTAUTH_URL }}
+          NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
+          SUPER_ADMIN_EMAILS: ${{ secrets.SUPER_ADMIN_EMAILS }}
+          ENABLE_GOOGLE_AUTH: ${{ secrets.ENABLE_GOOGLE_AUTH || 'false' }}
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          GMAIL_USER: ${{ secrets.GMAIL_USER }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          CONTACT_EMAIL: ${{ secrets.CONTACT_EMAIL }}
+          NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY }}
+          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
+          STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}
+          GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
+          GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
+        run: |
+          ENV_FILE="$(mktemp)"
+          REMOTE_ENV="/tmp/glampingboat.${GITHUB_RUN_ID}.env"
+
+          quote_env() {
+            local name="$1"
+            local value="${!name}"
+            value="${value//$'\n'/}"
+            value="${value//\'/\'\\\'\'}"
+            printf "%s='%s'\n" "$name" "$value"
+          }
+
+          {
+            quote_env IMAGE
+            quote_env APP_PORT
+            quote_env POSTGRES_USER
+            quote_env POSTGRES_PASSWORD
+            quote_env POSTGRES_DB
+            quote_env NEXTAUTH_URL
+            quote_env NEXTAUTH_SECRET
+            quote_env SUPER_ADMIN_EMAILS
+            quote_env ENABLE_GOOGLE_AUTH
+            quote_env GOOGLE_CLIENT_ID
+            quote_env GOOGLE_CLIENT_SECRET
+            quote_env GMAIL_USER
+            quote_env GMAIL_APP_PASSWORD
+            quote_env CONTACT_EMAIL
+            quote_env NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+            quote_env STRIPE_SECRET_KEY
+            quote_env STRIPE_WEBHOOK_SECRET
+            quote_env GHCR_USERNAME
+            quote_env GHCR_TOKEN
+          } > "$ENV_FILE"
+
+          chmod 600 "$ENV_FILE"
+          cleanup_remote_env() {
+            ssh -i ~/.ssh/deploy_key "${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}" "rm -f '$REMOTE_ENV'" >/dev/null 2>&1 || true
+          }
+
+          cleanup_remote_env
+          scp -i ~/.ssh/deploy_key "$ENV_FILE" "${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:$REMOTE_ENV"
+          rm -f "$ENV_FILE"
+
+          if ssh -i ~/.ssh/deploy_key "${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}" \
+            "DEPLOY_PATH='${{ secrets.DEPLOY_PATH }}' REMOTE_ENV='$REMOTE_ENV' bash -s" <<'REMOTE'
+          set -euo pipefail
+          trap 'rm -f "$REMOTE_ENV"' EXIT
+
+          cd "$DEPLOY_PATH"
+          set -a
+          . "$REMOTE_ENV"
+          set +a
+
+          echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin
+          docker compose -f compose.prod.yaml --env-file "$REMOTE_ENV" pull
+          docker compose -f compose.prod.yaml --env-file "$REMOTE_ENV" run --rm migrate
+          docker compose -f compose.prod.yaml --env-file "$REMOTE_ENV" up -d web
+          docker image prune -f
+          REMOTE
+          then
+            cleanup_remote_env
+          else
+            status=$?
+            cleanup_remote_env
+            exit "$status"
+          fi

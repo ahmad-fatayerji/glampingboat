@@ -2,6 +2,8 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { startOfToday } from "@/lib/admin-data";
 
+export const dynamic = "force-dynamic";
+
 const money = (cents: number) =>
   new Intl.NumberFormat("fr-FR", {
     style: "currency",
