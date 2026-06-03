@@ -2,6 +2,7 @@
 
 import { useLanguage } from "@/components/Language/LanguageContext";
 import type { Locale } from "@/components/Language/dictionaries";
+import RentalTerms from "@/components/Legal/RentalTerms";
 
 export type LegalKind = "legal" | "cookies" | "terms";
 
@@ -35,13 +36,15 @@ const content: Record<LegalKind, Record<Locale, LegalItem>> = {
           </p>
           <h2>Website hosting</h2>
           <p>
-            name of host
+            IONOS SARL
             <br />
-            company name
+            7 place de la Gare, BP 70109
             <br />
-            Address
+            57201 Sarreguemines Cedex, France
             <br />
-            telephone number
+            Phone: +33 (0) 970 808 911
+            <br />
+            Website: https://www.ionos.fr/
           </p>
           <h2>Commercial activities</h2>
           <p>
@@ -86,13 +89,15 @@ const content: Record<LegalKind, Record<Locale, LegalItem>> = {
           </p>
           <h2>Hébergement du site</h2>
           <p>
-            nom de l&apos;hébergeur
+            IONOS SARL
             <br />
-            raison sociale
+            7 place de la Gare, BP 70109
             <br />
-            adresse
+            57201 Sarreguemines Cedex, France
             <br />
-            numéro de téléphone
+            Telephone: +33 (0) 970 808 911
+            <br />
+            Site web: https://www.ionos.fr/
           </p>
           <h2>Activités commerciales</h2>
           <p>
@@ -137,13 +142,15 @@ const content: Record<LegalKind, Record<Locale, LegalItem>> = {
           </p>
           <h2>Website-Hosting</h2>
           <p>
-            Name des Hosters
+            IONOS SARL
             <br />
-            Firmenname
+            7 place de la Gare, BP 70109
             <br />
-            Adresse
+            57201 Sarreguemines Cedex, Frankreich
             <br />
-            Telefonnummer
+            Telefon: +33 (0) 970 808 911
+            <br />
+            Website: https://www.ionos.fr/
           </p>
           <h2>Geschaeftstaetigkeiten</h2>
           <p>
@@ -189,13 +196,15 @@ const content: Record<LegalKind, Record<Locale, LegalItem>> = {
           </p>
           <h2>Websitehosting</h2>
           <p>
-            naam van host
+            IONOS SARL
             <br />
-            bedrijfsnaam
+            7 place de la Gare, BP 70109
             <br />
-            Adres
+            57201 Sarreguemines Cedex, Frankrijk
             <br />
-            telefoonnummer
+            Telefoon: +33 (0) 970 808 911
+            <br />
+            Website: https://www.ionos.fr/
           </p>
           <h2>Commerciele activiteiten</h2>
           <p>
@@ -241,13 +250,15 @@ const content: Record<LegalKind, Record<Locale, LegalItem>> = {
           </p>
           <h2>Хостинг сайта</h2>
           <p>
-            название хостинга
+            IONOS SARL
             <br />
-            название компании
+            7 place de la Gare, BP 70109
             <br />
-            адрес
+            57201 Sarreguemines Cedex, France
             <br />
-            телефон
+            Phone: +33 (0) 970 808 911
+            <br />
+            Website: https://www.ionos.fr/
           </p>
           <h2>Коммерческая деятельность</h2>
           <p>
@@ -293,13 +304,15 @@ const content: Record<LegalKind, Record<Locale, LegalItem>> = {
           </p>
           <h2>Alojamiento web</h2>
           <p>
-            nombre del host
+            IONOS SARL
             <br />
-            nombre de la empresa
+            7 place de la Gare, BP 70109
             <br />
-            direccion
+            57201 Sarreguemines Cedex, Francia
             <br />
-            numero de telefono
+            Telefono: +33 (0) 970 808 911
+            <br />
+            Sitio web: https://www.ionos.fr/
           </p>
           <h2>Actividades comerciales</h2>
           <p>
@@ -344,13 +357,15 @@ const content: Record<LegalKind, Record<Locale, LegalItem>> = {
           </p>
           <h2>Hosting del sito</h2>
           <p>
-            nome dell&apos;host
+            IONOS SARL
             <br />
-            ragione sociale
+            7 place de la Gare, BP 70109
             <br />
-            indirizzo
+            57201 Sarreguemines Cedex, Francia
             <br />
-            numero di telefono
+            Telefono: +33 (0) 970 808 911
+            <br />
+            Sito web: https://www.ionos.fr/
           </p>
           <h2>Attivita commerciali</h2>
           <p>
@@ -488,97 +503,31 @@ const content: Record<LegalKind, Record<Locale, LegalItem>> = {
   terms: {
     en: {
       title: "Terms and conditions",
-      body: (
-        <>
-          <p>
-            English mockup of terms and conditions. Adapt to your business
-            model: sales, rental, or services.
-          </p>
-          <h2>Purpose</h2>
-          <p>
-            Rules governing use of the website and the supply of
-            services/products.
-          </p>
-        </>
-      ),
+      body: <RentalTerms locale="en" />,
     },
     fr: {
-      title: "Conditions générales",
-      body: (
-        <>
-          <p>
-            Maquette de CGU/CGV. Adaptez selon votre activité de vente, de
-            location ou de prestations.
-          </p>
-          <h2>Objet</h2>
-          <p>Règles d&apos;utilisation du site et des services/produits.</p>
-        </>
-      ),
+      title: "Conditions generales",
+      body: <RentalTerms locale="fr" />,
     },
     de: {
       title: "AGB",
-      body: (
-        <>
-          <p>
-            Muster fuer allgemeine Geschaeftsbedingungen/Nutzungsbedingungen.
-            Bitte auf Verkauf, Vermietung oder Dienstleistungen abstimmen.
-          </p>
-          <h2>Zweck</h2>
-          <p>Regeln fuer die Nutzung der Website und das Angebot von Leistungen/Produkten.</p>
-        </>
-      ),
+      body: <RentalTerms locale="de" />,
     },
     nl: {
       title: "Voorwaarden",
-      body: (
-        <>
-          <p>
-            Voorbeeld van algemene voorwaarden/gebruiksvoorwaarden. Pas deze
-            aan uw verkoop, verhuur of diensten aan.
-          </p>
-          <h2>Doel</h2>
-          <p>Regels voor het gebruik van de website en de levering van diensten/producten.</p>
-        </>
-      ),
+      body: <RentalTerms locale="nl" />,
     },
     ru: {
-      title: "Условия",
-      body: (
-        <>
-          <p>
-            Шаблон условий использования/общих условий продажи. Адаптируйте его
-            под продажи, аренду или услуги.
-          </p>
-          <h2>Предмет</h2>
-          <p>Правила использования сайта и предоставления услуг/товаров.</p>
-        </>
-      ),
+      title: "Terms",
+      body: <RentalTerms locale="ru" />,
     },
     es: {
       title: "Terminos y condiciones",
-      body: (
-        <>
-          <p>
-            Modelo de terminos y condiciones. Adaptelo a su actividad
-            comercial, alquiler o servicios.
-          </p>
-          <h2>Objeto</h2>
-          <p>Normas que regulan el uso del sitio web y la prestacion de servicios/productos.</p>
-        </>
-      ),
+      body: <RentalTerms locale="es" />,
     },
     it: {
       title: "Termini e condizioni",
-      body: (
-        <>
-          <p>
-            Modello di termini e condizioni. Adattarlo alla vostra attivita di
-            vendita, noleggio o servizi.
-          </p>
-          <h2>Oggetto</h2>
-          <p>Regole che disciplinano l&apos;uso del sito e la fornitura di servizi/prodotti.</p>
-        </>
-      ),
+      body: <RentalTerms locale="it" />,
     },
   },
 };
@@ -587,16 +536,19 @@ export default function LegalContent({ kind }: { kind: LegalKind }) {
   const { locale } = useLanguage();
   const item = content[kind][locale] ?? content[kind].en;
   const isLegal = kind === "legal";
+  const isTerms = kind === "terms";
 
   return (
     <main
       className={
         isLegal
           ? "max-w-[58rem] text-[var(--color-beige)] [&_h2]:mt-0 [&_h2]:mb-3 [&_h2]:text-[clamp(2rem,3.6vw,3.05rem)] [&_h2]:font-semibold [&_h2]:leading-[1.02] [&_p]:mb-10 [&_p]:max-w-[52rem] [&_p]:text-[clamp(1.05rem,1.7vw,1.35rem)] [&_p]:font-light [&_p]:leading-[1.2] [&_strong]:font-semibold"
+          : isTerms
+            ? "w-full max-w-[56rem] text-[var(--color-beige)]"
           : "prose prose-invert max-w-3xl text-[var(--color-beige)] [&_h1]:text-[var(--color-beige)] [&_h2]:text-[var(--color-beige)]"
       }
     >
-      {!isLegal && <h1>{item.title}</h1>}
+      {!isLegal && kind !== "terms" && <h1>{item.title}</h1>}
       {item.body}
     </main>
   );
