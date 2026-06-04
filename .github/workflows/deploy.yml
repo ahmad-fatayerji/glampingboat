@@ -77,8 +77,6 @@ jobs:
           NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY }}
           STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
           STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}
-          GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
-          GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
         run: |
           ENV_FILE="$(mktemp)"
           REMOTE_ENV="/tmp/glampingboat.${GITHUB_RUN_ID}.env"
@@ -109,8 +107,6 @@ jobs:
             quote_env NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
             quote_env STRIPE_SECRET_KEY
             quote_env STRIPE_WEBHOOK_SECRET
-            quote_env GHCR_USERNAME
-            quote_env GHCR_TOKEN
           } > "$ENV_FILE"
 
           chmod 600 "$ENV_FILE"
@@ -132,7 +128,6 @@ jobs:
           . "$REMOTE_ENV"
           set +a
 
-          echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin
           docker compose -f compose.prod.yaml --env-file "$REMOTE_ENV" pull
           docker compose -f compose.prod.yaml --env-file "$REMOTE_ENV" run --rm migrate
           docker compose -f compose.prod.yaml --env-file "$REMOTE_ENV" up -d web
