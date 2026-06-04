@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { getString, isRecord } from "@/lib/type-guards";
 
 const ASSIGNABLE_ROLES: readonly UserRole[] = ["CUSTOMER", "ADMIN", "SUPER_ADMIN"];
+const ELEVATED_ROLE_CONFIRMATION = "CONFIRMER";
 
 export async function PATCH(
   req: NextRequest,
@@ -16,9 +17,20 @@ export async function PATCH(
     const { id } = await params;
     const body = await req.json();
     const role = isRecord(body) ? (getString(body, "role") as UserRole) : undefined;
+    const confirmation = isRecord(body) ? getString(body, "confirmation") : undefined;
 
     if (!role || !ASSIGNABLE_ROLES.includes(role)) {
       return NextResponse.json({ error: "Invalid role" }, { status: 400 });
+    }
+
+    if (
+      (role === "ADMIN" || role === "SUPER_ADMIN") &&
+      confirmation !== ELEVATED_ROLE_CONFIRMATION
+    ) {
+      return NextResponse.json(
+        { error: "Role elevation requires confirmation" },
+        { status: 400 }
+      );
     }
 
     if (id === session.user.id && role !== "SUPER_ADMIN") {
