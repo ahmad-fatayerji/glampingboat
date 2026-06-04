@@ -128,9 +128,67 @@ jobs:
           . "$REMOTE_ENV"
           set +a
 
-          docker compose -f compose.prod.yaml --env-file "$REMOTE_ENV" pull
-          docker compose -f compose.prod.yaml --env-file "$REMOTE_ENV" run --rm migrate
-          docker compose -f compose.prod.yaml --env-file "$REMOTE_ENV" up -d web
+          compose() {
+            docker compose -f compose.prod.yaml --env-file "$REMOTE_ENV" "$@"
+          }
+
+          print_state() {
+            echo "::group::Docker compose state"
+            compose ps -a || true
+            echo "::endgroup::"
+
+            echo "::group::Database logs"
+            compose logs --tail=120 db || true
+            echo "::endgroup::"
+
+            echo "::group::Web logs"
+            compose logs --tail=160 web || true
+            echo "::endgroup::"
+          }
+
+          run_step() {
+            local name="$1"
+            shift
+
+            echo "::group::$name"
+            if "$@"; then
+              echo "::endgroup::"
+            else
+              local status=$?
+              echo "::endgroup::"
+              echo "Deploy step failed: $name"
+              print_state
+              exit "$status"
+            fi
+          }
+
+          check_web() {
+            local container_id
+            container_id="$(compose ps -q web)"
+
+            if [ -z "$container_id" ]; then
+              echo "Web container was not created."
+              return 1
+            fi
+
+            local status
+            status="$(docker inspect -f '{{.State.Status}}' "$container_id")"
+            echo "Web container status: $status"
+
+            if [ "$status" != "running" ]; then
+              return 1
+            fi
+          }
+
+          run_step "Pull image" compose pull
+          run_step "Start database" compose up -d db
+          run_step "Show database state" compose ps db
+          run_step "Run migrations" compose run --rm migrate
+          run_step "Start web" compose up -d web
+
+          sleep 5
+          run_step "Check web container" check_web
+
           docker image prune -f
           REMOTE
           then
