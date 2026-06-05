@@ -82,6 +82,7 @@ jobs:
         run: |
           ENV_FILE="$(mktemp)"
           REMOTE_ENV="/tmp/glampingboat.${GITHUB_RUN_ID}.env"
+          REMOTE_DONE="/tmp/glampingboat.${GITHUB_RUN_ID}.done"
 
           quote_env() {
             local name="$1"
@@ -112,16 +113,16 @@ jobs:
           } > "$ENV_FILE"
 
           chmod 600 "$ENV_FILE"
-          cleanup_remote_env() {
-            ssh -i ~/.ssh/deploy_key "${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}" "rm -f '$REMOTE_ENV'" >/dev/null 2>&1 || true
+          cleanup_remote_files() {
+            ssh -i ~/.ssh/deploy_key "${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}" "rm -f '$REMOTE_ENV' '$REMOTE_DONE'" >/dev/null 2>&1 || true
           }
 
-          cleanup_remote_env
+          cleanup_remote_files
           scp -i ~/.ssh/deploy_key "$ENV_FILE" "${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:$REMOTE_ENV"
           rm -f "$ENV_FILE"
 
           if ssh -i ~/.ssh/deploy_key "${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}" \
-            "DEPLOY_PATH='${{ secrets.DEPLOY_PATH }}' REMOTE_ENV='$REMOTE_ENV' bash -s" <<'REMOTE'
+            "DEPLOY_PATH='${{ secrets.DEPLOY_PATH }}' REMOTE_ENV='$REMOTE_ENV' REMOTE_DONE='$REMOTE_DONE' bash -s" <<'REMOTE'
           set -euo pipefail
           trap 'rm -f "$REMOTE_ENV"' EXIT
 
@@ -204,12 +205,19 @@ jobs:
           sleep 5
           run_step "Check web container" check_web
 
+          printf 'ok\n' > "$REMOTE_DONE"
           docker image prune -f
           REMOTE
           then
-            cleanup_remote_env
+            if ssh -i ~/.ssh/deploy_key "${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}" "test -s '$REMOTE_DONE'"; then
+              cleanup_remote_files
+            else
+              echo "Deploy script did not reach the completion marker."
+              cleanup_remote_files
+              exit 1
+            fi
           else
             status=$?
-            cleanup_remote_env
+            cleanup_remote_files
             exit "$status"
           fi
