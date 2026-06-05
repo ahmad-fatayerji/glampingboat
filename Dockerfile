@@ -1,7 +1,9 @@
 # Stage 1: Build stage using a Node.js version supported by Next.js and Prisma
 FROM node:22-alpine AS builder
 WORKDIR /app
+ARG GIT_SHA=unknown
 ENV DATABASE_URL="postgresql://postgres:postgres@localhost:5432/glampingboat?schema=public"
+ENV NEXT_PUBLIC_APP_VERSION=$GIT_SHA
 
 # Copy package files and install dependencies
 COPY package.json package-lock.json ./
@@ -15,6 +17,8 @@ RUN npm run build
 # Stage 2: Production stage
 FROM node:22-alpine AS runner
 WORKDIR /app
+ARG GIT_SHA=unknown
+ENV NEXT_PUBLIC_APP_VERSION=$GIT_SHA
 
 # Copy only the built application and necessary files
 COPY --from=builder /app/package.json ./
