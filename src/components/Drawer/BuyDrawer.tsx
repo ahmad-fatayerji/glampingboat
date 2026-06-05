@@ -2,95 +2,139 @@
 
 import Image from "next/image";
 import DrawerSurface from "@/components/Drawer/DrawerSurface";
-import { useT } from "@/components/Language/useT";
+import { useT, type TranslationKey } from "@/components/Language/useT";
 
 const BUY_IMAGE_SIZES =
   "(min-width: 1280px) 42vw, (min-width: 1024px) 48vw, (min-width: 640px) 58vw, 100vw";
 
-const benefits = [
-  "Silent electric propulsion",
-  "Zero direct emissions",
-  "Smooth and eco-friendly cruising",
-  "Ideal for rivers, canals and calm waters",
+const benefits: TranslationKey[] = [
+  "buyBenefitSilent",
+  "buyBenefitZero",
+  "buyBenefitSmooth",
+  "buyBenefitWaters",
 ];
 
 const specs = [
-  ["Length", "8.00 m"],
-  ["Width", "4.30 m"],
-  ["Weight max", "2,995 kg"],
-  ["Draft", "0.35 m"],
-  ["Height", "3.76 m, adjustable depending on the site"],
-  ["Design category", "D"],
-  ["Capacity", "4 people"],
-  ["Propulsion", "Electric"],
-  ["Installed power", "4.3 kW"],
+  ["buySpecLength", "buySpecLengthValue"],
+  ["buySpecWidth", "buySpecWidthValue"],
+  ["buySpecWeightMax", "buySpecWeightMaxValue"],
+  ["buySpecDraft", "buySpecDraftValue"],
+  ["buySpecHeight", "buySpecHeightValue"],
+  ["buySpecDesignCategory", "buySpecDesignCategoryValue"],
+  ["buySpecCapacity", "buySpecCapacityValue"],
+  ["buySpecPropulsion", "buySpecPropulsionValue"],
+  ["buySpecInstalledPower", "buySpecInstalledPowerValue"],
+] satisfies [TranslationKey, TranslationKey][];
+
+const packageFeatures = {
+  powerBoat: "buyFeaturePowerBoat",
+  portableBattery: "buyFeaturePortableBattery",
+  electricMotor: "buyFeatureElectricMotor",
+  lodgeTent: "buyFeatureLodgeTent",
+  livingAreaTable: "buyFeatureLivingAreaTable",
+  bedFrameMattress: "buyFeatureBedFrameMattress",
+  woodenKitchenette: "buyFeatureWoodenKitchenette",
+  sinkEquipment: "buyFeatureSinkEquipment",
+  waterTreatment: "buyFeatureWaterTreatment",
+  showerToilet: "buyFeatureShowerToilet",
+  tentFurniture: "buyFeatureTentFurniture",
+  floatingPontoon: "buyFeatureFloatingPontoon",
+  tableChairs: "buyFeatureTableChairs",
+  kitchenetteUnits: "buyFeatureKitchenetteUnits",
+  railing: "buyFeatureRailing",
+} satisfies Record<string, TranslationKey>;
+
+const packageTitles = {
+  glampingBoat: "buyPackageGlampingBoat",
+  dayBoat: "buyPackageDayBoat",
+  lodge: "buyPackageLodge",
+  pontoon: "buyPackagePontoon",
+} satisfies Record<string, TranslationKey>;
+
+const packageAlts = {
+  glampingBoat: "buyAltGlampingBoat",
+  dayBoat: "buyAltDayBoat",
+  lodge: "buyAltLodge",
+  pontoon: "buyAltPontoon",
+} satisfies Record<string, TranslationKey>;
+
+const packageNameFallbacks = {
+  buyPackageGlampingBoat: "Glamping Boat",
+  buyPackageDayBoat: "Day boat",
+  buyPackageLodge: "Lodge",
+  buyPackagePontoon: "Pontoon",
+} satisfies Partial<Record<TranslationKey, string>>;
+
+const reasonKeys: TranslationKey[] = [
+  "buyReasonEco",
+  "buyReasonEasy",
+  "buyReasonTourism",
+  "buyReasonUnique",
+  "buyReasonInvestment",
+];
+
+const audienceKeys: TranslationKey[] = [
+  "buyAudienceIndividuals",
+  "buyAudienceProfessionals",
 ];
 
 const packages = [
   {
-    title: "Glamping Boat",
+    titleKey: packageTitles.glampingBoat,
     image: "/images/buy/glamping boat.png",
-    alt: "Glamping Boat side elevation with lodge tent, furniture and motor",
+    altKey: packageAlts.glampingBoat,
     features: [
-      "Power boat",
-      "Portable battery",
-      "Electric motor",
-      "Lodge tent",
-      "Living area and table",
-      "Wooden bed frame and mattress",
-      "Wooden kitchenette units",
-      "Sink and kitchenette equipment",
-      "Water treatment plants",
-      "Shower and toilet",
+      packageFeatures.powerBoat,
+      packageFeatures.portableBattery,
+      packageFeatures.electricMotor,
+      packageFeatures.lodgeTent,
+      packageFeatures.livingAreaTable,
+      packageFeatures.bedFrameMattress,
+      packageFeatures.woodenKitchenette,
+      packageFeatures.sinkEquipment,
+      packageFeatures.waterTreatment,
+      packageFeatures.showerToilet,
     ],
   },
   {
-    title: "Day boat",
+    titleKey: packageTitles.dayBoat,
     image: "/images/buy/day boat.png",
-    alt: "Day boat side elevation with tent and deck equipment",
+    altKey: packageAlts.dayBoat,
     features: [
-      "Power boat",
-      "Portable battery",
-      "Electric motor",
-      "Tent and furniture",
+      packageFeatures.powerBoat,
+      packageFeatures.portableBattery,
+      packageFeatures.electricMotor,
+      packageFeatures.tentFurniture,
     ],
   },
   {
-    title: "Lodge",
+    titleKey: packageTitles.lodge,
     image: "/images/buy/Lodge.png",
-    alt: "Lodge tent side elevation on a floating pontoon",
+    altKey: packageAlts.lodge,
     features: [
-      "Floating pontoon",
-      "Lodge tent",
-      "Table and chairs",
-      "Wooden bed frame and mattress",
-      "Kitchenette units",
+      packageFeatures.floatingPontoon,
+      packageFeatures.lodgeTent,
+      packageFeatures.tableChairs,
+      packageFeatures.bedFrameMattress,
+      packageFeatures.kitchenetteUnits,
     ],
     optionalFeatures: [
-      "Water treatment plants",
-      "Shower and toilet",
-      "Sink and kitchenette equipment",
+      packageFeatures.waterTreatment,
+      packageFeatures.showerToilet,
+      packageFeatures.sinkEquipment,
     ],
   },
   {
-    title: "Pontoon",
+    titleKey: packageTitles.pontoon,
     image: "/images/buy/pontoon.png",
-    alt: "Pontoon side elevation with electric motor and railing",
-    features: ["Power boat", "Portable battery", "Electric motor", "Railing"],
+    altKey: packageAlts.pontoon,
+    features: [
+      packageFeatures.powerBoat,
+      packageFeatures.portableBattery,
+      packageFeatures.electricMotor,
+      packageFeatures.railing,
+    ],
   },
-];
-
-const reasons = [
-  "Eco-friendly and cost-effective",
-  "Easy to operate",
-  "Perfect for river tourism",
-  "A unique glamping concept on the water",
-  "Ideal for personal use or as a rental investment",
-];
-
-const audiences = [
-  "Individuals looking to get away from it all",
-  "Tourism professionals, holiday cottages, water sports centres and rental companies",
 ];
 
 function ArrowIcon() {
@@ -153,7 +197,7 @@ export default function BuyDrawer({
         <div className="relative min-h-[21rem] overflow-hidden rounded-lg bg-[var(--color-blue)] sm:min-h-[25rem]">
           <Image
             src="/images/buy/pv2.jpg"
-            alt="Aerial view of the Glamping Boat cruising on calm water"
+            alt={t("buyAltHeroImage")}
             fill
             sizes={BUY_IMAGE_SIZES}
             priority
@@ -166,33 +210,47 @@ export default function BuyDrawer({
               {t("buy")}
             </p>
             <h2 className="max-w-2xl text-3xl font-semibold leading-[1.05] text-[var(--color-beige)] sm:text-5xl">
-              The new-generation electric river boat
+              {t("buyHeroTitle")}
             </h2>
             <p className="mt-3 max-w-xl text-base leading-relaxed text-[var(--color-beige)]/86 sm:text-lg">
-              The different way of slow tourism.
+              {t("buyHeroSubtitle")}
             </p>
           </div>
         </div>
 
-        <div className="flex flex-col justify-between gap-6 bg-[#2f4858]/78 p-5 text-[var(--color-beige)] sm:p-7">
-          <div className="space-y-5">
+        <div className="relative flex flex-col justify-between gap-6 overflow-hidden bg-[#2f4858]/78 p-5 text-[var(--color-beige)] shadow-[inset_0_0_0_1px_rgba(228,219,206,0.14)] sm:p-7">
+          <div
+            className="pointer-events-none absolute -right-10 -top-10 h-36 w-36 rounded-full border border-[var(--color-beige)]/18"
+            aria-hidden="true"
+          />
+          <div
+            className="pointer-events-none absolute -right-5 -top-5 h-20 w-20 rounded-full border border-[var(--color-beige)]/14"
+            aria-hidden="true"
+          />
+          <div className="relative space-y-6">
             <p className="text-base leading-relaxed text-[var(--color-beige)]/88">
-              With Glamping Boat, step into a new era of travel: quiet,
-              self-sufficient, eco-friendly and comfortable. Designed for river
-              glamping, this boat combines optimised design, ease of use and
-              total immersion in nature.
+              {t("buyIntroBody")}
             </p>
-            <div>
-              <p className="text-2xl font-semibold leading-tight">
-                100% electric,
+            <div className="border-y border-[var(--color-beige)]/18 py-5">
+              <div className="mb-3 flex items-center gap-3 text-[var(--color-beige)]/68">
+                <span className="h-px w-9 bg-[var(--color-beige)]/60" />
+                <span className="text-[0.68rem] font-semibold uppercase tracking-[0.26em]">
+                  {t("buyElectricEyebrow")}
+                </span>
+              </div>
+              <p className="text-3xl font-semibold leading-[0.98] tracking-normal sm:text-4xl">
+                {t("buyElectricTitleLine1")}
                 <br />
-                100% freedom
+                {t("buyElectricTitleLine2")}
               </p>
-              <ul className="mt-5 space-y-2 text-[var(--color-beige)]/82">
+              <div className="mt-4 text-[var(--color-beige)]/88">
+                <WaveMark />
+              </div>
+              <ul className="mt-5 space-y-3 text-[var(--color-beige)]/86">
                 {benefits.map((benefit) => (
                   <li key={benefit} className="flex gap-3">
-                    <span className="mt-2 h-px w-7 bg-[var(--color-beige)]/70" />
-                    <span>{benefit}</span>
+                    <span className="mt-2 h-px w-8 shrink-0 bg-[var(--color-beige)]/70" />
+                    <span className="leading-snug">{t(benefit)}</span>
                   </li>
                 ))}
               </ul>
@@ -202,9 +260,9 @@ export default function BuyDrawer({
           <button
             type="button"
             onClick={onContactClick}
-            className="inline-flex w-fit items-center gap-2 rounded-md bg-[var(--color-blue)] px-4 py-2 font-semibold text-[var(--color-beige)] transition hover:bg-[#0b314b]"
+            className="relative inline-flex w-fit items-center gap-2 rounded-md bg-[var(--color-blue)] px-4 py-2 font-semibold text-[var(--color-beige)] shadow-[0_10px_28px_rgba(0,32,56,0.32)] transition hover:bg-[#0b314b]"
           >
-            <span>contact us</span>
+            <span>{t("contactUs")}</span>
             <ArrowIcon />
           </button>
         </div>
@@ -214,7 +272,7 @@ export default function BuyDrawer({
         <div className="relative min-h-[24rem] overflow-hidden rounded-lg bg-[rgba(228,219,206,0.38)] backdrop-blur-[1px] sm:min-h-[32rem]">
           <Image
             src="/images/buy/plan b.png"
-            alt="Technical plan of the Glamping Boat with side and front elevations"
+            alt={t("buyAltTechnicalPlan")}
             fill
             unoptimized
             sizes={BUY_IMAGE_SIZES}
@@ -228,16 +286,16 @@ export default function BuyDrawer({
             <sup className="ml-1 text-sm">TM</sup>
           </p>
           <h3 className="mt-8 text-xl font-semibold">
-            Technical specifications
+            {t("buyTechnicalSpecifications")}
           </h3>
           <dl className="mt-5 space-y-4">
             {specs.map(([label, value]) => (
               <div key={label} className="border-b border-white/12 pb-3">
                 <dt className="text-xs uppercase tracking-[0.18em] text-[var(--color-beige)]/58">
-                  {label}
+                  {t(label)}
                 </dt>
                 <dd className="mt-1 text-lg leading-snug text-[var(--color-beige)]/92">
-                  {value}
+                  {t(value)}
                 </dd>
               </div>
             ))}
@@ -252,7 +310,7 @@ export default function BuyDrawer({
           <div className="flex flex-col px-4 py-7 sm:px-7 lg:pr-0">
             {packages.map((item, index) => (
               <div
-                key={item.title}
+                key={item.titleKey}
                 className={`grid items-center gap-3 sm:grid-cols-[minmax(13rem,1fr)_11rem_5.5rem] ${
                   index === 0
                     ? "min-h-[17rem]"
@@ -264,7 +322,7 @@ export default function BuyDrawer({
                 <div className="relative h-28 sm:h-[8.5rem] lg:h-36">
                   <Image
                     src={item.image}
-                    alt={item.alt}
+                    alt={t(item.altKey)}
                     fill
                     unoptimized
                     sizes="(min-width: 1024px) 32vw, (min-width: 640px) 46vw, 88vw"
@@ -278,7 +336,7 @@ export default function BuyDrawer({
                       '"Brush Script MT", "Segoe Script", "Apple Chancery", cursive',
                   }}
                 >
-                  {item.title}
+                  {packageNameFallbacks[item.titleKey] ?? t(item.titleKey)}
                 </p>
                 <div className="hidden justify-center sm:flex">
                   <WaveMark />
@@ -293,13 +351,13 @@ export default function BuyDrawer({
               onClick={onContactClick}
               className="mb-3 inline-flex w-fit items-center gap-2 rounded-md bg-[var(--color-blue)] px-4 py-2 text-xl font-semibold leading-none text-[var(--color-beige)] transition hover:bg-[#0b314b]"
             >
-              <span>contact us</span>
+              <span>{t("contactUs")}</span>
               <ArrowIcon />
             </button>
 
             {packages.map((item, index) => (
               <div
-                key={item.title}
+                key={item.titleKey}
                 className={`flex flex-col justify-center py-3 text-[1.15rem] font-semibold leading-[1.18] text-[var(--color-beige)] sm:text-[1.28rem] ${
                   index === 0
                     ? "min-h-[15rem]"
@@ -310,15 +368,15 @@ export default function BuyDrawer({
               >
                 <ul>
                   {item.features.map((feature) => (
-                    <li key={feature}>{feature}</li>
+                    <li key={feature}>{t(feature)}</li>
                   ))}
                 </ul>
                 {"optionalFeatures" in item && item.optionalFeatures ? (
                   <div className="mt-1 text-base font-normal italic leading-tight text-[var(--color-beige)]/88 sm:text-lg">
-                    <p>Options:</p>
+                    <p>{t("options")}:</p>
                     <ul>
                       {item.optionalFeatures.map((feature) => (
-                        <li key={feature}>{feature}</li>
+                        <li key={feature}>{t(feature)}</li>
                       ))}
                     </ul>
                   </div>
@@ -333,7 +391,7 @@ export default function BuyDrawer({
         <div className="relative min-h-[24rem] overflow-hidden rounded-lg bg-[var(--color-blue)]">
           <Image
             src="/images/buy/pv1.jpg"
-            alt="Glamping Boat seen from above with a white lodge tent on the river"
+            alt={t("buyAltLifestyleImage")}
             fill
             sizes={BUY_IMAGE_SIZES}
             quality={75}
@@ -343,13 +401,13 @@ export default function BuyDrawer({
           <div className="relative grid min-h-[24rem] content-center gap-7 p-5 text-[var(--color-blue)] sm:p-8">
             <div>
               <h3 className="text-3xl font-semibold leading-tight">
-                Why choose Glamping Boat?
+                {t("buyWhyChooseTitle")}
               </h3>
               <ul className="mt-5 space-y-2 text-lg font-semibold leading-snug">
-                {reasons.map((reason) => (
+                {reasonKeys.map((reason) => (
                   <li key={reason} className="flex gap-3">
                     <span aria-hidden="true">/</span>
-                    <span>{reason}</span>
+                    <span>{t(reason)}</span>
                   </li>
                 ))}
               </ul>
@@ -357,13 +415,13 @@ export default function BuyDrawer({
 
             <div>
               <h3 className="text-3xl font-semibold leading-tight">
-                Who is it for?
+                {t("buyAudienceTitle")}
               </h3>
               <ul className="mt-5 space-y-2 text-lg font-semibold leading-snug">
-                {audiences.map((audience) => (
+                {audienceKeys.map((audience) => (
                   <li key={audience} className="flex gap-3">
                     <span aria-hidden="true">/</span>
-                    <span>{audience}</span>
+                    <span>{t(audience)}</span>
                   </li>
                 ))}
               </ul>
@@ -374,11 +432,10 @@ export default function BuyDrawer({
         <aside className="flex flex-col justify-between gap-8 bg-[#2f4858]/82 p-5 sm:p-7">
           <div className="space-y-5">
             <h3 className="text-3xl font-semibold leading-tight">
-              Fancy embarking on the Glamping Boat adventure?
+              {t("buyAdventureTitle")}
             </h3>
             <p className="text-xl font-semibold leading-relaxed text-[var(--color-beige)]/92">
-              Contact us to receive your personalised quote and discover the
-              available options.
+              {t("buyAdventureBody")}
             </p>
           </div>
 
@@ -388,7 +445,7 @@ export default function BuyDrawer({
               onClick={onContactClick}
               className="inline-flex items-center gap-2 rounded-md bg-[var(--color-beige)] px-4 py-2 font-semibold text-[var(--color-blue)] transition hover:bg-[#efe6d9]"
             >
-              <span>request a quote</span>
+              <span>{t("buyRequestQuote")}</span>
               <ArrowIcon />
             </button>
             <button
