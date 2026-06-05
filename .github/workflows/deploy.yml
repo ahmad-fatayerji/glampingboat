@@ -191,10 +191,14 @@ jobs:
             fi
           }
 
+          run_migrations() {
+            compose run --rm -T migrate < /dev/null
+          }
+
           run_step "Pull image" compose pull
           run_step "Start database" compose up -d db
           run_step "Show database state" compose ps db
-          run_step "Run migrations" compose run --rm migrate
+          run_step "Run migrations" run_migrations
           run_step "Recreate web" compose up -d --no-deps --force-recreate web
 
           sleep 5
