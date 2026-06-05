@@ -206,9 +206,9 @@ const en = {
   arrivalDate: "arrival date",
   departureDate: "departure date",
   availableForChosenDates:
-    "glampingboat is available on the dates you have chosen",
+    "Glamping Boat is available on the dates you have chosen",
   notAvailableForChosenDates:
-    "glampingboat is not available on the dates you have chosen",
+    "Glamping Boat is not available on the dates you have chosen",
   priceForNightsExcl:
     "price for {nights} nights, including tourist tax and excluding options",
   disabilityHealthCure: "in a disability situation or health cure?",
@@ -226,7 +226,7 @@ const en = {
   balanceBeforeArrival: "balance 15 days before date of arrival",
   contactDetails: "contact details",
   paymentSection: "payment",
-  bookingPreviewTitle: "Step aboard the glampingboat",
+  bookingPreviewTitle: "Step aboard the Glamping Boat",
   bookingPreviewBody:
     "A simple, lightweight and eco-friendly river stay with sleeping area, kitchenette, bathroom, deck, and a slow route through the Lot Valley.",
   pricePreviewIncludesTax:
