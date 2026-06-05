@@ -7,7 +7,6 @@ import {
   useState,
   type ChangeEvent,
 } from "react";
-import Image from "next/image";
 import {
   addMonths,
   format,
@@ -465,20 +464,6 @@ export default function BookingCalendar({
       <div className="flex flex-col items-center gap-3 border-t border-[var(--color-beige)]/15 pt-4 text-sm text-[var(--color-beige)]/85 sm:flex-row sm:justify-between">
         <span>{t("disabilityHealthCure")}</span>
         <div className="flex items-center gap-3">
-          <Image
-            src="/images/book/handi.png"
-            alt=""
-            width={36}
-            height={36}
-            className="opacity-90"
-          />
-          <Image
-            src="/images/book/health.png"
-            alt=""
-            width={36}
-            height={36}
-            className="opacity-90"
-          />
           <button
             type="button"
             onClick={onContact}
