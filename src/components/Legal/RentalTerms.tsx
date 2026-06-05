@@ -21,12 +21,12 @@ type TermsDocument = {
 
 const terms: Record<Locale, TermsDocument> = {
   en: {
-    title: "General Terms and Conditions of Rental (GTCR) - glampingboat™",
+    title: "General Terms and Conditions of Rental (GTCR) - Glamping Boat™",
     sections: [
       {
         heading: "1. Purpose",
         paragraphs: [
-          "These General Terms and Conditions of Sale govern the reservation and rental of the glampingboat™, an electric accommodation boat operated by Les Coches de Penchot (LCP), which may be used without a boating licence.",
+          "These General Terms and Conditions of Sale govern the reservation and rental of the Glamping Boat™, an electric accommodation boat operated by Les Coches de Penchot (LCP), which may be used without a boating licence.",
           "Any reservation implies full and unconditional acceptance of these Terms and Conditions.",
         ],
       },
@@ -50,7 +50,7 @@ const terms: Record<Locale, TermsDocument> = {
       {
         heading: "3. Occupancy Conditions",
         paragraphs: [
-          "The glampingboat™ is designed to accommodate a maximum of four (4) persons, including at least one responsible adult.",
+          "The Glamping Boat™ is designed to accommodate a maximum of four (4) persons, including at least one responsible adult.",
           "The renter agrees to comply with the maximum occupancy limit and with all operating and safety instructions provided at check-in.",
           "Navigation is reserved for persons capable of carrying out the normal manoeuvres of a leisure boat and complying with inland waterway navigation regulations.",
         ],
@@ -64,9 +64,9 @@ const terms: Record<Locale, TermsDocument> = {
         ],
       },
       {
-        heading: "5. Use of the glampingboat™",
+        heading: "5. Use of the Glamping Boat™",
         paragraphs: [
-          "The glampingboat™ is intended exclusively for tourism and leisure purposes.",
+          "The Glamping Boat™ is intended exclusively for tourism and leisure purposes.",
           "The following are strictly prohibited:",
         ],
         items: [
@@ -88,7 +88,7 @@ const terms: Record<Locale, TermsDocument> = {
       {
         heading: "6. Environmental Protection",
         paragraphs: [
-          "The glampingboat™ is equipped with an autonomous biological water-treatment system and facilities designed to minimise environmental impact.",
+          "The Glamping Boat™ is equipped with an autonomous biological water-treatment system and facilities designed to minimise environmental impact.",
           "Occupants undertake to:",
         ],
         items: [
@@ -224,7 +224,7 @@ const terms: Record<Locale, TermsDocument> = {
       {
         heading: "16. Accessibility and Special Circumstances",
         paragraphs: [
-          "The glampingboat™ has been designed to facilitate access for persons with reduced mobility and guests attending thermal spa treatments.",
+          "The Glamping Boat™ has been designed to facilitate access for persons with reduced mobility and guests attending thermal spa treatments.",
           "However, due to the nature of the river environment and navigation constraints, certain limitations may apply.",
           "Guests with specific requirements are encouraged to contact the owner before booking in order to verify the suitability of the boat and, where necessary, arrange appropriate accommodation conditions.",
         ],
@@ -240,12 +240,12 @@ const terms: Record<Locale, TermsDocument> = {
     ],
   },
   fr: {
-    title: "Conditions générales de vente - Location Glampingboat™",
+    title: "Conditions générales de vente - Location Glamping Boat™",
     sections: [
       {
         heading: "1. Objet",
         paragraphs: [
-          "Les présentes Conditions Générales de Vente régissent la réservation et la location du Glampingboat™, bateau-hébergement électrique sans permis exploité par Les Coches de Penchot (LCP).",
+          "Les présentes Conditions Générales de Vente régissent la réservation et la location du Glamping Boat™, bateau-hébergement électrique sans permis exploité par Les Coches de Penchot (LCP).",
           "Toute réservation implique l'acceptation sans réserve des présentes conditions.",
         ],
       },
@@ -269,7 +269,7 @@ const terms: Record<Locale, TermsDocument> = {
       {
         heading: "3. Conditions d'occupation",
         paragraphs: [
-          "Le Glampingboat™ est conçu pour accueillir au maximum 4 personnes, dont au moins un adulte majeur responsable.",
+          "Le Glamping Boat™ est conçu pour accueillir au maximum 4 personnes, dont au moins un adulte majeur responsable.",
           "Le locataire s'engage à respecter la capacité maximale autorisée ainsi que les consignes d'utilisation et de sécurité remises lors de la prise en charge.",
           "La navigation est réservée à des personnes aptes à assurer les manœuvres courantes d'un bateau de plaisance et à respecter les règles de navigation intérieure.",
         ],
@@ -283,9 +283,9 @@ const terms: Record<Locale, TermsDocument> = {
         ],
       },
       {
-        heading: "5. Utilisation du Glampingboat™",
+        heading: "5. Utilisation du Glamping Boat™",
         paragraphs: [
-          "Le Glampingboat™ est destiné exclusivement à une utilisation touristique et de loisirs.",
+          "Le Glamping Boat™ est destiné exclusivement à une utilisation touristique et de loisirs.",
           "Sont notamment interdits :",
         ],
         items: [
@@ -307,7 +307,7 @@ const terms: Record<Locale, TermsDocument> = {
       {
         heading: "6. Respect de l'environnement",
         paragraphs: [
-          "Le Glampingboat™ est équipé d'un système autonome de traitement biologique de l'eau et d'équipements conçus pour limiter son impact environnemental.",
+          "Le Glamping Boat™ est équipé d'un système autonome de traitement biologique de l'eau et d'équipements conçus pour limiter son impact environnemental.",
           "Les occupants s'engagent à :",
         ],
         items: [
@@ -443,7 +443,7 @@ const terms: Record<Locale, TermsDocument> = {
       {
         heading: "16. Accessibilité et situations particulières",
         paragraphs: [
-          "Le Glampingboat™ a été conçu afin de faciliter l'accueil de personnes à mobilité réduite ou suivant une cure thermale.",
+          "Le Glamping Boat™ a été conçu afin de faciliter l'accueil de personnes à mobilité réduite ou suivant une cure thermale.",
           "Toutefois, en raison de l'environnement fluvial et des contraintes liées à la navigation, certaines limitations peuvent subsister.",
           "Les personnes concernées sont invitées à contacter le loueur avant toute réservation afin de vérifier l'adéquation du bateau à leurs besoins spécifiques et d'organiser, si nécessaire, les conditions d'accueil les plus adaptées.",
         ],
@@ -459,12 +459,12 @@ const terms: Record<Locale, TermsDocument> = {
     ],
   },
   de: {
-    title: "Allgemeine Mietbedingungen - Glampingboat™",
+    title: "Allgemeine Mietbedingungen - Glamping Boat™",
     sections: [
       {
         heading: "1. Gegenstand",
         paragraphs: [
-          "Diese Allgemeinen Verkaufs- und Mietbedingungen regeln die Reservierung und Vermietung des Glampingboat™, eines führerscheinfreien elektrischen Unterkunftsboots, das von Les Coches de Penchot (LCP) betrieben wird.",
+          "Diese Allgemeinen Verkaufs- und Mietbedingungen regeln die Reservierung und Vermietung des Glamping Boat™, eines führerscheinfreien elektrischen Unterkunftsboots, das von Les Coches de Penchot (LCP) betrieben wird.",
           "Jede Reservierung setzt die vorbehaltlose Annahme dieser Bedingungen voraus.",
         ],
       },
@@ -488,7 +488,7 @@ const terms: Record<Locale, TermsDocument> = {
       {
         heading: "3. Belegungsbedingungen",
         paragraphs: [
-          "Das Glampingboat™ ist für maximal 4 Personen ausgelegt, darunter mindestens ein verantwortlicher volljähriger Erwachsener.",
+          "Das Glamping Boat™ ist für maximal 4 Personen ausgelegt, darunter mindestens ein verantwortlicher volljähriger Erwachsener.",
           "Der Mieter verpflichtet sich, die zulässige Höchstbelegung sowie die bei der Übergabe ausgehändigten Nutzungs- und Sicherheitshinweise einzuhalten.",
           "Die Navigation ist Personen vorbehalten, die die üblichen Manöver eines Freizeitboots ausführen und die Regeln der Binnenschifffahrt einhalten können.",
         ],
@@ -502,9 +502,9 @@ const terms: Record<Locale, TermsDocument> = {
         ],
       },
       {
-        heading: "5. Nutzung des Glampingboat™",
+        heading: "5. Nutzung des Glamping Boat™",
         paragraphs: [
-          "Das Glampingboat™ ist ausschließlich für touristische und freizeitbezogene Zwecke bestimmt.",
+          "Das Glamping Boat™ ist ausschließlich für touristische und freizeitbezogene Zwecke bestimmt.",
           "Insbesondere ist untersagt:",
         ],
         items: [
@@ -526,7 +526,7 @@ const terms: Record<Locale, TermsDocument> = {
       {
         heading: "6. Umweltschutz",
         paragraphs: [
-          "Das Glampingboat™ ist mit einem autonomen biologischen Wasseraufbereitungssystem und Einrichtungen ausgestattet, die seine Umweltbelastung begrenzen.",
+          "Das Glamping Boat™ ist mit einem autonomen biologischen Wasseraufbereitungssystem und Einrichtungen ausgestattet, die seine Umweltbelastung begrenzen.",
           "Die Gäste verpflichten sich:",
         ],
         items: [
@@ -662,7 +662,7 @@ const terms: Record<Locale, TermsDocument> = {
       {
         heading: "16. Zugänglichkeit und besondere Umstände",
         paragraphs: [
-          "Das Glampingboat™ wurde so konzipiert, dass es den Empfang von Personen mit eingeschränkter Mobilität oder Gästen während einer Kur erleichtert.",
+          "Das Glamping Boat™ wurde so konzipiert, dass es den Empfang von Personen mit eingeschränkter Mobilität oder Gästen während einer Kur erleichtert.",
           "Aufgrund der Flussumgebung und der mit der Navigation verbundenen Einschränkungen können jedoch bestimmte Grenzen bestehen.",
           "Betroffene Personen werden gebeten, den Vermieter vor jeder Reservierung zu kontaktieren, um zu prüfen, ob das Boot ihren besonderen Bedürfnissen entspricht, und gegebenenfalls geeignete Aufnahmebedingungen zu organisieren.",
         ],
@@ -678,12 +678,12 @@ const terms: Record<Locale, TermsDocument> = {
     ],
   },
   nl: {
-    title: "Algemene huurvoorwaarden - Glampingboat™",
+    title: "Algemene huurvoorwaarden - Glamping Boat™",
     sections: [
       {
         heading: "1. Doel",
         paragraphs: [
-          "Deze Algemene Verkoop- en Huurvoorwaarden regelen de reservering en verhuur van de Glampingboat™, een elektrisch accommodatievaartuig zonder vaarbewijs, geëxploiteerd door Les Coches de Penchot (LCP).",
+          "Deze Algemene Verkoop- en Huurvoorwaarden regelen de reservering en verhuur van de Glamping Boat™, een elektrisch accommodatievaartuig zonder vaarbewijs, geëxploiteerd door Les Coches de Penchot (LCP).",
           "Elke reservering houdt de onvoorwaardelijke aanvaarding van deze voorwaarden in.",
         ],
       },
@@ -707,7 +707,7 @@ const terms: Record<Locale, TermsDocument> = {
       {
         heading: "3. Bezettingsvoorwaarden",
         paragraphs: [
-          "De Glampingboat™ is ontworpen voor maximaal 4 personen, waaronder ten minste één verantwoordelijke meerderjarige volwassene.",
+          "De Glamping Boat™ is ontworpen voor maximaal 4 personen, waaronder ten minste één verantwoordelijke meerderjarige volwassene.",
           "De huurder verbindt zich ertoe de maximale toegestane capaciteit en de bij overdracht verstrekte gebruiks- en veiligheidsinstructies na te leven.",
           "Navigatie is voorbehouden aan personen die de normale manoeuvres van een pleziervaartuig kunnen uitvoeren en de regels voor binnenvaart naleven.",
         ],
@@ -721,9 +721,9 @@ const terms: Record<Locale, TermsDocument> = {
         ],
       },
       {
-        heading: "5. Gebruik van de Glampingboat™",
+        heading: "5. Gebruik van de Glamping Boat™",
         paragraphs: [
-          "De Glampingboat™ is uitsluitend bestemd voor toeristisch en recreatief gebruik.",
+          "De Glamping Boat™ is uitsluitend bestemd voor toeristisch en recreatief gebruik.",
           "Met name zijn verboden:",
         ],
         items: [
@@ -745,7 +745,7 @@ const terms: Record<Locale, TermsDocument> = {
       {
         heading: "6. Milieubescherming",
         paragraphs: [
-          "De Glampingboat™ is uitgerust met een autonoom biologisch waterbehandelingssysteem en voorzieningen die de milieubelasting beperken.",
+          "De Glamping Boat™ is uitgerust met een autonoom biologisch waterbehandelingssysteem en voorzieningen die de milieubelasting beperken.",
           "De opvarenden verbinden zich ertoe:",
         ],
         items: [
@@ -881,7 +881,7 @@ const terms: Record<Locale, TermsDocument> = {
       {
         heading: "16. Toegankelijkheid en bijzondere omstandigheden",
         paragraphs: [
-          "De Glampingboat™ is ontworpen om de ontvangst van personen met beperkte mobiliteit of gasten die een kuur volgen te vergemakkelijken.",
+          "De Glamping Boat™ is ontworpen om de ontvangst van personen met beperkte mobiliteit of gasten die een kuur volgen te vergemakkelijken.",
           "Door de rivieromgeving en de beperkingen van navigatie kunnen echter bepaalde beperkingen blijven bestaan.",
           "Betrokken personen worden verzocht vóór elke reservering contact op te nemen met de verhuurder om na te gaan of de boot geschikt is voor hun specifieke behoeften en, indien nodig, passende ontvangstvoorwaarden te organiseren.",
         ],
@@ -897,12 +897,12 @@ const terms: Record<Locale, TermsDocument> = {
     ],
   },
   ru: {
-    title: "Общие условия аренды - Glampingboat™",
+    title: "Общие условия аренды - Glamping Boat™",
     sections: [
       {
         heading: "1. Предмет",
         paragraphs: [
-          "Настоящие Общие условия продажи и аренды регулируют бронирование и аренду Glampingboat™, электрической лодки для проживания, которой можно управлять без судоводительского удостоверения и которая эксплуатируется Les Coches de Penchot (LCP).",
+          "Настоящие Общие условия продажи и аренды регулируют бронирование и аренду Glamping Boat™, электрической лодки для проживания, которой можно управлять без судоводительского удостоверения и которая эксплуатируется Les Coches de Penchot (LCP).",
           "Любое бронирование означает безоговорочное принятие настоящих условий.",
         ],
       },
@@ -926,7 +926,7 @@ const terms: Record<Locale, TermsDocument> = {
       {
         heading: "3. Условия размещения",
         paragraphs: [
-          "Glampingboat™ рассчитан максимум на 4 человек, включая как минимум одного ответственного совершеннолетнего взрослого.",
+          "Glamping Boat™ рассчитан максимум на 4 человек, включая как минимум одного ответственного совершеннолетнего взрослого.",
           "Арендатор обязуется соблюдать максимально допустимую вместимость, а также инструкции по эксплуатации и безопасности, переданные при приемке.",
           "Навигация разрешена только лицам, способным выполнять обычные маневры прогулочного судна и соблюдать правила внутреннего судоходства.",
         ],
@@ -940,9 +940,9 @@ const terms: Record<Locale, TermsDocument> = {
         ],
       },
       {
-        heading: "5. Использование Glampingboat™",
+        heading: "5. Использование Glamping Boat™",
         paragraphs: [
-          "Glampingboat™ предназначен исключительно для туризма и отдыха.",
+          "Glamping Boat™ предназначен исключительно для туризма и отдыха.",
           "В частности, запрещены:",
         ],
         items: [
@@ -964,7 +964,7 @@ const terms: Record<Locale, TermsDocument> = {
       {
         heading: "6. Охрана окружающей среды",
         paragraphs: [
-          "Glampingboat™ оснащен автономной биологической системой обработки воды и оборудованием, предназначенным для ограничения воздействия на окружающую среду.",
+          "Glamping Boat™ оснащен автономной биологической системой обработки воды и оборудованием, предназначенным для ограничения воздействия на окружающую среду.",
           "Пассажиры обязуются:",
         ],
         items: [
@@ -1100,7 +1100,7 @@ const terms: Record<Locale, TermsDocument> = {
       {
         heading: "16. Доступность и особые обстоятельства",
         paragraphs: [
-          "Glampingboat™ был разработан для облегчения приема людей с ограниченной мобильностью или гостей, проходящих термальное лечение.",
+          "Glamping Boat™ был разработан для облегчения приема людей с ограниченной мобильностью или гостей, проходящих термальное лечение.",
           "Однако из-за речной среды и ограничений, связанных с навигацией, могут сохраняться определенные ограничения.",
           "Соответствующим лицам рекомендуется связаться с арендодателем до бронирования, чтобы проверить соответствие лодки их особым потребностям и при необходимости организовать наиболее подходящие условия приема.",
         ],
@@ -1116,12 +1116,12 @@ const terms: Record<Locale, TermsDocument> = {
     ],
   },
   es: {
-    title: "Condiciones generales de alquiler - Glampingboat™",
+    title: "Condiciones generales de alquiler - Glamping Boat™",
     sections: [
       {
         heading: "1. Objeto",
         paragraphs: [
-          "Las presentes Condiciones Generales de Venta y Alquiler regulan la reserva y el alquiler del Glampingboat™, barco-alojamiento eléctrico sin licencia explotado por Les Coches de Penchot (LCP).",
+          "Las presentes Condiciones Generales de Venta y Alquiler regulan la reserva y el alquiler del Glamping Boat™, barco-alojamiento eléctrico sin licencia explotado por Les Coches de Penchot (LCP).",
           "Toda reserva implica la aceptación sin reservas de estas condiciones.",
         ],
       },
@@ -1145,7 +1145,7 @@ const terms: Record<Locale, TermsDocument> = {
       {
         heading: "3. Condiciones de ocupación",
         paragraphs: [
-          "El Glampingboat™ está diseñado para alojar a un máximo de 4 personas, incluida al menos una persona adulta responsable.",
+          "El Glamping Boat™ está diseñado para alojar a un máximo de 4 personas, incluida al menos una persona adulta responsable.",
           "El arrendatario se compromete a respetar la capacidad máxima autorizada, así como las instrucciones de uso y seguridad entregadas en la recepción.",
           "La navegación queda reservada a personas aptas para realizar las maniobras habituales de una embarcación de recreo y respetar las normas de navegación interior.",
         ],
@@ -1159,9 +1159,9 @@ const terms: Record<Locale, TermsDocument> = {
         ],
       },
       {
-        heading: "5. Uso del Glampingboat™",
+        heading: "5. Uso del Glamping Boat™",
         paragraphs: [
-          "El Glampingboat™ está destinado exclusivamente a un uso turístico y de ocio.",
+          "El Glamping Boat™ está destinado exclusivamente a un uso turístico y de ocio.",
           "Queda especialmente prohibido:",
         ],
         items: [
@@ -1183,7 +1183,7 @@ const terms: Record<Locale, TermsDocument> = {
       {
         heading: "6. Respeto del medio ambiente",
         paragraphs: [
-          "El Glampingboat™ está equipado con un sistema autónomo de tratamiento biológico del agua y con equipos diseñados para limitar su impacto ambiental.",
+          "El Glamping Boat™ está equipado con un sistema autónomo de tratamiento biológico del agua y con equipos diseñados para limitar su impacto ambiental.",
           "Los ocupantes se comprometen a:",
         ],
         items: [
@@ -1319,7 +1319,7 @@ const terms: Record<Locale, TermsDocument> = {
       {
         heading: "16. Accesibilidad y situaciones particulares",
         paragraphs: [
-          "El Glampingboat™ ha sido diseñado para facilitar la acogida de personas con movilidad reducida o que siguen una cura termal.",
+          "El Glamping Boat™ ha sido diseñado para facilitar la acogida de personas con movilidad reducida o que siguen una cura termal.",
           "No obstante, debido al entorno fluvial y a las limitaciones relacionadas con la navegación, pueden subsistir ciertas limitaciones.",
           "Se invita a las personas afectadas a contactar con el arrendador antes de cualquier reserva para verificar la adecuación del barco a sus necesidades específicas y organizar, si fuera necesario, las condiciones de acogida más adecuadas.",
         ],
@@ -1335,12 +1335,12 @@ const terms: Record<Locale, TermsDocument> = {
     ],
   },
   it: {
-    title: "Condizioni generali di noleggio - Glampingboat™",
+    title: "Condizioni generali di noleggio - Glamping Boat™",
     sections: [
       {
         heading: "1. Oggetto",
         paragraphs: [
-          "Le presenti Condizioni Generali di Vendita e Noleggio disciplinano la prenotazione e il noleggio del Glampingboat™, barca-alloggio elettrica senza patente gestita da Les Coches de Penchot (LCP).",
+          "Le presenti Condizioni Generali di Vendita e Noleggio disciplinano la prenotazione e il noleggio del Glamping Boat™, barca-alloggio elettrica senza patente gestita da Les Coches de Penchot (LCP).",
           "Ogni prenotazione implica l'accettazione senza riserve delle presenti condizioni.",
         ],
       },
@@ -1364,7 +1364,7 @@ const terms: Record<Locale, TermsDocument> = {
       {
         heading: "3. Condizioni di occupazione",
         paragraphs: [
-          "Il Glampingboat™ è progettato per accogliere al massimo 4 persone, di cui almeno un adulto maggiorenne responsabile.",
+          "Il Glamping Boat™ è progettato per accogliere al massimo 4 persone, di cui almeno un adulto maggiorenne responsabile.",
           "Il conduttore si impegna a rispettare la capacità massima autorizzata e le istruzioni d'uso e sicurezza consegnate alla presa in carico.",
           "La navigazione è riservata a persone idonee a effettuare le manovre ordinarie di una barca da diporto e a rispettare le regole della navigazione interna.",
         ],
@@ -1378,9 +1378,9 @@ const terms: Record<Locale, TermsDocument> = {
         ],
       },
       {
-        heading: "5. Utilizzo del Glampingboat™",
+        heading: "5. Utilizzo del Glamping Boat™",
         paragraphs: [
-          "Il Glampingboat™ è destinato esclusivamente a un uso turistico e ricreativo.",
+          "Il Glamping Boat™ è destinato esclusivamente a un uso turistico e ricreativo.",
           "Sono in particolare vietati:",
         ],
         items: [
@@ -1402,7 +1402,7 @@ const terms: Record<Locale, TermsDocument> = {
       {
         heading: "6. Rispetto dell'ambiente",
         paragraphs: [
-          "Il Glampingboat™ è dotato di un sistema autonomo di trattamento biologico dell'acqua e di attrezzature progettate per limitare l'impatto ambientale.",
+          "Il Glamping Boat™ è dotato di un sistema autonomo di trattamento biologico dell'acqua e di attrezzature progettate per limitare l'impatto ambientale.",
           "Gli occupanti si impegnano a:",
         ],
         items: [
@@ -1538,7 +1538,7 @@ const terms: Record<Locale, TermsDocument> = {
       {
         heading: "16. Accessibilità e situazioni particolari",
         paragraphs: [
-          "Il Glampingboat™ è stato progettato per facilitare l'accoglienza di persone a mobilità ridotta o che seguono cure termali.",
+          "Il Glamping Boat™ è stato progettato per facilitare l'accoglienza di persone a mobilità ridotta o che seguono cure termali.",
           "Tuttavia, a causa dell'ambiente fluviale e dei vincoli legati alla navigazione, possono sussistere alcune limitazioni.",
           "Le persone interessate sono invitate a contattare il locatore prima di ogni prenotazione per verificare l'adeguatezza della barca alle loro esigenze specifiche e organizzare, se necessario, le condizioni di accoglienza più adatte.",
         ],

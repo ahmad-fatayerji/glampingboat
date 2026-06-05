@@ -135,6 +135,26 @@ body {
   text-align: center;
 }
 
+.button-arrow-icon {
+  transition: transform 0.2s ease;
+}
+
+:is(button, a):hover .button-arrow-icon,
+:is(button, a):focus-visible .button-arrow-icon {
+  transform: translateX(0.25rem);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .button-arrow-icon {
+    transition: none;
+  }
+
+  :is(button, a):hover .button-arrow-icon,
+  :is(button, a):focus-visible .button-arrow-icon {
+    transform: none;
+  }
+}
+
 .admin-pill {
   border: 1px solid rgba(228, 219, 206, 0.22);
   background: rgba(228, 219, 206, 0.12);

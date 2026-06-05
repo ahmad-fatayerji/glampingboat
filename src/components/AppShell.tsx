@@ -8,7 +8,6 @@ import BoatSlideshow, { type BoatSlide } from "@/components/Boat/BoatSlideshow";
 import BookingCalendar from "@/components/Booking/BookingCalendar";
 import BookingConfirmationPage from "@/components/Booking/BookingConfirmationPage";
 import BookingForm from "@/components/Booking/BookingForm";
-import BookingSpecPreview from "@/components/Booking/BookingSpecPreview";
 import BookingStripePage from "@/components/Booking/BookingStripePage";
 import type { ReservationSerialized } from "@/lib/types";
 import ContactForm from "@/components/Contact/ContactForm";
@@ -27,7 +26,6 @@ interface AppShellProps {
 type Stage =
   | "vision"
   | "boat"
-  | "preview"
   | "calendar"
   | "form"
   | "stripe"
@@ -142,8 +140,7 @@ export default function AppShell({ children, serverToday }: AppShellProps) {
   const handleBookClick = () => {
     if (
       drawerOpen &&
-      (stage === "preview" ||
-        stage === "calendar" ||
+      (stage === "calendar" ||
         stage === "form" ||
         stage === "stripe" ||
         stage === "confirmation")
@@ -152,7 +149,7 @@ export default function AppShell({ children, serverToday }: AppShellProps) {
       return;
     }
 
-    setStage("preview");
+    setStage("calendar");
     setRangeStart(null);
     setRangeEnd(null);
     setCompletedReservation(null);
@@ -185,8 +182,7 @@ export default function AppShell({ children, serverToday }: AppShellProps) {
       : drawerOpen && stage === "boat"
         ? "boat"
         : drawerOpen &&
-            (stage === "preview" ||
-              stage === "calendar" ||
+            (stage === "calendar" ||
               stage === "form" ||
               stage === "stripe" ||
               stage === "confirmation")
@@ -241,15 +237,6 @@ export default function AppShell({ children, serverToday }: AppShellProps) {
                 slides={BOAT_SLIDES}
                 onClose={() => setDrawerOpen(false)}
               />
-            )}
-
-            {stage === "preview" && (
-              <DrawerSurface>
-                <BookingSpecPreview
-                  onBack={() => setDrawerOpen(false)}
-                  onContinue={() => setStage("calendar")}
-                />
-              </DrawerSurface>
             )}
 
             {stage === "calendar" && (

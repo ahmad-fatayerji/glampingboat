@@ -24,27 +24,26 @@ export default function AdminRoleSelect({
   const router = useRouter();
   const [editing, setEditing] = useState(false);
   const [selectedRole, setSelectedRole] = useState<UserRole>(value);
+  const [pendingRole, setPendingRole] = useState<UserRole | null>(null);
+  const [confirmation, setConfirmation] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function updateRole(role: UserRole) {
+  const selectedRoleIsElevated =
+    selectedRole === "ADMIN" || selectedRole === "SUPER_ADMIN";
+
+  async function updateRole(role: UserRole, confirmedByUser = "") {
     if (role === value) {
       setEditing(false);
+      setPendingRole(null);
       return;
     }
 
-    const confirmation =
-      role === "ADMIN" || role === "SUPER_ADMIN"
-        ? window.prompt(
-            `Pour attribuer le role ${ROLE_LABELS[role]}, tapez ${ELEVATED_ROLE_CONFIRMATION}.`
-          )
-        : null;
-
     if (
       (role === "ADMIN" || role === "SUPER_ADMIN") &&
-      confirmation !== ELEVATED_ROLE_CONFIRMATION
+      confirmedByUser !== ELEVATED_ROLE_CONFIRMATION
     ) {
-      setError("Changement annule.");
+      setError(`Tapez ${ELEVATED_ROLE_CONFIRMATION} pour confirmer.`);
       return;
     }
 
@@ -59,7 +58,7 @@ export default function AdminRoleSelect({
           role,
           confirmation:
             role === "ADMIN" || role === "SUPER_ADMIN"
-              ? ELEVATED_ROLE_CONFIRMATION
+              ? confirmedByUser
               : undefined,
         }),
       });
@@ -69,6 +68,8 @@ export default function AdminRoleSelect({
       }
 
       setEditing(false);
+      setPendingRole(null);
+      setConfirmation("");
       router.refresh();
     } catch (roleError) {
       setError(roleError instanceof Error ? roleError.message : "Erreur");
@@ -84,7 +85,10 @@ export default function AdminRoleSelect({
           <select
             value={selectedRole}
             disabled={disabled || saving}
-            onChange={(event) => setSelectedRole(event.target.value as UserRole)}
+            onChange={(event) => {
+              setSelectedRole(event.target.value as UserRole);
+              setError(null);
+            }}
             className="admin-input h-9 rounded-md px-2 text-sm disabled:opacity-55"
           >
             <option value="CUSTOMER">Client</option>
@@ -94,7 +98,16 @@ export default function AdminRoleSelect({
           <button
             type="button"
             disabled={disabled || saving}
-            onClick={() => updateRole(selectedRole)}
+            onClick={() => {
+              if (selectedRoleIsElevated && selectedRole !== value) {
+                setPendingRole(selectedRole);
+                setConfirmation("");
+                setError(null);
+                return;
+              }
+
+              updateRole(selectedRole);
+            }}
             className="admin-button h-9 rounded-md px-3 text-xs font-medium disabled:opacity-55"
           >
             Appliquer
@@ -105,6 +118,8 @@ export default function AdminRoleSelect({
             onClick={() => {
               setSelectedRole(value);
               setEditing(false);
+              setPendingRole(null);
+              setConfirmation("");
               setError(null);
             }}
             className="admin-input h-9 rounded-md px-3 text-xs disabled:opacity-55"
@@ -119,6 +134,8 @@ export default function AdminRoleSelect({
           onClick={() => {
             setSelectedRole(value);
             setEditing(true);
+            setPendingRole(null);
+            setConfirmation("");
             setError(null);
           }}
           className="admin-input h-9 rounded-md px-3 text-sm disabled:opacity-55"
@@ -127,6 +144,60 @@ export default function AdminRoleSelect({
         </button>
       )}
       {error && <p className="max-w-56 text-xs text-[#ffd8d2]">{error}</p>}
+      {pendingRole && (
+        <div
+          className="fixed right-4 top-4 z-[220] w-[min(92vw,380px)] rounded-md border border-[#8aa7b8]/35 bg-[#183d57] p-4 text-left text-[var(--color-beige)] shadow-[0_18px_50px_rgba(0,0,0,0.45)]"
+          role="dialog"
+          aria-modal="false"
+          aria-labelledby={`role-confirmation-${userId}`}
+        >
+          <p
+            id={`role-confirmation-${userId}`}
+            className="text-sm font-semibold"
+          >
+            Confirmer le changement de role
+          </p>
+          <p className="admin-muted mt-2 text-xs">
+            Pour attribuer le role {ROLE_LABELS[pendingRole]}, tapez{" "}
+            <span className="font-semibold text-[var(--color-beige)]">
+              {ELEVATED_ROLE_CONFIRMATION}
+            </span>
+            .
+          </p>
+          <input
+            value={confirmation}
+            disabled={saving}
+            onChange={(event) => {
+              setConfirmation(event.target.value);
+              setError(null);
+            }}
+            className="admin-input mt-3 h-10 w-full rounded-md px-3 text-sm disabled:opacity-55"
+            autoFocus
+          />
+          <div className="mt-3 flex justify-end gap-2">
+            <button
+              type="button"
+              disabled={saving}
+              onClick={() => {
+                setPendingRole(null);
+                setConfirmation("");
+                setError(null);
+              }}
+              className="admin-input h-9 rounded-md px-3 text-xs disabled:opacity-55"
+            >
+              Annuler
+            </button>
+            <button
+              type="button"
+              disabled={saving || confirmation !== ELEVATED_ROLE_CONFIRMATION}
+              onClick={() => updateRole(pendingRole, confirmation)}
+              className="admin-button h-9 rounded-md px-3 text-xs font-medium disabled:opacity-55"
+            >
+              Confirmer
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
