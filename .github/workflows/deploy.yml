@@ -178,13 +178,22 @@ jobs:
             if [ "$status" != "running" ]; then
               return 1
             fi
+
+            local running_image
+            running_image="$(docker inspect -f '{{.Config.Image}}' "$container_id")"
+            echo "Web container image: $running_image"
+
+            if [ "$running_image" != "$IMAGE" ]; then
+              echo "Expected web image: $IMAGE"
+              return 1
+            fi
           }
 
           run_step "Pull image" compose pull
           run_step "Start database" compose up -d db
           run_step "Show database state" compose ps db
           run_step "Run migrations" compose run --rm migrate
-          run_step "Start web" compose up -d web
+          run_step "Recreate web" compose up -d --no-deps --force-recreate web
 
           sleep 5
           run_step "Check web container" check_web
