@@ -8,19 +8,32 @@ export default function CredentialsSignUp() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setSubmitting(true);
 
-    const res = await signIn("credentials", {
-      redirect: false,
-      email,
-      password,
-    });
+    try {
+      const res = await signIn("credentials", {
+        redirect: false,
+        email,
+        password,
+        isSignup: "true",
+      });
 
-    if (res?.error) setError(res.error);
-    else window.location.href = "/";
+      if (res?.error) {
+        setError(res.error);
+        return;
+      }
+
+      window.location.href = "/";
+    } catch {
+      setError(t("genericError"));
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -56,7 +69,11 @@ export default function CredentialsSignUp() {
           placeholder={t("authChoosePasswordPlaceholder")}
         />
       </div>
-      <button className="w-full rounded-xl bg-[#0d3350] py-2 text-sm tracking-wide text-[var(--color-beige)] transition hover:bg-[#123f61] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-beige)]/60">
+      <button
+        type="submit"
+        disabled={submitting}
+        className="w-full rounded-xl bg-[#0d3350] py-2 text-sm tracking-wide text-[var(--color-beige)] transition hover:bg-[#123f61] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-beige)]/60 disabled:cursor-not-allowed disabled:opacity-60"
+      >
         {t("authCreateAccount")}
       </button>
     </form>

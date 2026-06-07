@@ -2,9 +2,9 @@ import { getServerSession, type NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
 import type { UserRole } from "@/generated/prisma/client";
+import { authorizeCredentials } from "@/lib/auth-credentials";
 import { prisma } from "@/lib/prisma";
 import { getString, isRecord } from "@/lib/type-guards";
-import bcrypt from "bcryptjs";
 
 function readGoogleProfile(profile: unknown) {
   if (!isRecord(profile)) {
@@ -76,60 +76,10 @@ export const authOptions: NextAuthOptions = {
       credentials: {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
+        isSignup: { label: "Create account", type: "hidden" },
       },
       async authorize(creds) {
-        if (
-          !creds ||
-          typeof creds.email !== "string" ||
-          typeof creds.password !== "string"
-        ) {
-          throw new Error("Missing email or password");
-        }
-
-        const { email, password } = creds;
-        const user = await prisma.user.findUnique({ where: { email } });
-        const initialRole = getInitialRoleForEmail(email);
-
-        if (user) {
-          const role =
-            initialRole === "SUPER_ADMIN" && user.role !== "SUPER_ADMIN"
-              ? (
-                  await prisma.user.update({
-                    where: { id: user.id },
-                    data: { role: "SUPER_ADMIN" },
-                    select: { role: true },
-                  })
-                ).role
-              : user.role;
-
-          if (!user.password) {
-            throw new Error("Please sign in with Google");
-          }
-
-          const ok = await bcrypt.compare(password, user.password);
-          if (!ok) {
-            throw new Error("Invalid email or password");
-          }
-
-          return {
-            id: user.id,
-            email: user.email,
-            name: user.name ?? undefined,
-            role,
-          };
-        }
-
-        const hash = await bcrypt.hash(password, 12);
-        const newUser = await prisma.user.create({
-          data: { email, password: hash, name: "", avatar: "", role: initialRole },
-        });
-
-        return {
-          id: newUser.id,
-          email: newUser.email,
-          name: newUser.name ?? undefined,
-          role: newUser.role,
-        };
+        return authorizeCredentials(creds, prisma, getInitialRoleForEmail);
       },
     }),
     ...(isGoogleAuthEnabled()
