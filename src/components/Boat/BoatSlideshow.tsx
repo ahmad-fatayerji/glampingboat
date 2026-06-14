@@ -95,6 +95,7 @@ function ImageTile({
       src={src}
       alt={alt}
       fill
+      unoptimized
       sizes={sizes}
       priority={priority}
       quality={74}
@@ -209,6 +210,7 @@ function PlanSection({
               src={slide.src}
               alt={slide.alt}
               fill
+              unoptimized
               sizes={DRAWER_IMAGE_SIZES}
               priority
               quality={88}
@@ -385,6 +387,7 @@ function GalleryViewer({
               src={activeSlide.src}
               alt={activeSlide.alt}
               fill
+              unoptimized
               sizes="100vw"
               quality={88}
               className="object-cover"
@@ -419,6 +422,7 @@ function GalleryViewer({
                 src={slides[index].src}
                 alt={slides[index].alt}
                 fill
+                unoptimized
                 sizes="14vw"
                 quality={55}
                 className="object-cover"

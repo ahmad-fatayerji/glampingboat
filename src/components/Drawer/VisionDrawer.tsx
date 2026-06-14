@@ -40,6 +40,7 @@ function VisionImage({
         src={src}
         alt={alt}
         fill
+        unoptimized
         sizes={VISION_IMAGE_SIZES}
         priority={priority}
         placeholder="blur"
