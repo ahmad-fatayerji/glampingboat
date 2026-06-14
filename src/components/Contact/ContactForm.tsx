@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type ChangeEvent, type FormEvent } from "react";
+import DrawerSurface from "@/components/Drawer/DrawerSurface";
 import { useT } from "@/components/Language/useT";
 import { isPhoneField, sanitizePhoneNumber } from "@/lib/input";
 import type { AddressField, ContactFormData } from "@/lib/types";
@@ -36,6 +37,32 @@ function isContactField(name: string): name is ContactField {
 
 function fieldLabel(value: string) {
   return value.toLowerCase();
+}
+
+function ArrowIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 20 20"
+      className="button-arrow-icon h-4 w-4 shrink-0"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M3 10H15"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeWidth="2"
+      />
+      <path
+        d="M10 5L15 10L10 15"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="2"
+      />
+    </svg>
+  );
 }
 
 export default function ContactForm() {
@@ -109,7 +136,7 @@ export default function ContactForm() {
           : t("send");
 
   const inputClassName =
-    "h-10 w-full rounded-md border-2 border-[#0d3350] bg-[var(--color-beige)] px-3 text-[var(--color-blue)] outline-none transition placeholder:text-[var(--color-blue)]/45 focus:border-[#234d69]";
+    "h-11 w-full rounded-md border border-[var(--color-beige)]/18 bg-[rgba(13,51,80,0.34)] px-3 text-[var(--color-beige)] outline-none transition placeholder:text-[var(--color-beige)]/42 focus:border-[var(--color-beige)]/55 focus:bg-[rgba(13,51,80,0.48)]";
 
   const renderLabeledField = (
     field: "firstName" | "lastName" | "phone" | "mobile" | "email",
@@ -117,13 +144,13 @@ export default function ContactForm() {
   ) => (
     <div
       key={field}
-      className="grid grid-cols-1 items-center gap-2 sm:grid-cols-[10.5rem_minmax(0,1fr)]"
+      className="grid grid-cols-1 gap-2"
     >
       <label
         htmlFor={field}
-        className="text-[1.15rem] leading-none text-[var(--color-beige)]"
+        className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-beige)]/62"
       >
-        {fieldLabel(t(field))}
+        {t(field)}
       </label>
       <input
         id={field}
@@ -139,42 +166,105 @@ export default function ContactForm() {
   );
 
   return (
-    <div className="min-h-full p-3 sm:p-6">
+    <DrawerSurface className="gap-8 overflow-hidden !bg-transparent !shadow-none !backdrop-blur-0">
+      <header className="border-b border-white/15 pb-6">
+        <section className="relative flex flex-col justify-between gap-8 overflow-hidden bg-[#2f4858]/78 p-5 text-[var(--color-beige)] shadow-[inset_0_0_0_1px_rgba(228,219,206,0.14)] sm:p-7">
+          <div
+            className="pointer-events-none absolute -right-10 -top-10 h-36 w-36 rounded-full border border-[var(--color-beige)]/18"
+            aria-hidden="true"
+          />
+          <div
+            className="pointer-events-none absolute -right-5 -top-5 h-20 w-20 rounded-full border border-[var(--color-beige)]/14"
+            aria-hidden="true"
+          />
+          <div className="relative space-y-6">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.26em] text-[var(--color-beige)]/62">
+                {t("contact")}
+              </p>
+              <h2 className="mt-2 text-4xl font-semibold leading-[1.02] text-[var(--color-beige)] sm:text-5xl">
+                {t("contactUs")}
+              </h2>
+              <p className="mt-5 max-w-3xl text-lg leading-relaxed text-[var(--color-beige)]/88">
+                {t("buyAdventureBody")}
+              </p>
+            </div>
+
+            <dl className="grid max-w-3xl gap-3 sm:grid-cols-2">
+              <div className="border border-[var(--color-beige)]/14 bg-[rgba(13,51,80,0.2)] p-4">
+                <dt className="text-xs uppercase tracking-[0.18em] text-[var(--color-beige)]/58">
+                  {t("email")}
+                </dt>
+                <dd className="mt-2 text-lg font-semibold leading-snug text-[var(--color-beige)]">
+                  contact@glampingboat.fr
+                </dd>
+              </div>
+              <div className="border border-[var(--color-beige)]/14 bg-[rgba(13,51,80,0.2)] p-4">
+                <dt className="text-xs uppercase tracking-[0.18em] text-[var(--color-beige)]/58">
+                  Glamping Boat
+                </dt>
+                <dd className="mt-2 text-lg font-semibold leading-snug text-[var(--color-beige)]">
+                  Lot Valley, France
+                </dd>
+              </div>
+            </dl>
+          </div>
+
+          <div className="relative flex flex-wrap gap-3">
+            <a
+              href="mailto:contact@glampingboat.fr"
+              className="inline-flex w-fit items-center gap-2 rounded-md bg-[var(--color-blue)] px-4 py-2 font-semibold text-[var(--color-beige)] shadow-[0_10px_28px_rgba(0,32,56,0.32)] transition hover:bg-[#0b314b]"
+            >
+              <span>{t("email")}</span>
+              <ArrowIcon />
+            </a>
+            <a
+              href="#contact-message"
+              className="inline-flex w-fit items-center gap-2 rounded-md border border-[var(--color-beige)]/28 px-4 py-2 font-semibold text-[var(--color-beige)] transition hover:bg-white/8"
+            >
+              <span>{t("message")}</span>
+              <ArrowIcon />
+            </a>
+          </div>
+        </section>
+      </header>
+
       <form
         onSubmit={handleSubmit}
-        className="mx-auto flex min-h-[calc(100vh-1.5rem)] w-full max-w-6xl flex-col border border-white/15 bg-[#3f5666]/82 px-5 py-4 text-[var(--color-beige)] shadow-[0_18px_55px_rgba(0,0,0,0.35)] backdrop-blur-sm sm:min-h-[calc(100vh-3rem)] sm:px-10 sm:py-7"
+        className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(20rem,0.78fr)]"
       >
-        <div className="mb-5 grid grid-cols-[1fr_auto_1fr] items-end gap-4 border-b border-[#173c59] pb-2">
-          <h2 className="text-[1.05rem] tracking-wide text-[var(--color-beige)]">
-            {fieldLabel(t("contact"))}
-          </h2>
-          <div />
-          <h2 className="justify-self-start text-[1.05rem] tracking-wide text-[var(--color-beige)]">
-            {fieldLabel(t("message"))}
-          </h2>
-        </div>
+        <section className="bg-[#2f4858]/78 p-5 shadow-[inset_0_0_0_1px_rgba(228,219,206,0.14)] sm:p-7">
+          <div className="mb-6 border-b border-[var(--color-beige)]/18 pb-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.26em] text-[var(--color-beige)]/62">
+              {t("contact")}
+            </p>
+            <h3 className="mt-2 text-3xl font-semibold leading-tight text-[var(--color-beige)]">
+              {t("contactDetails")}
+            </h3>
+          </div>
 
-        <div className="grid flex-1 grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1.12fr)_minmax(22rem,0.88fr)]">
-          <div className="space-y-3">
-            <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+          <div className="space-y-5">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               {NAME_FIELDS.map((field) => renderLabeledField(field))}
             </div>
 
-            <div className="grid grid-cols-1 items-start gap-2 sm:grid-cols-[10.5rem_minmax(0,1fr)]">
-              <div className="pt-1 text-[1.15rem] leading-none text-[var(--color-beige)]">
-                {fieldLabel(t("address"))}
-              </div>
-              <div className="space-y-2">
+            <div>
+              <p className="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-beige)]/62">
+                {t("address")}
+              </p>
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 {ADDRESS_FIELDS.map((field) => (
                   <div
                     key={field}
-                    className="grid grid-cols-1 gap-2 sm:grid-cols-[7rem_minmax(0,1fr)]"
+                    className={
+                      field === "street" ? "grid gap-2 md:col-span-2" : "grid gap-2"
+                    }
                   >
                     <label
                       htmlFor={field}
-                      className="text-[1rem] leading-none text-[var(--color-beige)]/90 sm:justify-self-end sm:pt-2"
+                      className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-beige)]/50"
                     >
-                      {fieldLabel(t(field))}
+                      {t(field)}
                     </label>
                     <input
                       id={field}
@@ -190,68 +280,66 @@ export default function ContactForm() {
               </div>
             </div>
 
-            {PHONE_FIELDS.map((field) =>
-              renderLabeledField(field, "tel")
-            )}
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              {PHONE_FIELDS.map((field) => renderLabeledField(field, "tel"))}
+            </div>
 
             {renderLabeledField("email", "email")}
           </div>
+        </section>
 
-          <div className="flex min-h-[28rem] flex-col">
-            <div className="min-h-[22rem] flex-1 overflow-hidden rounded-[2.8rem] border-[3px] border-[#0d3350] bg-[var(--color-beige)] transition focus-within:border-[#234d69]">
-              <div className="h-full px-5 py-5 pr-3">
-                <textarea
-                  name="message"
-                  value={form.message}
-                  onChange={handleChange}
-                  placeholder={t("messagePlaceholder")}
-                  className="contact-message-scrollbar h-full w-full resize-none overflow-y-auto bg-transparent pr-3 text-[var(--color-blue)] outline-none placeholder:text-[var(--color-blue)]/45"
-                  required
-                />
-              </div>
-            </div>
+        <section
+          id="contact-message"
+          className="flex min-h-[30rem] scroll-mt-6 flex-col bg-[#2f4858]/78 p-5 text-[var(--color-beige)] shadow-[inset_0_0_0_1px_rgba(228,219,206,0.14)] sm:p-7"
+        >
+          <div className="mb-5 border-b border-[var(--color-beige)]/18 pb-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.26em] text-[var(--color-beige)]/62">
+              {t("message")}
+            </p>
+            <h3 className="mt-2 text-3xl font-semibold leading-tight">
+              {fieldLabel(t("messagePlaceholder")).replace("...", "")}
+            </h3>
+          </div>
 
-            <div className="mt-5 flex items-center justify-between gap-4">
-              {status === "error" ? (
-                <p className="max-w-xs text-sm text-[#ffd9d9]">
-                  {t("errorTooManyRequests")}
-                </p>
-              ) : (
-                <div />
-              )}
-
-              <button
-                type="submit"
-                disabled={status === "sending"}
-                className="inline-flex items-center gap-3 rounded-xl bg-[#0d3350] px-6 py-2 text-2xl text-[var(--color-beige)] transition hover:bg-[#123f61] disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                <span>{fieldLabel(statusLabel)}</span>
-                <svg
-                  aria-hidden="true"
-                  viewBox="0 0 20 20"
-                  className="h-5 w-5"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M3 10H15"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                  />
-                  <path
-                    d="M10 5L15 10L10 15"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </button>
+          <div className="min-h-[22rem] flex-1 overflow-hidden rounded-lg border border-[var(--color-beige)]/18 bg-[rgba(13,51,80,0.28)] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.04)] transition focus-within:border-[var(--color-beige)]/55 focus-within:bg-[rgba(13,51,80,0.4)]">
+            <div className="h-full px-5 py-5 pr-3">
+              <textarea
+                name="message"
+                value={form.message}
+                onChange={handleChange}
+                placeholder={t("messagePlaceholder")}
+                className="contact-message-scrollbar h-full min-h-[21rem] w-full resize-none overflow-y-auto bg-transparent pr-3 text-lg leading-relaxed text-[var(--color-beige)] outline-none placeholder:text-[var(--color-beige)]/45"
+                required
+              />
             </div>
           </div>
-        </div>
+
+          <div className="mt-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="min-h-5">
+              {status === "error" ? (
+                <p className="max-w-xs text-sm font-semibold text-[#ffd9d9]">
+                  {t("errorTooManyRequests")}
+                </p>
+              ) : status === "success" ? (
+                <p className="max-w-xs text-sm font-semibold text-[var(--color-beige)]/72">
+                  {t("sent")}
+                </p>
+              ) : (
+                <span aria-hidden="true" />
+              )}
+            </div>
+
+            <button
+              type="submit"
+              disabled={status === "sending"}
+              className="inline-flex w-fit items-center gap-2 rounded-md bg-[var(--color-blue)] px-5 py-2 font-semibold text-[var(--color-beige)] shadow-[0_10px_28px_rgba(0,32,56,0.28)] transition hover:bg-[#0b314b] disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              <span>{fieldLabel(statusLabel)}</span>
+              <ArrowIcon />
+            </button>
+          </div>
+        </section>
       </form>
-    </div>
+    </DrawerSurface>
   );
 }
