@@ -63,6 +63,16 @@ type BookingInputEvent = ChangeEvent<
   HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
 >;
 
+type BookingFieldProps = {
+  id: string;
+  name: string;
+  label: string;
+  value: string;
+  onChange: (event: BookingInputEvent) => void;
+  type?: string;
+  inputMode?: InputHTMLAttributes<HTMLInputElement>["inputMode"];
+};
+
 const buildInitialForm = (
   adults: number,
   childrenCount: number
@@ -657,44 +667,36 @@ export default function BookingForm({
       />
     </div>
   );
+}
 
-  function Field({
-    id,
-    name,
-    label,
-    value,
-    onChange,
-    type = "text",
-    inputMode,
-  }: {
-    id: string;
-    name: string;
-    label: string;
-    value: string;
-    onChange: (event: BookingInputEvent) => void;
-    type?: string;
-    inputMode?: InputHTMLAttributes<HTMLInputElement>["inputMode"];
-  }) {
-    return (
-      <div>
-        <label
-          htmlFor={id}
-          className="block text-sm text-[var(--color-beige)]/90"
-        >
-          {label}
-        </label>
-        <input
-          id={id}
-          name={name}
-          type={type}
-          value={value}
-          inputMode={inputMode}
-          onChange={onChange}
-          className="mt-1 h-10 w-full rounded-md border-2 border-[#0d3350] bg-[var(--color-beige)] px-3 text-[var(--color-blue)] outline-none transition focus:border-[#234d69]"
-        />
-      </div>
-    );
-  }
+function Field({
+  id,
+  name,
+  label,
+  value,
+  onChange,
+  type = "text",
+  inputMode,
+}: BookingFieldProps) {
+  return (
+    <div>
+      <label
+        htmlFor={id}
+        className="block text-sm text-[var(--color-beige)]/90"
+      >
+        {label}
+      </label>
+      <input
+        id={id}
+        name={name}
+        type={type}
+        value={value}
+        inputMode={inputMode}
+        onChange={onChange}
+        className="mt-1 h-10 w-full rounded-md border-2 border-[#0d3350] bg-[var(--color-beige)] px-3 text-[var(--color-blue)] outline-none transition focus:border-[#234d69]"
+      />
+    </div>
+  );
 }
 
 interface PriceRecapProps {

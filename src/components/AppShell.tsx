@@ -205,8 +205,20 @@ export default function AppShell({ children, serverToday }: AppShellProps) {
 
           <div
             className={`fixed bottom-4 left-4 z-40 transform transition-transform duration-300 ease-in-out ${
-              navOpen ? "translate-x-0" : "-translate-x-full"
+              navOpen ? "translate-x-0" : "-translate-x-full cursor-pointer"
             }`}
+            onClick={() => {
+              if (!navOpen) setNavOpen(true);
+            }}
+            role={navOpen ? undefined : "button"}
+            tabIndex={navOpen ? undefined : 0}
+            aria-label={navOpen ? undefined : "Open menu"}
+            onKeyDown={(event) => {
+              if (!navOpen && (event.key === "Enter" || event.key === " ")) {
+                event.preventDefault();
+                setNavOpen(true);
+              }
+            }}
           >
             <NavBox
               onVisionClick={() => openStage("vision")}

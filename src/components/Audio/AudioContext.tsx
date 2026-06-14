@@ -1,44 +1,71 @@
 "use client";
 
-import React, { createContext, useContext, useRef, useState } from "react";
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 
 interface AudioContextValue {
   muted: boolean;
   toggleMute: () => void;
+  registerMediaElement: (element: HTMLMediaElement | null) => void;
 }
 
 const AudioContext = createContext<AudioContextValue | null>(null);
 
 export const AudioProvider: React.FC<{
-  src: string;
   children: React.ReactNode;
-}> = ({ src, children }) => {
-  const audioRef = useRef<HTMLAudioElement>(null);
+}> = ({ children }) => {
+  const mediaRef = useRef<HTMLMediaElement | null>(null);
   const [muted, setMuted] = useState(true);
 
+  const registerMediaElement = useCallback(
+    (element: HTMLMediaElement | null) => {
+      mediaRef.current = element;
+      if (element) {
+        element.muted = muted;
+      }
+    },
+    [muted]
+  );
+
+  useEffect(() => {
+    if (mediaRef.current) {
+      mediaRef.current.muted = muted;
+    }
+  }, [muted]);
+
   const toggleMute = () => {
-    const audio = audioRef.current!;
+    const media = mediaRef.current;
+
+    if (!media) {
+      setMuted((current) => !current);
+      return;
+    }
+
     if (muted) {
-      // user is un-muting → play & then un-mute
-      audio
+      media.muted = false;
+      media
         .play()
         .then(() => {
-          audio.muted = false;
           setMuted(false);
         })
-        .catch((e) => {
-          console.warn("Playback blocked:", e);
+        .catch((error) => {
+          media.muted = true;
+          console.warn("Video playback blocked:", error);
         });
     } else {
-      // muting: just mute
-      audio.muted = true;
+      media.muted = true;
       setMuted(true);
     }
   };
 
   return (
-    <AudioContext.Provider value={{ muted, toggleMute }}>
-      <audio ref={audioRef} src={src} loop preload="auto" />
+    <AudioContext.Provider value={{ muted, toggleMute, registerMediaElement }}>
       {children}
     </AudioContext.Provider>
   );

@@ -39,9 +39,8 @@ export default function RootLayout({
       <body>
         <AuthSessionProvider>
           <LanguageProvider>
-            <BackgroundVideo />
-            {/* AudioProvider mounted once here, so audio persists across pages */}
-            <AudioProvider src="/audio/bg-music.mp3">
+            <AudioProvider>
+              <BackgroundVideo />
               <RouteAwareLogo />
 
               {/* Your shell (nav menu, drawer, booking flow) */}

@@ -1,6 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  images: {
+    qualities: [74, 75, 76, 88],
+  },
   async headers() {
     return [
       {
