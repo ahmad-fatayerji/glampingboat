@@ -105,6 +105,17 @@ test("one-night stays are not bookable", () => {
   );
 });
 
+test("long stays are bookable", () => {
+  assert.equal(
+    isRangeBookable(localDate("2026-07-01"), localDate("2026-07-16")),
+    true
+  );
+  assert.equal(
+    isRangeBookable(localDate("2026-07-01"), localDate("2026-08-01")),
+    true
+  );
+});
+
 test("options are added to total and deposit balance split remains 50 percent", () => {
   const cleaning: OptionRecord = {
     id: "cleaning",

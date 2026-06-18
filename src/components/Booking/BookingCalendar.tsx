@@ -50,14 +50,14 @@ const stripedBackground =
 
 const unavailableStyles = {
   closed: {
-    backgroundColor: "rgba(15, 36, 56, 0.55)",
+    backgroundColor: "rgba(15, 36, 56, 0.42)",
     backgroundImage: stripedBackground,
   },
 } satisfies Record<"closed", CSSProperties>;
 
 const promoStyle = {
-  backgroundColor: "rgba(215, 184, 111, 0.24)",
-  boxShadow: "inset 0 0 0 1px rgba(215, 184, 111, 0.78)",
+  backgroundColor: "rgba(215, 184, 111, 0.16)",
+  boxShadow: "inset 0 0 0 1px rgba(215, 184, 111, 0.82)",
 } satisfies CSSProperties;
 
 type AvailabilityRange = {
@@ -208,6 +208,7 @@ export default function BookingCalendar({
       if (!isSeasonOpen(day) || isUnavailableNight(day)) return;
       setArrival(day);
       setDeparture(null);
+      setHoverDate(null);
       return;
     }
 
@@ -216,13 +217,16 @@ export default function BookingCalendar({
         if (!isSeasonOpen(day) || isUnavailableNight(day)) return;
         setArrival(day);
         setDeparture(null);
+        setHoverDate(null);
         return;
       }
       setDeparture(day);
+      setHoverDate(null);
       return;
     }
 
     setArrival(day);
+    setHoverDate(null);
   };
 
   const isUnavailableNight = (date: Date) =>
@@ -252,12 +256,14 @@ export default function BookingCalendar({
     const isPast = date < today;
     const isUnavailable = isUnavailableNight(date);
     const isPromo = !!getPromoForNight(date);
+    const weekDayIndex = (getDay(date) + 6) % 7;
     const selectingDeparture = Boolean(arrival && !departure && date > arrival);
+    const endpointAvailable = !isPast && isSeasonOpen(date) && !isUnavailable;
+    const previewRangeSelectable =
+      selectingDeparture && arrival ? isRangeSelectable(arrival, date) : false;
     const available =
-      !isPast &&
-      (selectingDeparture
-        ? isRangeSelectable(arrival as Date, date)
-        : isSeasonOpen(date) && !isUnavailable);
+      endpointAvailable &&
+      (!selectingDeparture || calculateNightCount(arrival as Date, date) >= 1);
 
     const inSelected =
       arrival && departure && date >= arrival && date <= departure;
@@ -269,40 +275,54 @@ export default function BookingCalendar({
       hoverDate &&
       date > arrival &&
       date <= hoverDate;
+    const inInvalidHover =
+      inHover && selectingDeparture && !previewRangeSelectable;
 
     const classes = [
-      "flex h-9 items-center justify-center text-sm transition-colors",
+      "flex h-8 items-center justify-center text-sm font-medium transition-colors duration-150",
     ];
 
     if (!available) {
-      classes.push("w-9 justify-self-center text-[#5d6f7d] cursor-not-allowed");
+      classes.push(
+        "w-8 justify-self-center cursor-not-allowed rounded-md text-[#637684] opacity-75"
+      );
     } else if (isStart || isEnd) {
       if (arrival && departure) {
         classes.push(
-          "w-full justify-self-stretch bg-[var(--color-beige)] text-[var(--color-blue)] font-semibold",
+          "w-full justify-self-stretch bg-[var(--color-beige)] text-[var(--color-blue)] shadow-sm shadow-black/10",
           isStart ? "rounded-l-full" : "",
           isEnd ? "rounded-r-full" : ""
         );
       } else {
         classes.push(
-          "w-9 justify-self-center rounded-full bg-[var(--color-beige)] text-[var(--color-blue)] font-semibold"
+          "w-8 justify-self-center rounded-full bg-[var(--color-beige)] text-[var(--color-blue)] shadow-sm shadow-black/10"
         );
       }
     } else if (inSelected) {
       classes.push(
-        "w-full justify-self-stretch bg-[var(--color-beige)]/28 text-[var(--color-beige)]"
+        "w-full justify-self-stretch bg-[var(--color-beige)]/22 text-[var(--color-beige)]",
+        weekDayIndex === 0 ? "rounded-l-full" : "",
+        weekDayIndex === 6 ? "rounded-r-full" : ""
+      );
+    } else if (inInvalidHover) {
+      classes.push(
+        "w-full justify-self-stretch bg-[#9b5f55]/20 text-[#ffd9d9]",
+        weekDayIndex === 0 ? "rounded-l-full" : "",
+        weekDayIndex === 6 ? "rounded-r-full" : ""
       );
     } else if (inHover) {
       classes.push(
-        "w-full justify-self-stretch bg-[var(--color-beige)]/18 text-[var(--color-beige)]"
+        "w-full justify-self-stretch bg-[var(--color-beige)]/14 text-[var(--color-beige)]",
+        weekDayIndex === 0 ? "rounded-l-full" : "",
+        weekDayIndex === 6 ? "rounded-r-full" : ""
       );
     } else if (isPromo) {
       classes.push(
-        "w-9 justify-self-center cursor-pointer rounded-full font-semibold text-[#f5df9a] hover:bg-[#d7b86f]/32"
+        "w-8 justify-self-center cursor-pointer rounded-full text-[#f4d77d] hover:bg-[#d7b86f]/24 hover:text-[#ffe7a0]"
       );
     } else {
       classes.push(
-        "w-9 justify-self-center cursor-pointer rounded-full bg-[var(--color-beige)]/10 text-[var(--color-beige)] ring-1 ring-[var(--color-beige)]/35 hover:bg-[var(--color-beige)]/18"
+        "w-8 justify-self-center cursor-pointer rounded-full bg-[var(--color-beige)]/[0.07] text-[var(--color-beige)]/90 ring-1 ring-[var(--color-beige)]/28 hover:bg-[var(--color-beige)]/14 hover:text-[var(--color-beige)]"
       );
     }
 
@@ -320,9 +340,6 @@ export default function BookingCalendar({
         onClick={() => available && handleDayClick(date)}
         onMouseEnter={() =>
           available && arrival && !departure ? setHoverDate(date) : undefined
-        }
-        onMouseLeave={() =>
-          available && arrival && !departure ? setHoverDate(null) : undefined
         }
       >
         {day}
@@ -438,12 +455,12 @@ export default function BookingCalendar({
         </button>
       </div>
 
-      <div className="rounded-lg bg-[var(--color-blue)]/40 p-4">
-        <div className="mb-3 flex items-center justify-between">
+      <div className="rounded-xl border border-[var(--color-beige)]/10 bg-[var(--color-blue)]/45 p-4 shadow-xl shadow-black/10 backdrop-blur-sm sm:p-5">
+        <div className="mb-5 flex items-center justify-between">
           <button
             type="button"
             onClick={() => setCurrent((d) => subMonths(d, 1))}
-            className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--color-beige)]/15 text-[var(--color-beige)] transition hover:bg-[var(--color-beige)]/25"
+            className="flex h-8 w-8 items-center justify-center rounded-full border border-[var(--color-beige)]/10 bg-[var(--color-beige)]/12 text-[var(--color-beige)] shadow-sm transition hover:bg-[var(--color-beige)]/20"
             aria-label={t("previous")}
           >
             &lsaquo;
@@ -452,24 +469,30 @@ export default function BookingCalendar({
           <button
             type="button"
             onClick={() => setCurrent((d) => addMonths(d, 1))}
-            className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--color-beige)]/15 text-[var(--color-beige)] transition hover:bg-[var(--color-beige)]/25"
+            className="flex h-8 w-8 items-center justify-center rounded-full border border-[var(--color-beige)]/10 bg-[var(--color-beige)]/12 text-[var(--color-beige)] shadow-sm transition hover:bg-[var(--color-beige)]/20"
             aria-label={t("next")}
           >
             &rsaquo;
           </button>
         </div>
 
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+        <div
+          className="grid grid-cols-1 gap-8 md:grid-cols-2"
+          onMouseLeave={() => setHoverDate(null)}
+        >
           {months.map((monthDate) => {
             const blanks = (getDay(startOfMonth(monthDate)) + 6) % 7;
             const daysInMonth = getDaysInMonth(monthDate);
 
             return (
-              <div key={`${monthDate.getFullYear()}-${monthDate.getMonth()}`}>
-                <h3 className="mb-2 text-center font-serif text-lg italic text-[var(--color-beige)]">
+              <div
+                key={`${monthDate.getFullYear()}-${monthDate.getMonth()}`}
+                className="min-w-0"
+              >
+                <h3 className="mb-4 text-center font-serif text-lg italic text-[var(--color-beige)]">
                   {monthLabel(monthDate)}
                 </h3>
-                <div className="mb-1 grid grid-cols-7 text-[10px] uppercase tracking-wide text-[var(--color-beige)]/70">
+                <div className="mb-2 grid grid-cols-7 text-[10px] uppercase tracking-[0.08em] text-[var(--color-beige)]/60">
                   {[
                     t("dayMonShort"),
                     t("dayTueShort"),
@@ -487,7 +510,7 @@ export default function BookingCalendar({
                     </div>
                   ))}
                 </div>
-                <div className="grid grid-cols-7 gap-y-1">
+                <div className="grid grid-cols-7 gap-y-1.5">
                   {Array.from({ length: blanks }).map((_, idx) => (
                     <div key={`blank-${monthDate.getMonth()}-${idx}`} />
                   ))}
@@ -506,7 +529,7 @@ export default function BookingCalendar({
           </span>
           <LegendItem
             label={t("available")}
-            swatchClassName="rounded-full bg-[var(--color-beige)]/10 ring-1 ring-[var(--color-beige)]/35"
+            swatchClassName="rounded-full bg-[var(--color-beige)]/[0.07] ring-1 ring-[var(--color-beige)]/28"
           />
           <LegendItem
             label={t("bookingCalendarPromo")}
@@ -515,10 +538,11 @@ export default function BookingCalendar({
           />
           <LegendItem
             label={t("selectedRange")}
-            swatchClassName="rounded-full bg-[var(--color-beige)]"
+            swatchClassName="rounded-full bg-[var(--color-beige)] shadow-sm shadow-black/10"
           />
           <LegendItem
             label={t("notAvailable")}
+            swatchClassName="rounded-md opacity-75"
             swatchStyle={unavailableStyles.closed}
           />
         </div>
