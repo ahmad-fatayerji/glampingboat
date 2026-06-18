@@ -770,11 +770,16 @@ function PriceRecap({
             </div>
           )}
           {promoNightCount > 0 && (
-            <div className="rounded-lg border border-[#d7b86f]/45 bg-[#d7b86f]/12 px-3 py-2 text-[#f5df9a]">
+            <div className="rounded-lg border border-[#ffd36d]/50 bg-[linear-gradient(135deg,rgba(255,211,92,0.2),rgba(255,139,92,0.14))] px-3 py-2 text-left text-[#fff0c2] shadow-[0_12px_28px_rgba(0,0,0,0.14)]">
+              <p className="mb-1 inline-flex rounded-full bg-[#ffd36d]/16 px-2 py-0.5 text-[0.62rem] font-semibold uppercase tracking-[0.16em] text-[#ffe6a3] ring-1 ring-[#ffd36d]/34">
+                {t("bookingPromoApplied")}
+              </p>
+              <span className="block font-medium text-[#ffd86f]">
+                {t("bookingCalendarPromo")}
+              </span>
               <span>
                 {promoNightCount}{" "}
-                {promoNightCount === 1 ? t("nightSingular") : t("nightPlural")}{" "}
-                promo
+                {promoNightCount === 1 ? t("nightSingular") : t("nightPlural")}
               </span>
               <p className="font-medium">{fmtEuro(promoAccommodationTtc)}</p>
             </div>
@@ -783,7 +788,10 @@ function PriceRecap({
       </div>
 
       {appliedPromos.length > 0 && (
-        <div className="mt-4 rounded-lg border border-[#d7b86f]/35 bg-[#d7b86f]/10 p-3 text-xs text-[#f5df9a]">
+        <div className="mt-4 rounded-lg border border-[#ffd36d]/45 bg-[linear-gradient(135deg,rgba(255,211,92,0.17),rgba(255,139,92,0.12))] p-3 text-xs text-[#fff0c2] shadow-sm shadow-black/10">
+          <p className="mb-2 font-medium text-[#ffd86f]">
+            {t("bookingPromoApplied")}
+          </p>
           {appliedPromos.map((promo) => (
             <p key={promo.id}>
               {promo.title}: {promo.nights}{" "}

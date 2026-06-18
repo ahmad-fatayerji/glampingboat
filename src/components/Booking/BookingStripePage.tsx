@@ -52,17 +52,17 @@ export default function BookingStripePage({
       );
 
       if (!response.ok || !json.sessionId) {
-        throw new Error(json.error || "Failed to create checkout session");
+        throw new Error(json.error || t("genericError"));
       }
 
       if (!json.checkoutUrl) {
-        throw new Error("Checkout URL is missing");
+        throw new Error(t("genericError"));
       }
 
       window.location.assign(json.checkoutUrl);
     } catch (checkoutError) {
       setError(
-        getErrorMessage(checkoutError, "Failed to start Stripe checkout"),
+        getErrorMessage(checkoutError, t("genericError")),
       );
       setRedirecting(false);
     }

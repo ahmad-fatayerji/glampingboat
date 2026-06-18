@@ -16,6 +16,7 @@ import DrawerSurface from "@/components/Drawer/DrawerSurface";
 import LegalTextDrawer from "@/components/Drawer/LegalTextDrawer";
 import VisionDrawer from "@/components/Drawer/VisionDrawer";
 import LegalNoticesDrawer from "@/components/Legal/LegalNoticesDrawer";
+import { useT } from "@/components/Language/useT";
 import NavBox from "@/components/NavBox/NavBox";
 import WaveToggle from "@/components/NavBox/WaveToggle";
 interface AppShellProps {
@@ -80,6 +81,7 @@ const BOAT_SLIDES: BoatSlide[] = [
 ];
 
 export default function AppShell({ children, serverToday }: AppShellProps) {
+  const t = useT();
   const pathname = usePathname();
   const [navOpen, setNavOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -216,7 +218,7 @@ export default function AppShell({ children, serverToday }: AppShellProps) {
             }}
             role={navOpen ? undefined : "button"}
             tabIndex={navOpen ? undefined : 0}
-            aria-label={navOpen ? undefined : "Open menu"}
+            aria-label={navOpen ? undefined : t("openMenu")}
             onKeyDown={(event) => {
               if (!navOpen && (event.key === "Enter" || event.key === " ")) {
                 event.preventDefault();

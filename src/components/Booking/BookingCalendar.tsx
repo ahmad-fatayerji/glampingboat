@@ -24,6 +24,7 @@ import {
   calculateNightCount,
   calculateReservationPricingSummary,
   MINIMUM_NIGHTS,
+  NORMAL_NIGHTLY_TTC_CENTS,
   PROMO_NIGHTLY_TTC_CENTS,
   isRangeBookable,
   isSeasonOpen,
@@ -56,8 +57,10 @@ const unavailableStyles = {
 } satisfies Record<"closed", CSSProperties>;
 
 const promoStyle = {
-  backgroundColor: "rgba(215, 184, 111, 0.16)",
-  boxShadow: "inset 0 0 0 1px rgba(215, 184, 111, 0.82)",
+  background:
+    "linear-gradient(135deg,rgba(255,211,92,0.36),rgba(255,139,92,0.3))",
+  boxShadow:
+    "inset 0 0 0 1px rgba(255,213,112,0.88),0 0 16px rgba(255,180,76,0.18)",
 } satisfies CSSProperties;
 
 type AvailabilityRange = {
@@ -109,6 +112,14 @@ function parseDate(value: string): Date | null {
 
 function formatDate(date: Date | null): string {
   return date ? format(date, DATE_FORMAT) : "";
+}
+
+function formatPromoDate(value: string) {
+  return format(parseDateOnly(value), "MM/dd");
+}
+
+function fmtEuro(value: number) {
+  return `\u20AC${value.toFixed(0)}`;
 }
 
 function parseDateOnly(value: string) {
@@ -344,7 +355,7 @@ export default function BookingCalendar({
       );
     } else if (isPromo) {
       classes.push(
-        "w-8 justify-self-center cursor-pointer rounded-full text-[#f4d77d] hover:bg-[#d7b86f]/24 hover:text-[#ffe7a0]"
+        "w-8 justify-self-center cursor-pointer rounded-full text-[#fff0c2] hover:text-white hover:brightness-110"
       );
     } else {
       classes.push(
@@ -399,6 +410,11 @@ export default function BookingCalendar({
     });
   }, [arrival, departure, promoRanges]);
 
+  const visiblePromos = useMemo(
+    () => promoRanges.filter((promo) => promo.isActive).slice(0, 2),
+    [promoRanges]
+  );
+
   const handleArrivalText = (event: ChangeEvent<HTMLInputElement>) => {
     setArrivalText(event.target.value);
     const parsed = parseDate(event.target.value);
@@ -436,44 +452,69 @@ export default function BookingCalendar({
 
   return (
     <div className="flex w-full flex-col gap-6 text-[var(--color-beige)]">
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-[auto_1fr] sm:items-center">
-        <div className="space-y-2">
-          <label className="flex items-center gap-3 text-sm">
-            <input
-              type="text"
-              value={arrivalText}
-              onChange={handleArrivalText}
-              placeholder="MM/DD/YYYY"
-              className="h-9 w-32 rounded-md bg-[var(--color-beige)] px-3 text-sm text-[var(--color-blue)] outline-none"
-            />
-            <span>{t("arrivalDate")}</span>
-          </label>
-          <label className="flex items-center gap-3 text-sm">
-            <input
-              type="text"
-              value={departureText}
-              onChange={handleDepartureText}
-              placeholder="MM/DD/YYYY"
-              className="h-9 w-32 rounded-md bg-[var(--color-beige)] px-3 text-sm text-[var(--color-blue)] outline-none"
-            />
-            <span>{t("departureDate")}</span>
-          </label>
+      <div
+        className={`grid gap-4 rounded-xl border border-[var(--color-beige)]/10 bg-[var(--color-blue)]/24 p-4 shadow-sm shadow-black/10 sm:p-5 ${
+          visiblePromos.length > 0
+            ? "lg:grid-cols-[minmax(0,1fr)_minmax(18rem,0.82fr)]"
+            : ""
+        }`}
+      >
+        <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
+          <div>
+            <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-[var(--color-beige)]/62">
+              {t("selectedRange")}
+            </p>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <label className="grid gap-1.5 text-sm">
+                <span className="text-[var(--color-beige)]/78">
+                  {t("arrivalDate")}
+                </span>
+                <input
+                  type="text"
+                  value={arrivalText}
+                  onChange={handleArrivalText}
+                  placeholder={t("datePlaceholder")}
+                  className="h-10 rounded-md border border-[var(--color-beige)]/10 bg-[var(--color-beige)] px-3 text-sm text-[var(--color-blue)] outline-none transition focus:border-[var(--color-beige)] focus:ring-2 focus:ring-[var(--color-beige)]/20"
+                />
+              </label>
+              <label className="grid gap-1.5 text-sm">
+                <span className="text-[var(--color-beige)]/78">
+                  {t("departureDate")}
+                </span>
+                <input
+                  type="text"
+                  value={departureText}
+                  onChange={handleDepartureText}
+                  placeholder={t("datePlaceholder")}
+                  className="h-10 rounded-md border border-[var(--color-beige)]/10 bg-[var(--color-beige)] px-3 text-sm text-[var(--color-blue)] outline-none transition focus:border-[var(--color-beige)] focus:ring-2 focus:ring-[var(--color-beige)]/20"
+                />
+              </label>
+            </div>
+          </div>
+
+          {SHOW_BOOKING_GUEST_COUNTS && (
+            <div className="space-y-2">
+              <Counter
+                label={`${t("adults")} 18+`}
+                value={adults}
+                min={1}
+                onChange={setAdults}
+              />
+              <Counter
+                label={`${t("children")} 0-17`}
+                value={children}
+                min={0}
+                onChange={setChildren}
+              />
+            </div>
+          )}
         </div>
 
-        {SHOW_BOOKING_GUEST_COUNTS && (
-          <div className="space-y-2 sm:justify-self-end">
-            <Counter
-              label={`${t("adults")} 18+`}
-              value={adults}
-              min={1}
-              onChange={setAdults}
-            />
-            <Counter
-              label={`${t("children")} 0-17`}
-              value={children}
-              min={0}
-              onChange={setChildren}
-            />
+        {visiblePromos.length > 0 && (
+          <div className="grid gap-3">
+            {visiblePromos.map((promo) => (
+              <PromoCallout key={promo.id} promo={promo} t={t} />
+            ))}
           </div>
         )}
       </div>
@@ -589,6 +630,9 @@ export default function BookingCalendar({
               </p>
               {pricing.appliedPromos.length > 0 && (
                 <div className="mt-3 rounded-lg border border-[#d7b86f]/45 bg-[#d7b86f]/12 px-3 py-2 text-xs text-[#f5df9a]">
+                  <p className="mb-1 font-medium text-[#ffe5a3]">
+                    {t("bookingPromoApplied")}
+                  </p>
                   {pricing.appliedPromos.map((promo) => (
                     <p key={promo.id}>
                       {promo.title}: {promo.nights}{" "}
@@ -640,6 +684,47 @@ export default function BookingCalendar({
           >
             {t("contactUs")}
           </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PromoCallout({
+  promo,
+  t,
+}: {
+  promo: BookingPromoRecord;
+  t: ReturnType<typeof useT>;
+}) {
+  return (
+    <div className="relative overflow-hidden rounded-lg border border-[#ffd36d]/55 bg-[linear-gradient(135deg,rgba(255,211,92,0.22),rgba(255,139,92,0.16))] px-4 py-3 text-[#fff0c2] shadow-[0_16px_38px_rgba(0,0,0,0.16),0_0_28px_rgba(255,180,76,0.12)]">
+      <div className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full border border-[#ffd36d]/25 bg-[#ffd36d]/10" />
+      <div className="pointer-events-none absolute -bottom-10 left-1/3 h-20 w-20 rounded-full bg-[#ff8b5c]/12 blur-xl" />
+      <div className="relative flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p className="inline-flex rounded-full bg-[#ffd36d]/18 px-2.5 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.18em] text-[#ffe6a3] ring-1 ring-[#ffd36d]/36">
+            {t("bookingPromoAvailable")}
+          </p>
+          <p className="mt-2 font-serif text-2xl italic text-[#fff2c9]">
+            {promo.title}
+          </p>
+          <p className="mt-1 text-xs font-medium text-[#ffe2a0]/86">
+            {t("fromTo")
+              .replace("{start}", formatPromoDate(promo.startDate))
+              .replace("{end}", formatPromoDate(promo.endDate))}
+          </p>
+        </div>
+        <div className="rounded-lg bg-[#0d3350]/42 px-3 py-2 text-right ring-1 ring-[#ffd36d]/35">
+          <p className="text-xs text-[#fff0c2]/58 line-through">
+            {fmtEuro(NORMAL_NIGHTLY_TTC_CENTS / 100)}
+          </p>
+          <p className="text-2xl font-semibold leading-tight text-[#ffd86f]">
+            {fmtEuro(promo.nightlyTtcCents / 100)}
+          </p>
+          <p className="text-[0.65rem] uppercase tracking-[0.14em] text-[#fff0c2]/72">
+            {t("nightSingular")}
+          </p>
         </div>
       </div>
     </div>
