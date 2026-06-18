@@ -76,6 +76,32 @@ type UnavailableRange = {
   end: Date;
 };
 
+function ArrowIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 20 20"
+      className="button-arrow-icon h-4 w-4 shrink-0"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M3 10H15"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeWidth="2"
+      />
+      <path
+        d="M10 5L15 10L10 15"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="2"
+      />
+    </svg>
+  );
+}
+
 function parseDate(value: string): Date | null {
   const parsed = parse(value, DATE_FORMAT, new Date());
   return isValid(parsed) ? parsed : null;
@@ -402,9 +428,15 @@ export default function BookingCalendar({
     onContinue({ arrival, departure, adults, children, promos: selectedPromos });
   };
 
+  const resetSelection = () => {
+    setArrival(null);
+    setDeparture(null);
+    setHoverDate(null);
+  };
+
   return (
     <div className="flex w-full flex-col gap-6 text-[var(--color-beige)]">
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-[auto_1fr_auto] sm:items-center">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-[auto_1fr] sm:items-center">
         <div className="space-y-2">
           <label className="flex items-center gap-3 text-sm">
             <input
@@ -444,15 +476,6 @@ export default function BookingCalendar({
             />
           </div>
         )}
-
-        <button
-          type="button"
-          onClick={submit}
-          disabled={!rangeOk}
-          className="h-10 rounded-md bg-[var(--color-blue)] px-6 text-sm font-medium text-[var(--color-beige)] transition hover:bg-[#06324d] disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          {t("book")}
-        </button>
       </div>
 
       <div className="rounded-xl border border-[var(--color-beige)]/10 bg-[var(--color-blue)]/45 p-4 shadow-xl shadow-black/10 backdrop-blur-sm sm:p-5">
@@ -586,15 +609,25 @@ export default function BookingCalendar({
             )
           )}
         </div>
-        <button
-          type="button"
-          onClick={submit}
-          disabled={!rangeOk}
-          className="inline-flex items-center gap-2 rounded-md bg-[var(--color-blue)] px-5 py-2 text-sm font-medium text-[var(--color-beige)] transition hover:bg-[#06324d] disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          <span>{t("next")}</span>
-          <span>&gt;</span>
-        </button>
+        <div className="flex flex-wrap items-center gap-2 sm:justify-end">
+          <button
+            type="button"
+            onClick={resetSelection}
+            disabled={!arrival && !departure}
+            className="inline-flex items-center rounded-md border border-[var(--color-beige)]/20 px-4 py-2 text-sm font-medium text-[var(--color-beige)]/85 transition hover:border-[var(--color-beige)]/38 hover:bg-[var(--color-beige)]/8 disabled:cursor-not-allowed disabled:opacity-45"
+          >
+            {t("resetSelection")}
+          </button>
+          <button
+            type="button"
+            onClick={submit}
+            disabled={!rangeOk}
+            className="inline-flex items-center gap-2 rounded-md bg-[var(--color-blue)] px-5 py-2 text-sm font-medium text-[var(--color-beige)] transition hover:bg-[#06324d] disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <span>{t("book")}</span>
+            <ArrowIcon />
+          </button>
+        </div>
       </div>
 
       <div className="flex flex-col items-center gap-3 border-t border-[var(--color-beige)]/15 pt-4 text-sm text-[var(--color-beige)]/85 sm:flex-row sm:justify-between">
