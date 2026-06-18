@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useT } from "@/components/Language/useT";
+import { SHOW_TOURIST_TAX_BREAKDOWN } from "@/lib/booking-features";
 import { getErrorMessage, readJsonResponse } from "@/lib/http";
 import type { ApiErrorResponse, ReservationSerialized } from "@/lib/types";
 
@@ -237,10 +238,12 @@ export default function ReservationList({ reservations }: Props) {
                           value={euro(reservation.optionsPriceHt)}
                         />
                         <Info label={t("tvaHt")} value={euro(reservation.tvaHt)} />
-                        <Info
-                          label={t("touristTax")}
-                          value={euro(reservation.taxSejourTtc)}
-                        />
+                        {SHOW_TOURIST_TAX_BREAKDOWN && (
+                          <Info
+                            label={t("touristTax")}
+                            value={euro(reservation.taxSejourTtc)}
+                          />
+                        )}
                         <Info
                           label={t("deposit")}
                           value={euro(reservation.depositAmount)}
@@ -248,6 +251,18 @@ export default function ReservationList({ reservations }: Props) {
                         <Info
                           label={t("balance")}
                           value={euro(reservation.balanceAmount)}
+                        />
+                        <Info
+                          label={t("balanceDueDate")}
+                          value={
+                            reservation.balanceDueDate
+                              ? fmt(reservation.balanceDueDate, {
+                                  day: "2-digit",
+                                  month: "short",
+                                  year: "numeric",
+                                })
+                              : "-"
+                          }
                         />
                         <Info
                           label={t("paymentSection")}

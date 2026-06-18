@@ -103,6 +103,7 @@ model User {
 
   reservations Reservation[]
   availabilityBlocks AvailabilityBlock[] @relation("AvailabilityBlockActor")
+  bookingPromos BookingPromo[] @relation("BookingPromoActor")
 }
 
 model Reservation {
@@ -130,6 +131,7 @@ model Reservation {
   depositAmount   Float
   balanceAmount   Float
   securityDeposit Float
+  balanceDueDate  DateTime?
 
   currency                   String @default("EUR")
   baseAmountHtCents          Int    @default(0)
@@ -186,6 +188,23 @@ model Reservation {
   @@index([userId, startDate])
   @@index([status, startDate, endDate])
   @@index([paymentStatus])
+  @@index([balanceDueDate])
+}
+
+model BookingPromo {
+  id                String   @id @default(uuid())
+  title             String
+  startDate         DateTime
+  endDate           DateTime
+  nightlyTtcCents   Int      @default(19500)
+  isActive          Boolean  @default(true)
+  actorUser         User?    @relation("BookingPromoActor", fields: [actorUserId], references: [id], onDelete: SetNull)
+  actorUserId       String?  @db.Text
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @default(now()) @updatedAt
+
+  @@index([startDate, endDate])
+  @@index([isActive])
 }
 
 model Option {

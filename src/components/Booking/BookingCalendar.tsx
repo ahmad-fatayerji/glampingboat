@@ -6,6 +6,7 @@ import {
   useMemo,
   useState,
   type ChangeEvent,
+  type CSSProperties,
 } from "react";
 import {
   addMonths,
@@ -18,12 +19,16 @@ import {
   subMonths,
 } from "date-fns";
 import { useT } from "@/components/Language/useT";
+import { SHOW_BOOKING_GUEST_COUNTS } from "@/lib/booking-features";
 import {
   calculateNightCount,
   calculateReservationPricingSummary,
+  MINIMUM_NIGHTS,
+  PROMO_NIGHTLY_TTC_CENTS,
   isRangeBookable,
   isSeasonOpen,
 } from "@/lib/reservations";
+import type { BookingPromoRecord } from "@/lib/types";
 
 interface BookingCalendarProps {
   serverToday: string;
@@ -33,16 +38,42 @@ interface BookingCalendarProps {
     departure: Date;
     adults: number;
     children: number;
+    promos: BookingPromoRecord[];
   }) => void;
   onContact: () => void;
 }
 
 const DATE_FORMAT = "MM/dd/yyyy";
 
+const stripedBackground =
+  "repeating-linear-gradient(45deg,rgba(255,255,255,0.18) 0 2px,transparent 2px 6px)";
+
+const unavailableStyles = {
+  closed: {
+    backgroundColor: "rgba(15, 36, 56, 0.55)",
+    backgroundImage: stripedBackground,
+  },
+} satisfies Record<"closed", CSSProperties>;
+
+const promoStyle = {
+  backgroundColor: "rgba(215, 184, 111, 0.24)",
+  boxShadow: "inset 0 0 0 1px rgba(215, 184, 111, 0.78)",
+} satisfies CSSProperties;
+
 type AvailabilityRange = {
   id: string;
   startDate: string;
   endDate: string;
+  status?: string;
+  title?: string;
+  nightlyTtcCents?: number;
+  isActive?: boolean;
+};
+
+type UnavailableRange = {
+  id: string;
+  start: Date;
+  end: Date;
 };
 
 function parseDate(value: string): Date | null {
@@ -52,6 +83,17 @@ function parseDate(value: string): Date | null {
 
 function formatDate(date: Date | null): string {
   return date ? format(date, DATE_FORMAT) : "";
+}
+
+function parseDateOnly(value: string) {
+  const parts = /^(\d{4})-(\d{2})-(\d{2})/.exec(value);
+  if (!parts) return new Date(value);
+
+  return new Date(
+    Number.parseInt(parts[1], 10),
+    Number.parseInt(parts[2], 10) - 1,
+    Number.parseInt(parts[3], 10)
+  );
 }
 
 function startOfDay(date: Date) {
@@ -76,10 +118,11 @@ export default function BookingCalendar({
   const [arrivalText, setArrivalText] = useState("");
   const [departureText, setDepartureText] = useState("");
   const [adults, setAdults] = useState(2);
-  const [children, setChildren] = useState(2);
-  const [reservedRanges, setReservedRanges] = useState<
-    Array<{ id: string; start: Date; end: Date }>
+  const [children, setChildren] = useState(0);
+  const [unavailableRanges, setUnavailableRanges] = useState<
+    UnavailableRange[]
   >([]);
+  const [promoRanges, setPromoRanges] = useState<BookingPromoRecord[]>([]);
 
   useEffect(() => {
     setArrivalText(formatDate(arrival));
@@ -99,16 +142,30 @@ export default function BookingCalendar({
         const data = (await response.json()) as AvailabilityRange[];
         if (!active || !Array.isArray(data)) return;
 
-        setReservedRanges(
-          data.map((range) => ({
-            id: range.id,
-            start: startOfDay(new Date(range.startDate)),
-            end: startOfDay(new Date(range.endDate)),
-          }))
+        setUnavailableRanges(
+          data
+            .filter((range) => range.status !== "PROMO")
+            .map((range) => ({
+              id: range.id,
+              start: startOfDay(parseDateOnly(range.startDate)),
+              end: startOfDay(parseDateOnly(range.endDate)),
+            }))
+        );
+        setPromoRanges(
+          data
+            .filter((range) => range.status === "PROMO")
+            .map((range) => ({
+              id: range.id,
+              title: range.title ?? "Promo",
+              startDate: range.startDate,
+              endDate: range.endDate,
+              nightlyTtcCents: range.nightlyTtcCents ?? PROMO_NIGHTLY_TTC_CENTS,
+              isActive: range.isActive ?? true,
+            }))
         );
       } catch {
         if (active) {
-          setReservedRanges([]);
+          setUnavailableRanges([]);
         }
       }
     }
@@ -148,7 +205,7 @@ export default function BookingCalendar({
     if (day < today) return;
 
     if (!arrival || (arrival && departure)) {
-      if (!isSeasonOpen(day) || isReservedNight(day)) return;
+      if (!isSeasonOpen(day) || isUnavailableNight(day)) return;
       setArrival(day);
       setDeparture(null);
       return;
@@ -156,7 +213,7 @@ export default function BookingCalendar({
 
     if (day > arrival) {
       if (!isRangeSelectable(arrival, day)) {
-        if (!isSeasonOpen(day) || isReservedNight(day)) return;
+        if (!isSeasonOpen(day) || isUnavailableNight(day)) return;
         setArrival(day);
         setDeparture(null);
         return;
@@ -168,11 +225,18 @@ export default function BookingCalendar({
     setArrival(day);
   };
 
-  const isReservedNight = (date: Date) =>
-    reservedRanges.some((range) => date >= range.start && date < range.end);
+  const isUnavailableNight = (date: Date) =>
+    unavailableRanges.some((range) => date >= range.start && date < range.end);
+
+  const getPromoForNight = (date: Date) =>
+    promoRanges.find((range) => {
+      const start = startOfDay(parseDateOnly(range.startDate));
+      const end = startOfDay(parseDateOnly(range.endDate));
+      return range.isActive && date >= start && date <= end;
+    });
 
   const overlapsReservedRange = (start: Date, end: Date) =>
-    reservedRanges.some((range) => start < range.end && end > range.start);
+    unavailableRanges.some((range) => start < range.end && end > range.start);
 
   const isRangeSelectable = (start: Date, end: Date) =>
     start >= today &&
@@ -186,13 +250,14 @@ export default function BookingCalendar({
     );
 
     const isPast = date < today;
-    const isReserved = isReservedNight(date);
+    const isUnavailable = isUnavailableNight(date);
+    const isPromo = !!getPromoForNight(date);
     const selectingDeparture = Boolean(arrival && !departure && date > arrival);
     const available =
       !isPast &&
       (selectingDeparture
         ? isRangeSelectable(arrival as Date, date)
-        : isSeasonOpen(date) && !isReserved);
+        : isSeasonOpen(date) && !isUnavailable);
 
     const inSelected =
       arrival && departure && date >= arrival && date <= departure;
@@ -206,34 +271,46 @@ export default function BookingCalendar({
       date <= hoverDate;
 
     const classes = [
-      "h-9 w-9 flex items-center justify-center text-sm transition-colors",
+      "flex h-9 items-center justify-center text-sm transition-colors",
     ];
 
     if (!available) {
-      classes.push("text-[#5d6f7d] cursor-not-allowed");
+      classes.push("w-9 justify-self-center text-[#5d6f7d] cursor-not-allowed");
     } else if (isStart || isEnd) {
-      classes.push(
-        "bg-[var(--color-beige)] text-[var(--color-blue)] rounded-full font-semibold"
-      );
+      if (arrival && departure) {
+        classes.push(
+          "w-full justify-self-stretch bg-[var(--color-beige)] text-[var(--color-blue)] font-semibold",
+          isStart ? "rounded-l-full" : "",
+          isEnd ? "rounded-r-full" : ""
+        );
+      } else {
+        classes.push(
+          "w-9 justify-self-center rounded-full bg-[var(--color-beige)] text-[var(--color-blue)] font-semibold"
+        );
+      }
     } else if (inSelected) {
-      classes.push("bg-[var(--color-beige)]/40 text-[var(--color-beige)]");
+      classes.push(
+        "w-full justify-self-stretch bg-[var(--color-beige)]/28 text-[var(--color-beige)]"
+      );
     } else if (inHover) {
-      classes.push("bg-[var(--color-beige)]/25 text-[var(--color-beige)]");
+      classes.push(
+        "w-full justify-self-stretch bg-[var(--color-beige)]/18 text-[var(--color-beige)]"
+      );
+    } else if (isPromo) {
+      classes.push(
+        "w-9 justify-self-center cursor-pointer rounded-full font-semibold text-[#f5df9a] hover:bg-[#d7b86f]/32"
+      );
     } else {
       classes.push(
-        "text-[var(--color-beige)] hover:bg-[var(--color-beige)]/15 cursor-pointer rounded-full"
+        "w-9 justify-self-center cursor-pointer rounded-full bg-[var(--color-beige)]/10 text-[var(--color-beige)] ring-1 ring-[var(--color-beige)]/35 hover:bg-[var(--color-beige)]/18"
       );
     }
 
     const style = !available
-      ? {
-          backgroundColor: isReserved
-            ? "rgba(104, 44, 38, 0.55)"
-            : "rgba(15, 36, 56, 0.55)",
-          backgroundImage:
-            "repeating-linear-gradient(45deg,rgba(255,255,255,0.18) 0 2px,transparent 2px 6px)",
-        }
-      : undefined;
+      ? unavailableStyles.closed
+      : isPromo && !isStart && !isEnd && !inSelected && !inHover
+        ? promoStyle
+        : undefined;
 
     return (
       <div
@@ -266,8 +343,18 @@ export default function BookingCalendar({
       adults,
       children,
       selectedOptions: [],
+      promos: promoRanges,
     });
-  }, [rangeOk, arrival, departure, adults, children]);
+  }, [rangeOk, arrival, departure, adults, children, promoRanges]);
+
+  const selectedPromos = useMemo(() => {
+    if (!arrival || !departure) return [];
+    return promoRanges.filter((promo) => {
+      const promoStart = startOfDay(parseDateOnly(promo.startDate));
+      const promoEnd = startOfDay(parseDateOnly(promo.endDate));
+      return promo.isActive && arrival < promoEnd && departure > promoStart;
+    });
+  }, [arrival, departure, promoRanges]);
 
   const handleArrivalText = (event: ChangeEvent<HTMLInputElement>) => {
     setArrivalText(event.target.value);
@@ -295,7 +382,7 @@ export default function BookingCalendar({
       return;
     }
     if (!arrival || !departure || !rangeOk) return;
-    onContinue({ arrival, departure, adults, children });
+    onContinue({ arrival, departure, adults, children, promos: selectedPromos });
   };
 
   return (
@@ -324,20 +411,22 @@ export default function BookingCalendar({
           </label>
         </div>
 
-        <div className="space-y-2 sm:justify-self-end">
-          <Counter
-            label={`${t("adults")} 18+`}
-            value={adults}
-            min={1}
-            onChange={setAdults}
-          />
-          <Counter
-            label={`${t("children")} 0-17`}
-            value={children}
-            min={0}
-            onChange={setChildren}
-          />
-        </div>
+        {SHOW_BOOKING_GUEST_COUNTS && (
+          <div className="space-y-2 sm:justify-self-end">
+            <Counter
+              label={`${t("adults")} 18+`}
+              value={adults}
+              min={1}
+              onChange={setAdults}
+            />
+            <Counter
+              label={`${t("children")} 0-17`}
+              value={children}
+              min={0}
+              onChange={setChildren}
+            />
+          </div>
+        )}
 
         <button
           type="button"
@@ -411,16 +500,27 @@ export default function BookingCalendar({
           })}
         </div>
 
-        <div className="mt-3 flex items-center justify-end gap-2 text-xs text-[var(--color-beige)]/70">
-          <span
-            className="inline-block h-3 w-6"
-            style={{
-              backgroundColor: "rgba(15, 36, 56, 0.55)",
-              backgroundImage:
-                "repeating-linear-gradient(45deg,rgba(255,255,255,0.18) 0 2px,transparent 2px 6px)",
-            }}
+        <div className="mt-4 flex flex-wrap items-center justify-end gap-x-4 gap-y-2 text-xs text-[var(--color-beige)]/75">
+          <span className="font-medium text-[var(--color-beige)]/85">
+            {t("legend")}:
+          </span>
+          <LegendItem
+            label={t("available")}
+            swatchClassName="rounded-full bg-[var(--color-beige)]/10 ring-1 ring-[var(--color-beige)]/35"
           />
-          <span>{t("notAvailable")}</span>
+          <LegendItem
+            label={t("bookingCalendarPromo")}
+            swatchClassName="rounded-full"
+            swatchStyle={promoStyle}
+          />
+          <LegendItem
+            label={t("selectedRange")}
+            swatchClassName="rounded-full bg-[var(--color-beige)]"
+          />
+          <LegendItem
+            label={t("notAvailable")}
+            swatchStyle={unavailableStyles.closed}
+          />
         </div>
       </div>
 
@@ -440,12 +540,24 @@ export default function BookingCalendar({
                   String(pricing.nights)
                 )}
               </p>
+              {pricing.appliedPromos.length > 0 && (
+                <div className="mt-3 rounded-lg border border-[#d7b86f]/45 bg-[#d7b86f]/12 px-3 py-2 text-xs text-[#f5df9a]">
+                  {pricing.appliedPromos.map((promo) => (
+                    <p key={promo.id}>
+                      {promo.title}: {promo.nights}{" "}
+                      {promo.nights === 1 ? t("nightSingular") : t("nightPlural")}{" "}
+                      x &euro;{(promo.nightlyTtcCents / 100).toFixed(0)}
+                    </p>
+                  ))}
+                </div>
+              )}
             </>
           ) : (
             arrival &&
             departure && (
               <p className="text-sm text-[#ffd9d9]">
-                {t("notAvailableForChosenDates")}
+                {t("notAvailableForChosenDates")} ({MINIMUM_NIGHTS}{" "}
+                {t("nightPlural")} min.)
               </p>
             )
           )}
@@ -474,6 +586,26 @@ export default function BookingCalendar({
         </div>
       </div>
     </div>
+  );
+}
+
+function LegendItem({
+  label,
+  swatchClassName = "",
+  swatchStyle,
+}: {
+  label: string;
+  swatchClassName?: string;
+  swatchStyle?: CSSProperties;
+}) {
+  return (
+    <span className="inline-flex items-center gap-2 whitespace-nowrap">
+      <span
+        className={`inline-block h-3.5 w-6 ${swatchClassName}`}
+        style={swatchStyle}
+      />
+      {label}
+    </span>
   );
 }
 

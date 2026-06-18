@@ -26,7 +26,9 @@ import { getErrorMessage, readJsonResponse } from "@/lib/http";
 import { isPhoneField, sanitizePhoneNumber } from "@/lib/input";
 import type {
   AddressField,
+  AppliedBookingPromo,
   ApiErrorResponse,
+  BookingPromoRecord,
   BookingFormState,
   OptionRecord,
   ProfileResponse,
@@ -40,6 +42,7 @@ interface BookingFormProps {
   departureDate: Date;
   initialAdults?: number;
   initialChildren?: number;
+  promos?: BookingPromoRecord[];
   onBack?: () => void;
   onReserved?: (reservation: ReservationSerialized) => void;
 }
@@ -126,7 +129,7 @@ function isBookingCheckboxField(name: string): name is BookingCheckboxField {
 }
 
 function fmtEuro(value: number) {
-  return `€${value.toFixed(2)}`;
+  return `\u20AC${value.toFixed(2)}`;
 }
 
 function fmtDate(date: Date) {
@@ -138,6 +141,7 @@ export default function BookingForm({
   departureDate,
   initialAdults = 2,
   initialChildren = 0,
+  promos = [],
   onBack,
   onReserved,
 }: BookingFormProps) {
@@ -251,16 +255,14 @@ export default function BookingForm({
         adults: form.adults,
         children: form.children,
         selectedOptions,
+        promos,
       }),
-    [arrivalDate, departureDate, form.adults, form.children, selectedOptions]
+    [arrivalDate, departureDate, form.adults, form.children, selectedOptions, promos]
   );
 
   const headCount = form.adults + form.children;
   const nightlyTtc = pricing.nights > 0
     ? pricing.baseTtc / pricing.nights
-    : 0;
-  const taxPerAdultNight = form.adults > 0 && pricing.nights > 0
-    ? pricing.taxSejourTtc / (form.adults * pricing.nights)
     : 0;
 
   const requiredProfileFields = useMemo(
@@ -467,16 +469,18 @@ export default function BookingForm({
         departureDate={departureDate}
         nights={pricing.nights}
         nightlyTtc={nightlyTtc}
-        basePriceHt={pricing.basePriceHt}
         baseTtc={pricing.baseTtc}
-        adults={form.adults}
-        taxPerAdultNight={taxPerAdultNight}
-        taxTtc={pricing.taxSejourTtc}
         subtotalHt={pricing.subtotalHt}
         tvaHt={pricing.tvaHt}
         total={pricing.total}
         deposit={pricing.deposit}
         balance={pricing.balance}
+        balanceDueDate={pricing.balanceDueDate}
+        normalNightCount={pricing.normalNightCount}
+        promoNightCount={pricing.promoNightCount}
+        normalAccommodationTtc={pricing.normalAccommodationTtc}
+        promoAccommodationTtc={pricing.promoAccommodationTtc}
+        appliedPromos={pricing.appliedPromos}
         options={options}
         selectedOptions={form.options}
         onToggleOption={toggleOption}
@@ -581,23 +585,6 @@ export default function BookingForm({
             placeholder={t("comments")}
             className="h-40 w-full rounded-md border-2 border-[#0d3350] bg-[var(--color-beige)] p-3 text-[var(--color-blue)] outline-none transition placeholder:text-[var(--color-blue)]/45 focus:border-[#234d69]"
           />
-          <div className="mt-6">
-            <label
-              htmlFor="discountCode"
-              className="mb-1 block text-sm text-[var(--color-beige)]/90"
-            >
-              {t("discountCode")}
-            </label>
-            <input
-              id="discountCode"
-              type="text"
-              name="discountCode"
-              value={form.discountCode}
-              onChange={handleChange}
-              className="h-10 w-full rounded-md border-2 border-[#0d3350] bg-[var(--color-beige)] px-3 text-[var(--color-blue)] outline-none transition focus:border-[#234d69]"
-            />
-          </div>
-
           <h3 className="mt-8 mb-3 border-b border-[#173c59] pb-2 text-[1.05rem] tracking-wide text-[var(--color-beige)]">
             {t("paymentSection")}
           </h3>
@@ -613,6 +600,10 @@ export default function BookingForm({
             <div className="mt-1 flex items-center justify-between">
               <span>{t("balanceBeforeArrival")}</span>
               <span>{fmtEuro(pricing.balance)}</span>
+            </div>
+            <div className="mt-1 flex items-center justify-between">
+              <span>{t("balanceDueDate")}</span>
+              <span>{pricing.balanceDueDate}</span>
             </div>
           </div>
           <label className="mt-3 inline-flex items-center">
@@ -704,16 +695,18 @@ interface PriceRecapProps {
   departureDate: Date;
   nights: number;
   nightlyTtc: number;
-  basePriceHt: number;
   baseTtc: number;
-  adults: number;
-  taxPerAdultNight: number;
-  taxTtc: number;
   subtotalHt: number;
   tvaHt: number;
   total: number;
   deposit: number;
   balance: number;
+  balanceDueDate: string;
+  normalNightCount: number;
+  promoNightCount: number;
+  normalAccommodationTtc: number;
+  promoAccommodationTtc: number;
+  appliedPromos: AppliedBookingPromo[];
   options: OptionRecord[];
   selectedOptions: Record<string, boolean>;
   onToggleOption: (id: string, value: boolean) => void;
@@ -726,58 +719,80 @@ function PriceRecap({
   departureDate,
   nights,
   nightlyTtc,
-  basePriceHt,
   baseTtc,
-  adults,
-  taxPerAdultNight,
-  taxTtc,
   subtotalHt,
   tvaHt,
   total,
   deposit,
   balance,
+  balanceDueDate,
+  normalNightCount,
+  promoNightCount,
+  normalAccommodationTtc,
+  promoAccommodationTtc,
+  appliedPromos,
   options,
   selectedOptions,
   onToggleOption,
   headCount,
   t,
 }: PriceRecapProps) {
-  const baseVat = baseTtc - basePriceHt;
+  const normalNightlyTtc =
+    normalNightCount > 0 ? normalAccommodationTtc / normalNightCount : nightlyTtc;
 
   return (
     <div className="rounded-lg bg-[var(--color-blue)]/40 p-4 text-sm text-[var(--color-beige)]">
-      <div className="grid grid-cols-[1fr_auto_auto_auto] gap-x-4 gap-y-1">
-        <div />
-        <div className="text-right text-[var(--color-beige)]/80">
-          {t("excludingTax")}
-        </div>
-        <div className="text-right text-[var(--color-beige)]/80">
-          {t("vatLabel")}
-        </div>
-        <div className="text-right text-[var(--color-beige)]/80">
-          {t("allTax")}
-        </div>
-
+      <div className="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-start">
         <div>
-          <div className="text-[var(--color-beige)]">
-            {t("accommodationPrice")}:
-          </div>
-          <div className="text-xs text-[var(--color-beige)]/70">
+          <p className="text-xs uppercase tracking-[0.22em] text-[var(--color-beige)]/60">
+            {t("accommodationPrice")}
+          </p>
+          <p className="mt-1 text-3xl font-semibold">{fmtEuro(baseTtc)}</p>
+          <p className="mt-1 text-xs text-[var(--color-beige)]/70">
             {t("fromTo")
               .replace("{start}", fmtDate(arrivalDate))
               .replace("{end}", fmtDate(departureDate))}
-          </div>
-          <div className="text-xs text-[var(--color-beige)]/70">
-            {t("nightsCalc")
-              .replace("{nights}", String(nights))
-              .replace("{rate}", fmtEuro(nightlyTtc))
-              .replace("{total}", fmtEuro(baseTtc))}
-          </div>
+          </p>
+          <p className="mt-1 text-xs text-[var(--color-beige)]/70">
+            {nights} {nights === 1 ? t("nightSingular") : t("nightPlural")} -{" "}
+            {t("pricePreviewIncludesTax")}
+          </p>
         </div>
-        <div className="text-right">{fmtEuro(basePriceHt)}</div>
-        <div className="text-right">{fmtEuro(baseVat)}</div>
-        <div className="text-right">{fmtEuro(baseTtc)}</div>
+        <div className="grid gap-2 text-right text-xs">
+          {normalNightCount > 0 && (
+            <div>
+              <span className="text-[var(--color-beige)]/68">
+                {normalNightCount}{" "}
+                {normalNightCount === 1 ? t("nightSingular") : t("nightPlural")}{" "}
+                x {fmtEuro(normalNightlyTtc)}
+              </span>
+              <p className="font-medium">{fmtEuro(normalAccommodationTtc)}</p>
+            </div>
+          )}
+          {promoNightCount > 0 && (
+            <div className="rounded-lg border border-[#d7b86f]/45 bg-[#d7b86f]/12 px-3 py-2 text-[#f5df9a]">
+              <span>
+                {promoNightCount}{" "}
+                {promoNightCount === 1 ? t("nightSingular") : t("nightPlural")}{" "}
+                promo
+              </span>
+              <p className="font-medium">{fmtEuro(promoAccommodationTtc)}</p>
+            </div>
+          )}
+        </div>
       </div>
+
+      {appliedPromos.length > 0 && (
+        <div className="mt-4 rounded-lg border border-[#d7b86f]/35 bg-[#d7b86f]/10 p-3 text-xs text-[#f5df9a]">
+          {appliedPromos.map((promo) => (
+            <p key={promo.id}>
+              {promo.title}: {promo.nights}{" "}
+              {promo.nights === 1 ? t("nightSingular") : t("nightPlural")} x{" "}
+              {fmtEuro(promo.nightlyTtcCents / 100)}
+            </p>
+          ))}
+        </div>
+      )}
 
       {options.length > 0 && (
         <div className="mt-4 grid grid-cols-[1fr_auto_auto_auto] gap-x-4 gap-y-2 border-t border-[var(--color-beige)]/20 pt-3">
@@ -826,26 +841,6 @@ function PriceRecap({
         </div>
       )}
 
-      <div className="mt-4 grid grid-cols-[1fr_auto_auto_auto] gap-x-4 gap-y-1 border-t border-[var(--color-beige)]/20 pt-3">
-        <div>
-          <div>{t("tourismTax")}:</div>
-          <div className="text-xs text-[var(--color-beige)]/70">
-            {t("fromTo")
-              .replace("{start}", fmtDate(arrivalDate))
-              .replace("{end}", fmtDate(departureDate))}
-          </div>
-          <div className="text-xs text-[var(--color-beige)]/70">
-            {t("touristTaxCalc")
-              .replace("{adults}", String(adults))
-              .replace("{nights}", String(nights))
-              .replace("{rate}", fmtEuro(taxPerAdultNight))}
-          </div>
-        </div>
-        <div />
-        <div />
-        <div className="text-right">{fmtEuro(taxTtc)}</div>
-      </div>
-
       <div className="mt-4 grid grid-cols-[1fr_auto_auto_auto] gap-x-4 border-t border-[var(--color-beige)]/30 pt-3 font-medium">
         <div>{t("total")}:</div>
         <div className="text-right">{fmtEuro(subtotalHt)}</div>
@@ -862,6 +857,9 @@ function PriceRecap({
         </div>
         <div className="text-xs text-[var(--color-beige)]/85">
           {t("balanceBeforeArrival")} {fmtEuro(balance)}
+        </div>
+        <div className="text-xs text-[var(--color-beige)]/85">
+          {t("balanceDueDate")} {balanceDueDate}
         </div>
       </div>
     </div>

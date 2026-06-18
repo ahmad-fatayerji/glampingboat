@@ -9,7 +9,7 @@ import BookingCalendar from "@/components/Booking/BookingCalendar";
 import BookingConfirmationPage from "@/components/Booking/BookingConfirmationPage";
 import BookingForm from "@/components/Booking/BookingForm";
 import BookingStripePage from "@/components/Booking/BookingStripePage";
-import type { ReservationSerialized } from "@/lib/types";
+import type { BookingPromoRecord, ReservationSerialized } from "@/lib/types";
 import ContactForm from "@/components/Contact/ContactForm";
 import BuyDrawer from "@/components/Drawer/BuyDrawer";
 import DrawerSurface from "@/components/Drawer/DrawerSurface";
@@ -87,7 +87,8 @@ export default function AppShell({ children, serverToday }: AppShellProps) {
   const [rangeStart, setRangeStart] = useState<Date | null>(null);
   const [rangeEnd, setRangeEnd] = useState<Date | null>(null);
   const [bookingAdults, setBookingAdults] = useState(2);
-  const [bookingChildren, setBookingChildren] = useState(2);
+  const [bookingChildren, setBookingChildren] = useState(0);
+  const [bookingPromos, setBookingPromos] = useState<BookingPromoRecord[]>([]);
   const [completedReservation, setCompletedReservation] =
     useState<ReservationSerialized | null>(null);
   const { data: session } = useSession();
@@ -152,6 +153,7 @@ export default function AppShell({ children, serverToday }: AppShellProps) {
     setStage("calendar");
     setRangeStart(null);
     setRangeEnd(null);
+    setBookingPromos([]);
     setCompletedReservation(null);
     setDrawerOpen(true);
   };
@@ -161,6 +163,7 @@ export default function AppShell({ children, serverToday }: AppShellProps) {
     departure: Date;
     adults: number;
     children: number;
+    promos: BookingPromoRecord[];
   }) => {
     if (!session) {
       setNavOpen(false);
@@ -173,6 +176,7 @@ export default function AppShell({ children, serverToday }: AppShellProps) {
     setRangeEnd(params.departure);
     setBookingAdults(params.adults);
     setBookingChildren(params.children);
+    setBookingPromos(params.promos);
     setStage("form");
   };
 
@@ -272,6 +276,7 @@ export default function AppShell({ children, serverToday }: AppShellProps) {
                   departureDate={rangeEnd}
                   initialAdults={bookingAdults}
                   initialChildren={bookingChildren}
+                  promos={bookingPromos}
                   onBack={() => setStage("calendar")}
                   onReserved={(reservation) => {
                     setCompletedReservation(reservation);
@@ -304,6 +309,7 @@ export default function AppShell({ children, serverToday }: AppShellProps) {
                 onBookClick={() => {
                   setRangeStart(null);
                   setRangeEnd(null);
+                  setBookingPromos([]);
                   setStage("calendar");
                   setDrawerOpen(true);
                 }}

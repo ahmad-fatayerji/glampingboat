@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import AdminReservationActions from "@/components/admin/AdminReservationActions";
+import { SHOW_TOURIST_TAX_BREAKDOWN } from "@/lib/booking-features";
 import { ADMIN_RESERVATION_INCLUDE } from "@/lib/admin-data";
 import { prisma } from "@/lib/prisma";
 
@@ -45,6 +46,12 @@ export default async function AdminReservationDetailPage({
     }`.trim() ||
     reservation.customerEmail ||
     reservation.user.email;
+  const now = new Date();
+  const balanceOverdue =
+    reservation.status === "CONFIRMED" &&
+    reservation.balanceDueDate !== null &&
+    reservation.paidAmountCents < reservation.totalAmountTtcCents &&
+    now > reservation.balanceDueDate;
 
   return (
     <div className="space-y-5">
@@ -126,11 +133,36 @@ export default async function AdminReservationDetailPage({
               <Info label="Base HT" value={money(reservation.baseAmountHtCents)} />
               <Info label="Options HT" value={money(reservation.optionsAmountHtCents)} />
               <Info label="TVA" value={money(reservation.vatAmountCents)} />
-              <Info label="Taxe sejour" value={money(reservation.touristTaxAmountCents)} />
+              {SHOW_TOURIST_TAX_BREAKDOWN && (
+                <Info
+                  label="Taxe sejour"
+                  value={money(reservation.touristTaxAmountCents)}
+                />
+              )}
               <Info label="Total TTC" value={money(reservation.totalAmountTtcCents)} />
               <Info label="Acompte" value={money(reservation.depositAmountCents)} />
               <Info label="Solde" value={money(reservation.balanceAmountCents)} />
+              <Info
+                label="Date limite solde"
+                value={
+                  reservation.balanceDueDate
+                    ? dateFmt.format(reservation.balanceDueDate)
+                    : "-"
+                }
+              />
               <Info label="Paye" value={money(reservation.paidAmountCents)} />
+              <Info
+                label="Etat solde"
+                value={
+                  reservation.paidAmountCents >= reservation.totalAmountTtcCents
+                    ? "Paye integralement"
+                    : balanceOverdue
+                      ? "Solde en retard"
+                      : reservation.paidAmountCents > 0
+                        ? "Acompte paye"
+                        : "Non paye"
+                }
+              />
             </div>
           </Panel>
 
@@ -200,7 +232,10 @@ export default async function AdminReservationDetailPage({
 
         <aside className="space-y-5">
           <Panel title="Actions admin">
-            <AdminReservationActions reservationId={reservation.id} />
+            <AdminReservationActions
+              reservationId={reservation.id}
+              showGtcrBalanceCancel={balanceOverdue}
+            />
           </Panel>
           <Panel title="Consentement">
             <div className="grid gap-3">

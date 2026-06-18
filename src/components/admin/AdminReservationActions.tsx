@@ -5,8 +5,10 @@ import { useState, type FormEvent } from "react";
 
 export default function AdminReservationActions({
   reservationId,
+  showGtcrBalanceCancel = false,
 }: {
   reservationId: string;
+  showGtcrBalanceCancel?: boolean;
 }) {
   const router = useRouter();
   const [message, setMessage] = useState<string | null>(null);
@@ -86,6 +88,39 @@ export default function AdminReservationActions({
           Ajouter la note
         </button>
       </form>
+
+      {showGtcrBalanceCancel && (
+        <form
+          onSubmit={(event) =>
+            submitJson(
+              event,
+              "cancel-gtcr",
+              `/api/admin/reservations/${reservationId}/cancel`
+            )
+          }
+          className="space-y-3 rounded-md border border-[#d9b9b4] bg-[#5a1e1a]/35 p-3"
+        >
+          <h3 className="text-sm font-semibold text-[#ffd8d2]">
+            Solde GTCR en retard
+          </h3>
+          <p className="text-xs leading-relaxed text-[#ffd8d2]/85">
+            Annule la reservation pour non-paiement du solde 15 jours avant
+            l&apos;arrivee. Les montants deja verses ne sont pas rembourses
+            automatiquement.
+          </p>
+          <input
+            type="hidden"
+            name="reason"
+            value="GTCR balance unpaid after due date"
+          />
+          <button
+            disabled={busy === "cancel-gtcr"}
+            className="admin-danger-button w-full rounded-md px-4 py-2 text-sm disabled:opacity-55"
+          >
+            Annuler pour solde GTCR impaye
+          </button>
+        </form>
+      )}
 
       <form
         onSubmit={(event) =>

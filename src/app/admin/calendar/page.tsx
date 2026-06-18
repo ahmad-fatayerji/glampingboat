@@ -1,8 +1,9 @@
 import Link from "next/link";
 import AdminAvailabilityBlocks from "@/components/admin/AdminAvailabilityBlocks";
+import AdminBookingPromos from "@/components/admin/AdminBookingPromos";
 import { prisma } from "@/lib/prisma";
 import { startOfToday } from "@/lib/admin-data";
-import { serializeAvailabilityBlock } from "@/lib/reservations";
+import { serializeAvailabilityBlock, serializeBookingPromo } from "@/lib/reservations";
 
 export const dynamic = "force-dynamic";
 
@@ -14,7 +15,7 @@ const dateFmt = new Intl.DateTimeFormat("fr-FR", {
 
 export default async function AdminCalendarPage() {
   const today = startOfToday();
-  const [reservations, blocks] = await Promise.all([
+  const [reservations, blocks, promos] = await Promise.all([
     prisma.reservation.findMany({
       where: {
         status: { in: ["PENDING_PAYMENT", "CONFIRMED"] },
@@ -34,6 +35,10 @@ export default async function AdminCalendarPage() {
       where: { endDate: { gte: today } },
       orderBy: { startDate: "asc" },
       take: 100,
+    }),
+    prisma.bookingPromo.findMany({
+      orderBy: { startDate: "asc" },
+      take: 200,
     }),
   ]);
 
@@ -85,6 +90,19 @@ export default async function AdminCalendarPage() {
       <AdminAvailabilityBlocks
         blocks={blocks.map((block) => {
           const serialized = serializeAvailabilityBlock(block);
+          return {
+            ...serialized,
+            startDate: String(serialized.startDate),
+            endDate: String(serialized.endDate),
+            createdAt: String(serialized.createdAt),
+            updatedAt: String(serialized.updatedAt),
+          };
+        })}
+      />
+
+      <AdminBookingPromos
+        promos={promos.map((promo) => {
+          const serialized = serializeBookingPromo(promo);
           return {
             ...serialized,
             startDate: String(serialized.startDate),

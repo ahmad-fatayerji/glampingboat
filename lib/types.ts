@@ -93,12 +93,37 @@ export interface ReservationPricing {
   tvaHt: number;
   taxSejourTtc: number;
   total: number;
+  normalNightCount: number;
+  promoNightCount: number;
+  normalAccommodationTtc: number;
+  promoAccommodationTtc: number;
+  appliedPromos: AppliedBookingPromo[];
 }
 
 export interface ReservationPricingSummary extends ReservationPricing {
   nights: number;
   deposit: number;
   balance: number;
+  balanceDueDate: string;
+}
+
+export interface BookingPromoRecord {
+  id: string;
+  title: string;
+  startDate: string;
+  endDate: string;
+  nightlyTtcCents: number;
+  isActive: boolean;
+}
+
+export interface AppliedBookingPromo {
+  id: string;
+  title: string;
+  startDate: string;
+  endDate: string;
+  nightlyTtcCents: number;
+  nights: number;
+  amountTtc: number;
 }
 
 export interface ReservationCreatePayload {
@@ -173,6 +198,7 @@ export interface ReservationSerialized {
   balanceAmountCents: number;
   securityDepositAmountCents: number;
   paidAmountCents: number;
+  balanceDueDate: string | null;
   payFullNow: boolean;
   cancelledAt: string | null;
   cancellationReason: string | null;

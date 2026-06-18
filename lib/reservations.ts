@@ -1,10 +1,12 @@
 import type {
+  BookingPromo as PrismaBookingPromo,
   AvailabilityBlock as PrismaAvailabilityBlock,
   Prisma,
   PrismaClient,
   ReservationStatus,
 } from "@/generated/prisma/client";
 import type {
+  BookingPromoRecord,
   OptionRecord,
   ReservationOptionSerialized,
   ReservationSerialized,
@@ -17,49 +19,21 @@ export const VAT_RATE = 0.2;
 export const DEPOSIT_RATE = 0.5;
 export const SECURITY_DEPOSIT = 500;
 export const RESERVATION_CURRENCY = "EUR";
-export const PRICING_VERSION = "2026-datas-tarifs-reservation";
-export const TOURIST_TAX_VERSION = "2026-decazeville-5pct-plus-dept10";
+export const NORMAL_NIGHTLY_TTC_CENTS = 24000;
+export const PROMO_NIGHTLY_TTC_CENTS = 19500;
+export const MINIMUM_NIGHTS = 2;
+export const BALANCE_DUE_DAYS_BEFORE_ARRIVAL = 15;
+export const PRICING_VERSION = "2026-flat-nightly-promo";
+export const TOURIST_TAX_VERSION = "2026-included-in-nightly-rate";
 export const TERMS_VERSION = "2026-booking-terms";
 export const TERMS_HASH = "pending-legal-review";
 export const PRIVACY_VERSION = "2026-privacy";
 export const PRIVACY_HASH = "pending-legal-review";
 
-const TOURIST_TAX_COMMUNITY_RATE = 0.05;
-const TOURIST_TAX_DEPARTMENT_UPLIFT = 0.1;
+const TOURIST_TAX_COMMUNITY_RATE = 0;
+const TOURIST_TAX_DEPARTMENT_UPLIFT = 0;
 const LINEN_OPTION_PATTERN = /linge|lit|linen/i;
 const CLEANING_OPTION_PATTERN = /nettoyage|cleaning|household/i;
-
-type Season = "closed" | "veryLow" | "low" | "high" | "veryHigh";
-
-const SEASON_NIGHTLY_TTC: Record<Exclude<Season, "closed">, number> = {
-  veryLow: 228,
-  low: 228,
-  high: 242,
-  veryHigh: 285,
-};
-
-const SEASON_WEEKLY_TTC: Record<Exclude<Season, "closed">, number> = {
-  veryLow: 1590,
-  low: 1590,
-  high: 1690,
-  veryHigh: 1990,
-};
-
-const SEASON_WEEKEND_TTC: Record<Exclude<Season, "closed">, number> = {
-  veryLow: 690,
-  low: 690,
-  high: 725,
-  veryHigh: 855,
-};
-
-const MONTH_SEASON_BUCKETS: Record<number, [Season, Season, Season, Season]> = {
-  4: ["low", "low", "high", "high"], // May
-  5: ["high", "high", "high", "high"], // June
-  6: ["high", "high", "veryHigh", "veryHigh"], // July
-  7: ["veryHigh", "veryHigh", "veryHigh", "high"], // August
-  8: ["high", "high", "low", "low"], // September
-  9: ["low", "low", "closed", "closed"], // October
-};
 
 const ACTIVE_RESERVATION_STATUSES: ReservationStatus[] = [
   "PENDING_PAYMENT",
@@ -84,32 +58,48 @@ function startOfDay(date: Date) {
   return copy;
 }
 
-function seasonOpenStart(year: number) {
-  return new Date(year, 4, 1);
+function parseDateOnly(value: string) {
+  const parts = /^(\d{4})-(\d{2})-(\d{2})/.exec(value);
+  if (!parts) return new Date(value);
+
+  return new Date(
+    Number.parseInt(parts[1], 10),
+    Number.parseInt(parts[2], 10) - 1,
+    Number.parseInt(parts[3], 10)
+  );
 }
 
-function seasonOpenEnd(year: number) {
-  return new Date(year, 9, 15);
+function addDays(date: Date, days: number) {
+  const copy = startOfDay(date);
+  copy.setDate(copy.getDate() + days);
+  return copy;
 }
 
-function getSeasonForDate(date: Date): Season {
-  const dayStart = startOfDay(date);
-  if (
-    dayStart < seasonOpenStart(dayStart.getFullYear()) ||
-    dayStart >= seasonOpenEnd(dayStart.getFullYear())
-  ) {
-    return "closed";
-  }
+function formatDateKey(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
 
-  const month = dayStart.getMonth();
-  const buckets = MONTH_SEASON_BUCKETS[month];
-  if (!buckets) {
-    return "closed";
-  }
+function promoToRecord(promo: BookingPromoRecord) {
+  return {
+    ...promo,
+    start: startOfDay(parseDateOnly(promo.startDate)),
+    end: startOfDay(parseDateOnly(promo.endDate)),
+  };
+}
 
-  const day = dayStart.getDate();
-  const bucket = Math.min(3, Math.floor((day - 1) / 7));
-  return buckets[bucket];
+function getPromoForNight(date: Date, promos: BookingPromoRecord[]) {
+  const day = startOfDay(date);
+  return promos
+    .filter((promo) => promo.isActive)
+    .map(promoToRecord)
+    .find((promo) => day >= promo.start && day < promo.end);
+}
+
+export function getBalanceDueDate(arrivalDate: Date) {
+  return addDays(arrivalDate, -BALANCE_DUE_DAYS_BEFORE_ARRIVAL);
 }
 
 export const RESERVATION_WITH_ITEMS_INCLUDE = {
@@ -132,7 +122,7 @@ export function calculateNightCount(arrivalDate: Date, departureDate: Date) {
 }
 
 export function isSeasonOpen(date: Date) {
-  return getSeasonForDate(date) !== "closed";
+  return !Number.isNaN(date.getTime());
 }
 
 export function isRangeBookable(start: Date, end: Date) {
@@ -140,48 +130,87 @@ export function isRangeBookable(start: Date, end: Date) {
     return false;
   }
 
-  const cursor = startOfDay(start);
-  while (cursor.getTime() < end.getTime()) {
-    if (!isSeasonOpen(cursor)) {
-      return false;
-    }
-    cursor.setDate(cursor.getDate() + 1);
-  }
-
-  return true;
+  return calculateNightCount(start, end) >= MINIMUM_NIGHTS;
 }
 
-export function calculateBaseTtc(start: Date, end: Date) {
+export function calculateAccommodationPricing(
+  start: Date,
+  end: Date,
+  promos: BookingPromoRecord[] = []
+) {
   const nights = calculateNightCount(start, end);
   if (nights <= 0) {
-    return 0;
+    return {
+      totalTtc: 0,
+      normalNightCount: 0,
+      promoNightCount: 0,
+      normalAccommodationTtc: 0,
+      promoAccommodationTtc: 0,
+      appliedPromos: [],
+    };
   }
 
-  const arrivalSeason = getSeasonForDate(start);
-  if (arrivalSeason === "closed") {
-    return 0;
-  }
-
-  if (nights === 2) {
-    return SEASON_WEEKEND_TTC[arrivalSeason];
-  }
-
-  if (nights === 7) {
-    return SEASON_WEEKLY_TTC[arrivalSeason];
-  }
-
-  let total = 0;
+  let totalCents = 0;
+  let normalNightCount = 0;
+  let promoNightCount = 0;
+  let normalAccommodationCents = 0;
+  let promoAccommodationCents = 0;
+  const appliedPromoMap = new Map<
+    string,
+    BookingPromoRecord & { nights: number; amountTtcCents: number }
+  >();
   const cursor = startOfDay(start);
   for (let i = 0; i < nights; i += 1) {
-    const season = getSeasonForDate(cursor);
-    if (season === "closed") {
-      return 0;
+    const promo = getPromoForNight(cursor, promos);
+    const nightlyCents = promo?.nightlyTtcCents ?? NORMAL_NIGHTLY_TTC_CENTS;
+    totalCents += nightlyCents;
+
+    if (promo) {
+      promoNightCount += 1;
+      promoAccommodationCents += nightlyCents;
+      const current = appliedPromoMap.get(promo.id);
+      appliedPromoMap.set(promo.id, {
+        id: promo.id,
+        title: promo.title,
+        startDate: promo.startDate,
+        endDate: promo.endDate,
+        nightlyTtcCents: promo.nightlyTtcCents,
+        isActive: promo.isActive,
+        nights: (current?.nights ?? 0) + 1,
+        amountTtcCents: (current?.amountTtcCents ?? 0) + nightlyCents,
+      });
+    } else {
+      normalNightCount += 1;
+      normalAccommodationCents += nightlyCents;
     }
-    total += SEASON_NIGHTLY_TTC[season];
+
     cursor.setDate(cursor.getDate() + 1);
   }
 
-  return total;
+  return {
+    totalTtc: round2(totalCents / 100),
+    normalNightCount,
+    promoNightCount,
+    normalAccommodationTtc: round2(normalAccommodationCents / 100),
+    promoAccommodationTtc: round2(promoAccommodationCents / 100),
+    appliedPromos: Array.from(appliedPromoMap.values()).map((promo) => ({
+      id: promo.id,
+      title: promo.title,
+      startDate: promo.startDate,
+      endDate: promo.endDate,
+      nightlyTtcCents: promo.nightlyTtcCents,
+      nights: promo.nights,
+      amountTtc: round2(promo.amountTtcCents / 100),
+    })),
+  };
+}
+
+export function calculateBaseTtc(
+  start: Date,
+  end: Date,
+  promos: BookingPromoRecord[] = []
+) {
+  return calculateAccommodationPricing(start, end, promos).totalTtc;
 }
 
 export function calculateTouristTaxTtc({
@@ -195,20 +224,11 @@ export function calculateTouristTaxTtc({
   children: number;
   nights: number;
 }) {
-  const totalPersons = Math.max(1, adults + children);
-  if (nights <= 0 || adults <= 0 || baseTtc <= 0) {
-    return 0;
-  }
-
-  const baseHt = baseTtc / (1 + VAT_RATE);
-  const perNightHt = baseHt / nights;
-  const perPersonNightlyHt = perNightHt / totalPersons;
-  const communityShare = perPersonNightlyHt * TOURIST_TAX_COMMUNITY_RATE;
-  const perAdultNight = round2(
-    communityShare * (1 + TOURIST_TAX_DEPARTMENT_UPLIFT)
-  );
-
-  return round2(perAdultNight * adults * nights);
+  void baseTtc;
+  void adults;
+  void children;
+  void nights;
+  return 0;
 }
 
 export function getOptionQuantity(
@@ -249,17 +269,24 @@ export function calculateReservationPricingSummary({
   adults,
   children,
   selectedOptions,
+  promos = [],
 }: {
   arrivalDate: Date;
   departureDate: Date;
   adults: number;
   children: number;
   selectedOptions: OptionRecord[];
+  promos?: BookingPromoRecord[];
 }): ReservationPricingSummary {
   const nights = calculateNightCount(arrivalDate, departureDate);
   const headCount = adults + children;
 
-  const baseTtc = calculateBaseTtc(arrivalDate, departureDate);
+  const accommodation = calculateAccommodationPricing(
+    arrivalDate,
+    departureDate,
+    promos
+  );
+  const baseTtc = accommodation.totalTtc;
   const basePriceHt = round2(baseTtc / (1 + VAT_RATE));
   const optionLines = buildReservationOptionLines(selectedOptions, headCount);
   const optionsTtc = optionLines.reduce(
@@ -272,16 +299,12 @@ export function calculateReservationPricingSummary({
   const subtotalTtc = round2(baseTtc + optionsTtc);
   const tvaHt = round2(subtotalTtc - subtotalHt);
 
-  const taxSejourTtc = calculateTouristTaxTtc({
-    baseTtc,
-    adults,
-    children,
-    nights,
-  });
+  const taxSejourTtc = 0;
 
   const total = round2(subtotalTtc + taxSejourTtc);
   const deposit = round2(total * DEPOSIT_RATE);
   const balance = round2(total - deposit);
+  const balanceDueDate = formatDateKey(getBalanceDueDate(arrivalDate));
 
   return {
     nights,
@@ -294,6 +317,12 @@ export function calculateReservationPricingSummary({
     total,
     deposit,
     balance,
+    balanceDueDate,
+    normalNightCount: accommodation.normalNightCount,
+    promoNightCount: accommodation.promoNightCount,
+    normalAccommodationTtc: accommodation.normalAccommodationTtc,
+    promoAccommodationTtc: accommodation.promoAccommodationTtc,
+    appliedPromos: accommodation.appliedPromos,
   };
 }
 
@@ -307,6 +336,7 @@ export function toReservationMoneyFields(pricing: ReservationPricingSummary) {
     totalTtc: pricing.total,
     depositAmount: pricing.deposit,
     balanceAmount: pricing.balance,
+    balanceDueDate: new Date(`${pricing.balanceDueDate}T00:00:00`),
     securityDeposit: SECURITY_DEPOSIT,
     currency: RESERVATION_CURRENCY,
     baseAmountHtCents: toCents(pricing.basePriceHt),
@@ -350,6 +380,12 @@ export function buildPricingSnapshot({
     totalTtc: pricing.total,
     depositAmount: pricing.deposit,
     balanceAmount: pricing.balance,
+    balanceDueDate: pricing.balanceDueDate,
+    normalNightCount: pricing.normalNightCount,
+    promoNightCount: pricing.promoNightCount,
+    normalAccommodationTtc: pricing.normalAccommodationTtc,
+    promoAccommodationTtc: pricing.promoAccommodationTtc,
+    appliedPromos: pricing.appliedPromos,
     selectedOptions: selectedOptions.map((line) => ({
       id: line.option.id,
       name: line.option.name,
@@ -407,6 +443,7 @@ export function serializeReservation(
     ...reservation,
     startDate: reservation.startDate.toISOString(),
     endDate: reservation.endDate.toISOString(),
+    balanceDueDate: reservation.balanceDueDate?.toISOString() ?? null,
     cancelledAt: reservation.cancelledAt?.toISOString() ?? null,
     createdAt: reservation.createdAt.toISOString(),
     updatedAt: reservation.updatedAt.toISOString(),
@@ -448,5 +485,15 @@ export function serializeAvailabilityBlock(
     endDate: block.endDate.toISOString(),
     createdAt: block.createdAt.toISOString(),
     updatedAt: block.updatedAt.toISOString(),
+  };
+}
+
+export function serializeBookingPromo(promo: PrismaBookingPromo) {
+  return {
+    ...promo,
+    startDate: promo.startDate.toISOString(),
+    endDate: promo.endDate.toISOString(),
+    createdAt: promo.createdAt.toISOString(),
+    updatedAt: promo.updatedAt.toISOString(),
   };
 }

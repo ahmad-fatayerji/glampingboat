@@ -18,6 +18,7 @@ import {
   RESERVATION_CURRENCY,
   RESERVATION_WITH_ITEMS_INCLUDE,
   serializeAvailabilityBlock,
+  serializeBookingPromo,
   serializeReservation,
   TERMS_HASH,
   TERMS_VERSION,
@@ -40,6 +41,18 @@ const AVAILABILITY_SELECT = {
   endDate: true,
   status: true,
 } satisfies Prisma.ReservationSelect;
+
+const PROMO_SELECT = {
+  id: true,
+  title: true,
+  startDate: true,
+  endDate: true,
+  nightlyTtcCents: true,
+  isActive: true,
+  actorUserId: true,
+  createdAt: true,
+  updatedAt: true,
+} satisfies Prisma.BookingPromoSelect;
 
 function parseBookingDate(value: string) {
   const dateOnly = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
@@ -93,7 +106,7 @@ export async function GET(req: NextRequest) {
   }
 
   const today = startOfDay(new Date());
-  const [reservations, blocks] = await Promise.all([
+  const [reservations, blocks, promos] = await Promise.all([
     prisma.reservation.findMany({
       where: {
         status: { in: ["PENDING_PAYMENT", "CONFIRMED"] },
@@ -105,6 +118,14 @@ export async function GET(req: NextRequest) {
     prisma.availabilityBlock.findMany({
       where: { endDate: { gte: today } },
       orderBy: { startDate: "asc" },
+    }),
+    prisma.bookingPromo.findMany({
+      where: {
+        isActive: true,
+        endDate: { gte: today },
+      },
+      orderBy: { startDate: "asc" },
+      select: PROMO_SELECT,
     }),
   ]);
 
@@ -119,6 +140,10 @@ export async function GET(req: NextRequest) {
       ...blocks.map((block) => ({
         ...serializeAvailabilityBlock(block),
         status: "BLOCKED",
+      })),
+      ...promos.map((promo) => ({
+        ...serializeBookingPromo(promo),
+        status: "PROMO",
       })),
     ].sort((left, right) => left.startDate.localeCompare(right.startDate))
   );
@@ -182,15 +207,25 @@ export async function POST(req: NextRequest) {
     }
 
     const optionIds = Array.from(new Set(parsed.optionIds));
-    const selectedOptions = await prisma.option.findMany({
-      where: { id: { in: optionIds } },
-      select: {
-        id: true,
-        name: true,
-        priceHt: true,
-        description: true,
-      },
-    });
+    const [selectedOptions, activePromos] = await Promise.all([
+      prisma.option.findMany({
+        where: { id: { in: optionIds } },
+        select: {
+          id: true,
+          name: true,
+          priceHt: true,
+          description: true,
+        },
+      }),
+      prisma.bookingPromo.findMany({
+        where: {
+          isActive: true,
+          startDate: { lt: end },
+          endDate: { gt: start },
+        },
+        select: PROMO_SELECT,
+      }),
+    ]);
 
     if (selectedOptions.length !== optionIds.length) {
       return NextResponse.json(
@@ -205,6 +240,7 @@ export async function POST(req: NextRequest) {
       adults,
       children,
       selectedOptions,
+      promos: activePromos.map(serializeBookingPromo),
     });
     const headCount = parsed.adults + parsed.children;
     const optionLines = buildReservationOptionLines(selectedOptions, headCount);
@@ -267,7 +303,7 @@ export async function POST(req: NextRequest) {
           touristTaxVersion: TOURIST_TAX_VERSION,
           vatRate: VAT_RATE,
           selectedOptionsSnapshot: pricingSnapshot.selectedOptions,
-          pricingSnapshot,
+          pricingSnapshot: pricingSnapshot as unknown as Prisma.InputJsonValue,
           termsAcceptedAt: new Date(),
           termsVersion: TERMS_VERSION,
           termsLocale: locale,

@@ -101,6 +101,12 @@ export default function BookingStripePage({
               <div className="mt-1 text-2xl font-semibold tabular-nums">
                 {euroFromCents(amountDueCents)}
               </div>
+              {reservation.balanceDueDate && (
+                <div className="mt-1 text-xs text-[#687385]">
+                  {t("balanceDueDate")}:{" "}
+                  {new Date(reservation.balanceDueDate).toLocaleDateString()}
+                </div>
+              )}
             </div>
           </div>
 
