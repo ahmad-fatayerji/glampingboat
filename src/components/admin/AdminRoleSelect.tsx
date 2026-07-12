@@ -29,8 +29,7 @@ export default function AdminRoleSelect({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const selectedRoleIsElevated =
-    selectedRole === "ADMIN" || selectedRole === "SUPER_ADMIN";
+  const selectedRoleIsElevated = selectedRole === "ADMIN";
 
   async function updateRole(role: UserRole, confirmedByUser = "") {
     if (role === value) {
@@ -40,7 +39,7 @@ export default function AdminRoleSelect({
     }
 
     if (
-      (role === "ADMIN" || role === "SUPER_ADMIN") &&
+      role === "ADMIN" &&
       confirmedByUser !== ELEVATED_ROLE_CONFIRMATION
     ) {
       setError(`Tapez ${ELEVATED_ROLE_CONFIRMATION} pour confirmer.`);
@@ -56,10 +55,7 @@ export default function AdminRoleSelect({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           role,
-          confirmation:
-            role === "ADMIN" || role === "SUPER_ADMIN"
-              ? confirmedByUser
-              : undefined,
+          confirmation: role === "ADMIN" ? confirmedByUser : undefined,
         }),
       });
       const json = (await response.json().catch(() => ({}))) as { error?: string };
@@ -93,7 +89,6 @@ export default function AdminRoleSelect({
           >
             <option value="CUSTOMER">Client</option>
             <option value="ADMIN">Admin</option>
-            <option value="SUPER_ADMIN">Super admin</option>
           </select>
           <button
             type="button"

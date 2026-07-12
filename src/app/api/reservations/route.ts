@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@auth";
 import type { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
+import { isFeatureEnabled } from "@/lib/feature-flags";
 import { getErrorMessage } from "@/lib/http";
 import { isProfileComplete, USER_PROFILE_SELECT } from "@/lib/profile";
 import {
@@ -150,6 +151,13 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  if (!(await isFeatureEnabled("bookingEnabled"))) {
+    return NextResponse.json(
+      { error: "Booking is temporarily unavailable" },
+      { status: 403 }
+    );
+  }
+
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

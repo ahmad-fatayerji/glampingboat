@@ -11,6 +11,10 @@ const navItems = [
   { href: "/admin/calendar", label: "Calendrier" },
 ];
 
+const superAdminNavItems = [
+  { href: "/admin/feature-flags", label: "Feature flags" },
+];
+
 export default async function AdminLayout({ children }: { children: ReactNode }) {
   let session;
 
@@ -41,7 +45,10 @@ export default async function AdminLayout({ children }: { children: ReactNode })
             </p>
           </div>
           <nav className="mt-3 grid gap-1">
-            {navItems.map((item) => (
+            {[
+              ...navItems,
+              ...(isSuperAdminRole(session.user.role) ? superAdminNavItems : []),
+            ].map((item) => (
               <Link
                 key={item.href}
                 href={item.href}

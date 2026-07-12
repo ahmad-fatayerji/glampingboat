@@ -3,6 +3,7 @@ import AdminRoleSelect from "@/components/admin/AdminRoleSelect";
 import { requireAdmin } from "@/lib/admin";
 import { isSuperAdminRole } from "@/lib/admin-roles";
 import { prisma } from "@/lib/prisma";
+import { getEffectiveRoleForEmail } from "@/lib/super-admin";
 
 export const dynamic = "force-dynamic";
 
@@ -111,6 +112,10 @@ export default async function AdminCustomersPage({
             (sum, reservation) => sum + reservation.paidAmountCents,
             0
           );
+          const effectiveRole = getEffectiveRoleForEmail(
+            customer.email,
+            customer.role
+          );
 
           return (
             <article
@@ -123,7 +128,7 @@ export default async function AdminCustomersPage({
                   <p className="admin-muted break-all text-sm">{customer.email}</p>
                 </div>
                 <div className="flex flex-wrap gap-2 text-xs">
-                  <Badge>{customer.role}</Badge>
+                  <Badge>{effectiveRole}</Badge>
                   <ProfileStatusBadge missingFields={missingProfileFields} />
                   <Badge>{customer._count.reservations} reservation(s)</Badge>
                 </div>
@@ -170,8 +175,11 @@ export default async function AdminCustomersPage({
                 {canManageRoles ? (
                   <AdminRoleSelect
                     userId={customer.id}
-                    value={customer.role}
-                    disabled={customer.id === session.user.id}
+                    value={effectiveRole}
+                    disabled={
+                      customer.id === session.user.id ||
+                      effectiveRole === "SUPER_ADMIN"
+                    }
                   />
                 ) : (
                   <p className="admin-muted text-sm">

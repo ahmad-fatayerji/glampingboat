@@ -207,6 +207,17 @@ model BookingPromo {
   @@index([isActive])
 }
 
+model FeatureFlag {
+  key             String   @id
+  enabled         Boolean  @default(true)
+  description     String?
+  updatedByUserId String?  @db.Text
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @default(now()) @updatedAt
+
+  @@index([enabled])
+}
+
 model Option {
   id          String   @id @default(uuid())
   name        String   @unique

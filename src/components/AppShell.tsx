@@ -22,6 +22,7 @@ import WaveToggle from "@/components/NavBox/WaveToggle";
 interface AppShellProps {
   children: ReactNode;
   serverToday: string;
+  bookingEnabled: boolean;
 }
 
 type Stage =
@@ -80,7 +81,11 @@ const BOAT_SLIDES: BoatSlide[] = [
   },
 ];
 
-export default function AppShell({ children, serverToday }: AppShellProps) {
+export default function AppShell({
+  children,
+  serverToday,
+  bookingEnabled,
+}: AppShellProps) {
   const t = useT();
   const pathname = usePathname();
   const [navOpen, setNavOpen] = useState(false);
@@ -259,19 +264,28 @@ export default function AppShell({ children, serverToday }: AppShellProps) {
 
             {stage === "calendar" && (
               <DrawerSurface>
-                <BookingCalendar
-                  serverToday={serverToday}
-                  signedIn={!!session}
-                  onContinue={handleCalendarContinue}
-                  onContact={() => {
-                    setStage("contact");
-                    setDrawerOpen(true);
-                  }}
-                />
+                {bookingEnabled ? (
+                  <BookingCalendar
+                    serverToday={serverToday}
+                    signedIn={!!session}
+                    onContinue={handleCalendarContinue}
+                    onContact={() => {
+                      setStage("contact");
+                      setDrawerOpen(true);
+                    }}
+                  />
+                ) : (
+                  <BookingDisabledPanel
+                    onContact={() => {
+                      setStage("contact");
+                      setDrawerOpen(true);
+                    }}
+                  />
+                )}
               </DrawerSurface>
             )}
 
-            {stage === "form" && rangeStart && rangeEnd && (
+            {stage === "form" && bookingEnabled && rangeStart && rangeEnd && (
               <DrawerSurface>
                 <BookingForm
                   arrivalDate={rangeStart}
@@ -339,5 +353,33 @@ export default function AppShell({ children, serverToday }: AppShellProps) {
 
       {children}
     </>
+  );
+}
+
+function BookingDisabledPanel({ onContact }: { onContact: () => void }) {
+  const t = useT();
+
+  return (
+    <div className="flex min-h-[45vh] w-full flex-col justify-center gap-5 text-[var(--color-beige)]">
+      <div>
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--color-beige)]/62">
+          {t("book")}
+        </p>
+        <h2 className="mt-3 font-serif text-3xl italic">
+          Booking is temporarily unavailable
+        </h2>
+        <p className="mt-3 max-w-2xl text-sm leading-6 text-[var(--color-beige)]/78">
+          Online booking is paused right now. Please contact us and we will help
+          with availability and next steps.
+        </p>
+      </div>
+      <button
+        type="button"
+        onClick={onContact}
+        className="w-fit rounded-md bg-[var(--color-blue)] px-4 py-2 text-sm font-medium text-[var(--color-beige)] transition hover:bg-[#06324d]"
+      >
+        {t("contactUs")}
+      </button>
+    </div>
   );
 }

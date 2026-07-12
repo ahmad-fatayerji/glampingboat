@@ -1,6 +1,7 @@
 import { auth } from "@auth";
 import type { Session } from "next-auth";
 import { isAdminRole, isSuperAdminRole } from "@/lib/admin-roles";
+import { isSuperAdminEmail } from "@/lib/super-admin";
 
 export class AdminAccessError extends Error {
   constructor(
@@ -28,7 +29,10 @@ export async function requireAdmin(): Promise<Session> {
 export async function requireSuperAdmin(): Promise<Session> {
   const session = await requireAdmin();
 
-  if (!isSuperAdminRole(session.user.role)) {
+  if (
+    !isSuperAdminRole(session.user.role) ||
+    !isSuperAdminEmail(session.user.email)
+  ) {
     throw new AdminAccessError("Forbidden", 403);
   }
 

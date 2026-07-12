@@ -4,6 +4,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import type { UserRole } from "@/generated/prisma/client";
 import { authorizeCredentials } from "@/lib/auth-credentials";
 import { prisma } from "@/lib/prisma";
+import { getEffectiveRoleForEmail, isSuperAdminEmail } from "@/lib/super-admin";
 import { getString, isRecord } from "@/lib/type-guards";
 
 function readGoogleProfile(profile: unknown) {
@@ -23,28 +24,21 @@ function readGoogleProfile(profile: unknown) {
 async function getUserAuthFieldsByEmail(email: string) {
   return prisma.user.findUnique({
     where: { email },
-    select: { id: true, role: true },
+    select: { id: true, email: true, role: true },
   });
 }
 
 async function getUserRoleById(id: string): Promise<UserRole> {
   const user = await prisma.user.findUnique({
     where: { id },
-    select: { role: true },
+    select: { email: true, role: true },
   });
 
-  return user?.role ?? "CUSTOMER";
+  return getEffectiveRoleForEmail(user?.email, user?.role);
 }
 
 function getInitialRoleForEmail(email: string): UserRole {
-  const superAdminEmails = (process.env.SUPER_ADMIN_EMAILS ?? "")
-    .split(",")
-    .map((entry) => entry.trim().toLowerCase())
-    .filter(Boolean);
-
-  return superAdminEmails.includes(email.toLowerCase())
-    ? "SUPER_ADMIN"
-    : "CUSTOMER";
+  return isSuperAdminEmail(email) ? "SUPER_ADMIN" : "CUSTOMER";
 }
 
 export function isGoogleAuthEnabled() {
@@ -128,17 +122,28 @@ export const authOptions: NextAuthOptions = {
         if (user.email) {
           const authFields = await getUserAuthFieldsByEmail(user.email);
           token.id = authFields?.id ?? user.id;
-          token.role = authFields?.role ?? user.role ?? "CUSTOMER";
+          token.role = getEffectiveRoleForEmail(
+            authFields?.email ?? user.email,
+            authFields?.role ?? user.role ?? "CUSTOMER"
+          );
         } else {
           token.id = user.id;
-          token.role = user.role ?? "CUSTOMER";
+          token.role = getEffectiveRoleForEmail(
+            user.email,
+            user.role ?? "CUSTOMER"
+          );
         }
       } else if (!token.id && typeof token.email === "string") {
         const authFields = await getUserAuthFieldsByEmail(token.email);
         token.id = authFields?.id;
-        token.role = authFields?.role ?? "CUSTOMER";
+        token.role = getEffectiveRoleForEmail(
+          authFields?.email ?? token.email,
+          authFields?.role
+        );
       } else if (typeof token.id === "string" && !token.role) {
         token.role = await getUserRoleById(token.id);
+      } else if (typeof token.email === "string") {
+        token.role = getEffectiveRoleForEmail(token.email, token.role);
       }
 
       return token;

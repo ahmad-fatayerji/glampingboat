@@ -8,6 +8,7 @@ import { AudioProvider } from "@/components/Audio/AudioContext";
 import CookieBanner from "@/components/Legal/CookieBanner";
 import { LanguageProvider } from "@/components/Language/LanguageContext";
 import AuthSessionProvider from "@/components/providers/AuthSessionProvider";
+import { isFeatureEnabled } from "@/lib/feature-flags";
 
 const marcellus = Marcellus({ subsets: ["latin"], weight: "400" });
 const outfit = Outfit({ subsets: ["latin"], weight: ["100", "300"] });
@@ -22,7 +23,9 @@ export const metadata = {
   },
 };
 
-export default function RootLayout({
+export const dynamic = "force-dynamic";
+
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
@@ -33,6 +36,7 @@ export default function RootLayout({
   );
   parisNow.setHours(0, 0, 0, 0);
   const serverToday = parisNow.toISOString();
+  const bookingEnabled = await isFeatureEnabled("bookingEnabled");
 
   return (
     <html lang="en" className={`${marcellus.className} ${outfit.className}`}>
@@ -44,7 +48,12 @@ export default function RootLayout({
               <RouteAwareLogo />
 
               {/* Your shell (nav menu, drawer, booking flow) */}
-              <AppShell serverToday={serverToday}>{children}</AppShell>
+              <AppShell
+                serverToday={serverToday}
+                bookingEnabled={bookingEnabled}
+              >
+                {children}
+              </AppShell>
               <UserMenu />
               {/* Cookie consent banner */}
               <CookieBanner />

@@ -5,7 +5,7 @@ import { getErrorMessage } from "@/lib/http";
 import { prisma } from "@/lib/prisma";
 import { getString, isRecord } from "@/lib/type-guards";
 
-const ASSIGNABLE_ROLES: readonly UserRole[] = ["CUSTOMER", "ADMIN", "SUPER_ADMIN"];
+const ASSIGNABLE_ROLES: readonly UserRole[] = ["CUSTOMER", "ADMIN"];
 const ELEVATED_ROLE_CONFIRMATION = "CONFIRMER";
 
 export async function PATCH(
@@ -23,19 +23,16 @@ export async function PATCH(
       return NextResponse.json({ error: "Invalid role" }, { status: 400 });
     }
 
-    if (
-      (role === "ADMIN" || role === "SUPER_ADMIN") &&
-      confirmation !== ELEVATED_ROLE_CONFIRMATION
-    ) {
+    if (role === "ADMIN" && confirmation !== ELEVATED_ROLE_CONFIRMATION) {
       return NextResponse.json(
         { error: "Role elevation requires confirmation" },
         { status: 400 }
       );
     }
 
-    if (id === session.user.id && role !== "SUPER_ADMIN") {
+    if (id === session.user.id && role !== "ADMIN") {
       return NextResponse.json(
-        { error: "A super admin cannot demote their own account" },
+        { error: "A super admin cannot remove their own admin role" },
         { status: 409 }
       );
     }
