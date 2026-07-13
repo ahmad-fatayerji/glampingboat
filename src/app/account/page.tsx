@@ -16,11 +16,17 @@ export default async function AccountPage({
 }) {
   const session = await auth();
   const resolvedSearchParams = await searchParams;
+  const signedOutRaw = resolvedSearchParams.signedOut;
+  const signedOutRecently =
+    (Array.isArray(signedOutRaw) ? signedOutRaw[0] : signedOutRaw) === "1";
 
   if (!session) {
     return (
       <div className="min-h-screen flex items-center justify-center px-4 pt-40 pb-12">
-        <AccountAuthPanel googleAuthEnabled={isGoogleAuthEnabled()} />
+        <AccountAuthPanel
+          googleAuthEnabled={isGoogleAuthEnabled()}
+          signedOutRecently={signedOutRecently}
+        />
       </div>
     );
   }

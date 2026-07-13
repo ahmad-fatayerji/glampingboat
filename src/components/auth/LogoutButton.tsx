@@ -8,7 +8,7 @@ export default function LogoutButton() {
 
   return (
     <button
-      onClick={() => signOut({ callbackUrl: "/account" })}
+      onClick={() => signOut({ callbackUrl: "/account?signedOut=1" })}
       className="rounded-full bg-[var(--color-beige)] px-4 py-1.5 text-xs font-medium tracking-wide text-[var(--color-blue)] transition hover:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-beige)]/60"
     >
       {t("logoutMenu")}

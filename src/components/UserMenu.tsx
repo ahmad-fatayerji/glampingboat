@@ -106,7 +106,7 @@ export default function UserMenu() {
               )}
               <button
                 type="button"
-                onClick={() => signOut({ callbackUrl: "/" })}
+                onClick={() => signOut({ callbackUrl: "/account?signedOut=1" })}
                 className="w-full rounded-md px-4 py-3 text-left text-[#f0b4a8] transition hover:bg-[#a24a3f]/25"
               >
                 {t("logoutMenu")}

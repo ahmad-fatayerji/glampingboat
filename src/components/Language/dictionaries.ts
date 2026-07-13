@@ -127,6 +127,7 @@ const en = {
   authGoogleSignIn: "Sign in with Google",
   accountHeaderTitle: "Your account",
   accountSignedInSuccess: "You are now signed in.",
+  accountSignedOutSuccess: "You have been signed out.",
   accountHeaderHelp: "Use the tabs below to manage bookings or update your profile.",
   profileInformation: "Profile information",
   profileSaved: "Profile saved.",
@@ -488,6 +489,7 @@ export const dictionaries: Record<Locale, Dictionary> = {
     authGoogleSignIn: "Se connecter avec Google",
     accountHeaderTitle: "Votre compte",
     accountSignedInSuccess: "Vous etes maintenant connecte.",
+    accountSignedOutSuccess: "Vous etes deconnecte.",
     accountHeaderHelp:
       "Utilisez les onglets ci-dessous pour gérer vos réservations ou modifier votre profil.",
     profileInformation: "Informations du profil",
@@ -848,6 +850,7 @@ export const dictionaries: Record<Locale, Dictionary> = {
     authGoogleSignIn: "Mit Google anmelden",
     accountHeaderTitle: "Ihr Konto",
     accountSignedInSuccess: "Sie sind jetzt angemeldet.",
+    accountSignedOutSuccess: "Sie wurden abgemeldet.",
     accountHeaderHelp:
       "Verwenden Sie die Tabs unten, um Buchungen zu verwalten oder Ihr Profil zu aktualisieren.",
     profileInformation: "Profilinformationen",
@@ -1208,6 +1211,7 @@ export const dictionaries: Record<Locale, Dictionary> = {
     authGoogleSignIn: "Inloggen met Google",
     accountHeaderTitle: "Je account",
     accountSignedInSuccess: "Je bent nu ingelogd.",
+    accountSignedOutSuccess: "Je bent uitgelogd.",
     accountHeaderHelp:
       "Gebruik de tabbladen hieronder om boekingen te beheren of je profiel bij te werken.",
     profileInformation: "Profielinformatie",
@@ -1592,6 +1596,8 @@ export const dictionaries: Record<Locale, Dictionary> = {
     accountHeaderTitle: "\u0412\u0430\u0448 \u0430\u043a\u043a\u0430\u0443\u043d\u0442",
     accountSignedInSuccess:
       "\u0422\u0435\u043f\u0435\u0440\u044c \u0432\u044b \u0432\u043e\u0448\u043b\u0438 \u0432 \u0430\u043a\u043a\u0430\u0443\u043d\u0442.",
+    accountSignedOutSuccess:
+      "\u0412\u044b \u0432\u044b\u0448\u043b\u0438 \u0438\u0437 \u0430\u043a\u043a\u0430\u0443\u043d\u0442\u0430.",
     accountHeaderHelp:
       "\u0418\u0441\u043f\u043e\u043b\u044c\u0437\u0443\u0439\u0442\u0435 \u0432\u043a\u043b\u0430\u0434\u043a\u0438 \u043d\u0438\u0436\u0435, \u0447\u0442\u043e\u0431\u044b \u0443\u043f\u0440\u0430\u0432\u043b\u044f\u0442\u044c \u0431\u0440\u043e\u043d\u044f\u043c\u0438 \u0438\u043b\u0438 \u043e\u0431\u043d\u043e\u0432\u0438\u0442\u044c \u043f\u0440\u043e\u0444\u0438\u043b\u044c.",
     profileInformation:
@@ -1985,6 +1991,7 @@ export const dictionaries: Record<Locale, Dictionary> = {
     authGoogleSignIn: "Iniciar sesion con Google",
     accountHeaderTitle: "Tu cuenta",
     accountSignedInSuccess: "Ya has iniciado sesion.",
+    accountSignedOutSuccess: "Has cerrado sesion.",
     accountHeaderHelp:
       "Usa las pestanas de abajo para gestionar reservas o actualizar tu perfil.",
     profileInformation: "Informacion del perfil",
@@ -2345,6 +2352,7 @@ export const dictionaries: Record<Locale, Dictionary> = {
     authGoogleSignIn: "Accedi con Google",
     accountHeaderTitle: "Il tuo account",
     accountSignedInSuccess: "Ora hai effettuato l'accesso.",
+    accountSignedOutSuccess: "Hai effettuato l'uscita.",
     accountHeaderHelp:
       "Usa le schede qui sotto per gestire le prenotazioni o aggiornare il profilo.",
     profileInformation: "Informazioni del profilo",
