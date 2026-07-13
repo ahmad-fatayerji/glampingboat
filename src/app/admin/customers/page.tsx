@@ -4,26 +4,28 @@ import { requireAdmin } from "@/lib/admin";
 import { isSuperAdminRole } from "@/lib/admin-roles";
 import { prisma } from "@/lib/prisma";
 import { getEffectiveRoleForEmail } from "@/lib/super-admin";
+import { getServerLocale } from "@/components/Language/server-locale";
+import {
+  adminDateFormatter,
+  adminMoneyFormatter,
+  roleLabel,
+  tAdmin,
+} from "@/components/admin/admin-i18n";
 
 export const dynamic = "force-dynamic";
-
-const dateFmt = new Intl.DateTimeFormat("fr-FR", {
-  day: "2-digit",
-  month: "short",
-  year: "numeric",
-});
-
-const money = (cents: number) =>
-  new Intl.NumberFormat("fr-FR", {
-    style: "currency",
-    currency: "EUR",
-  }).format(cents / 100);
 
 export default async function AdminCustomersPage({
   searchParams,
 }: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
+  const locale = await getServerLocale();
+  const dateFmt = adminDateFormatter(locale, {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+  const money = (cents: number) => adminMoneyFormatter(locale).format(cents / 100);
   const session = await requireAdmin();
   const params = await searchParams;
   const q = Array.isArray(params.q) ? params.q[0] : params.q;
@@ -78,20 +80,20 @@ export default async function AdminCustomersPage({
     <div className="space-y-5">
       <header>
         <p className="admin-eyebrow">
-          Comptes
+          {tAdmin(locale, "account")}
         </p>
-        <h1 className="mt-2 text-3xl">Clients</h1>
+        <h1 className="mt-2 text-3xl">{tAdmin(locale, "clients")}</h1>
       </header>
 
       <form className="admin-surface grid gap-3 p-4 md:grid-cols-[1fr_auto]">
         <input
           name="q"
           defaultValue={search ?? ""}
-          placeholder="Nom, email, telephone"
+          placeholder={`${tAdmin(locale, "name")}, ${tAdmin(locale, "email")}, ${tAdmin(locale, "phone")}`}
           className="admin-input h-10 rounded-md px-3 text-sm"
         />
         <button className="admin-button h-10 rounded-md px-4 text-sm font-medium">
-          Rechercher
+          {tAdmin(locale, "search")}
         </button>
       </form>
 
@@ -100,13 +102,13 @@ export default async function AdminCustomersPage({
           const name =
             `${customer.firstName ?? ""} ${customer.lastName ?? ""}`.trim() ||
             customer.name ||
-            "Client";
+            tAdmin(locale, "client");
           const missingProfileFields = [
-            !customer.firstName ? "Prenom" : null,
-            !customer.lastName ? "Nom" : null,
-            !customer.phone ? "Telephone" : null,
-            !customer.addressStreet ? "Adresse" : null,
-            !customer.addressCity ? "Ville" : null,
+            !customer.firstName ? tAdmin(locale, "firstName") : null,
+            !customer.lastName ? tAdmin(locale, "name") : null,
+            !customer.phone ? tAdmin(locale, "phone") : null,
+            !customer.addressStreet ? tAdmin(locale, "address") : null,
+            !customer.addressCity ? tAdmin(locale, "city") : null,
           ].filter((field): field is string => Boolean(field));
           const paidCents = customer.reservations.reduce(
             (sum, reservation) => sum + reservation.paidAmountCents,
@@ -128,13 +130,20 @@ export default async function AdminCustomersPage({
                   <p className="admin-muted break-all text-sm">{customer.email}</p>
                 </div>
                 <div className="flex flex-wrap gap-2 text-xs">
-                  <Badge>{effectiveRole}</Badge>
-                  <ProfileStatusBadge missingFields={missingProfileFields} />
-                  <Badge>{customer._count.reservations} reservation(s)</Badge>
+                  <Badge>{roleLabel(locale, effectiveRole)}</Badge>
+                  <ProfileStatusBadge
+                    missingFields={missingProfileFields}
+                    locale={locale}
+                  />
+                  <Badge>
+                    {tAdmin(locale, "reservationCount", {
+                      count: customer._count.reservations,
+                    })}
+                  </Badge>
                 </div>
                 <div className="grid gap-1 text-sm text-[var(--admin-ink)] sm:grid-cols-2">
                   <p>
-                    Telephone:{" "}
+                    {tAdmin(locale, "phone")}:{" "}
                     {customer.phone ? (
                       <Link href={`tel:${customer.phone}`} className="admin-link">
                         {customer.phone}
@@ -143,14 +152,18 @@ export default async function AdminCustomersPage({
                       "-"
                     )}
                   </p>
-                  <p>Compte cree le {dateFmt.format(customer.createdAt)}</p>
-                  <p>Total paye: {money(paidCents)}</p>
+                  <p>
+                    {tAdmin(locale, "createdAt", {
+                      date: dateFmt.format(customer.createdAt),
+                    })}
+                  </p>
+                  <p>{tAdmin(locale, "paidTotal", { amount: money(paidCents) })}</p>
                 </div>
               </div>
 
               <div className="space-y-2">
                 <p className="admin-eyebrow">
-                  Dernieres reservations
+                  {tAdmin(locale, "latestReservations")}
                 </p>
                 {customer.reservations.length ? (
                   customer.reservations.map((reservation) => (
@@ -167,7 +180,7 @@ export default async function AdminCustomersPage({
                     </Link>
                   ))
                 ) : (
-                  <p className="admin-muted text-sm">Aucune reservation.</p>
+                  <p className="admin-muted text-sm">{tAdmin(locale, "noReservation")}</p>
                 )}
               </div>
 
@@ -183,7 +196,7 @@ export default async function AdminCustomersPage({
                   />
                 ) : (
                   <p className="admin-muted text-sm">
-                    Roles geres par le super admin.
+                    {tAdmin(locale, "rolesManagedBySuperAdmin")}
                   </p>
                 )}
               </div>
@@ -192,7 +205,7 @@ export default async function AdminCustomersPage({
         })}
         {!customers.length && (
           <p className="admin-surface admin-muted p-8 text-center text-sm">
-            Aucun client trouve.
+            {tAdmin(locale, "noCustomersFound")}
           </p>
         )}
       </section>
@@ -222,16 +235,22 @@ function Badge({
   );
 }
 
-function ProfileStatusBadge({ missingFields }: { missingFields: string[] }) {
+function ProfileStatusBadge({
+  missingFields,
+  locale,
+}: {
+  missingFields: string[];
+  locale: Parameters<typeof tAdmin>[0];
+}) {
   if (!missingFields.length) {
-    return <Badge tone="ok">Profil complet</Badge>;
+    return <Badge tone="ok">{tAdmin(locale, "profileComplete")}</Badge>;
   }
 
   return (
     <span className="group relative inline-flex w-fit" tabIndex={0}>
-      <Badge tone="warn">Profil incomplet</Badge>
+      <Badge tone="warn">{tAdmin(locale, "profileIncomplete")}</Badge>
       <span className="pointer-events-none absolute left-0 top-full z-20 mt-2 hidden min-w-52 rounded-md border border-[#173c59] bg-[#0d3350] p-3 text-xs font-normal text-[var(--color-beige)] shadow-[0_14px_35px_rgba(0,0,0,0.32)] group-hover:block group-focus:block">
-        <span className="block font-medium">Champs manquants</span>
+        <span className="block font-medium">{tAdmin(locale, "missingFields")}</span>
         <span className="admin-muted mt-1 block">
           {missingFields.join(", ")}
         </span>

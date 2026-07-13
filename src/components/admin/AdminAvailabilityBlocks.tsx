@@ -2,6 +2,9 @@
 
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
+import { useLanguage } from "@/components/Language/LanguageContext";
+import { availabilityBlockTypeLabel } from "./admin-i18n";
+import { useAdminT } from "./useAdminT";
 
 export default function AdminAvailabilityBlocks({
   blocks,
@@ -16,6 +19,8 @@ export default function AdminAvailabilityBlocks({
   }>;
 }) {
   const router = useRouter();
+  const { locale } = useLanguage();
+  const t = useAdminT();
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -36,14 +41,14 @@ export default function AdminAvailabilityBlocks({
       });
       const json = (await response.json().catch(() => ({}))) as { error?: string };
       if (!response.ok) {
-        throw new Error(json.error || "Blocage impossible");
+        throw new Error(json.error || t("blockUnavailable"));
       }
 
       formElement.reset();
-      setMessage("Blocage ajoute.");
+      setMessage(t("blockAdded"));
       router.refresh();
     } catch (createError) {
-      setError(createError instanceof Error ? createError.message : "Erreur");
+      setError(createError instanceof Error ? createError.message : t("error"));
     } finally {
       setBusy(false);
     }
@@ -60,13 +65,13 @@ export default function AdminAvailabilityBlocks({
       });
       const json = (await response.json().catch(() => ({}))) as { error?: string };
       if (!response.ok) {
-        throw new Error(json.error || "Suppression impossible");
+        throw new Error(json.error || t("actionImpossible"));
       }
 
-      setMessage("Blocage supprime.");
+      setMessage(t("actionSaved"));
       router.refresh();
     } catch (deleteError) {
-      setError(deleteError instanceof Error ? deleteError.message : "Erreur");
+      setError(deleteError instanceof Error ? deleteError.message : t("error"));
     } finally {
       setBusy(false);
     }
@@ -78,7 +83,7 @@ export default function AdminAvailabilityBlocks({
         onSubmit={createBlock}
         className="admin-surface h-fit space-y-3 p-4"
       >
-        <h2 className="text-lg">Nouveau blocage</h2>
+        <h2 className="text-lg">{t("newBlock")}</h2>
         {(message || error) && (
           <p
             className={`rounded-md px-3 py-2 text-sm ${
@@ -91,7 +96,7 @@ export default function AdminAvailabilityBlocks({
           </p>
         )}
         <label className="grid gap-1 text-sm">
-          Debut
+          {t("arrival")}
           <input
             name="startDate"
             type="date"
@@ -100,7 +105,7 @@ export default function AdminAvailabilityBlocks({
           />
         </label>
         <label className="grid gap-1 text-sm">
-          Fin
+          {t("end")}
           <input
             name="endDate"
             type="date"
@@ -109,20 +114,20 @@ export default function AdminAvailabilityBlocks({
           />
         </label>
         <label className="grid gap-1 text-sm">
-          Type
+          {t("type")}
           <select
             name="type"
             className="admin-input h-10 rounded-md px-3"
           >
-            <option value="MAINTENANCE">Maintenance</option>
-            <option value="OWNER_USE">Usage proprietaire</option>
-            <option value="CLEANING_BUFFER">Nettoyage</option>
-            <option value="PRIVATE_HOLD">Option privee</option>
-            <option value="OTHER">Autre</option>
+            <option value="MAINTENANCE">{t("blockTypeMaintenance")}</option>
+            <option value="OWNER_USE">{t("blockTypeOwnerUse")}</option>
+            <option value="CLEANING_BUFFER">{t("blockTypeCleaning")}</option>
+            <option value="PRIVATE_HOLD">{t("blockTypePrivateHold")}</option>
+            <option value="OTHER">{t("blockTypeOther")}</option>
           </select>
         </label>
         <label className="grid gap-1 text-sm">
-          Motif
+          {t("reason")}
           <input
             name="reason"
             required
@@ -130,7 +135,7 @@ export default function AdminAvailabilityBlocks({
           />
         </label>
         <label className="grid gap-1 text-sm">
-          Note
+          {t("note")}
           <textarea
             name="note"
             rows={3}
@@ -141,13 +146,13 @@ export default function AdminAvailabilityBlocks({
           disabled={busy}
           className="admin-button rounded-md px-4 py-2 text-sm font-medium"
         >
-          Bloquer les dates
+          {t("blockDates")}
         </button>
       </form>
 
       <section className="admin-surface p-4">
         <h2 className="mb-3 border-b border-[var(--admin-line)] pb-2 text-lg">
-          Blocages actifs et futurs
+          {t("activeFutureBlocks")}
         </h2>
         <div className="grid gap-2">
           {blocks.map((block) => (
@@ -159,7 +164,7 @@ export default function AdminAvailabilityBlocks({
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="font-medium">{block.reason}</span>
                   <span className="admin-pill rounded-full px-2.5 py-1 text-xs">
-                    {block.type}
+                    {availabilityBlockTypeLabel(locale, block.type)}
                   </span>
                 </div>
                 <p className="admin-muted mt-1">
@@ -173,13 +178,13 @@ export default function AdminAvailabilityBlocks({
                 onClick={() => deleteBlock(block.id)}
                 className="h-9 rounded-md border border-[#d9b9b4] px-3 text-sm text-[#ffd8d2] disabled:opacity-55"
               >
-                Supprimer
+                {t("delete")}
               </button>
             </article>
           ))}
           {!blocks.length && (
             <p className="admin-muted py-8 text-center text-sm">
-              Aucun blocage actif.
+              {t("noActiveBlocks")}
             </p>
           )}
         </div>

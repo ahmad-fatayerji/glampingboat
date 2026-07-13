@@ -1,5 +1,6 @@
 export const LOCALES = ["en", "fr", "de", "nl", "ru", "es", "it"] as const;
 export type Locale = (typeof LOCALES)[number];
+export const LOCALE_STORAGE_KEY = "site-locale";
 
 const en = {
   ourVision: "Our Vision",
@@ -55,6 +56,10 @@ const en = {
   bookingPromoAvailable: "Promotion available",
   bookingPromoRate: "{rate} per night",
   bookingPromoApplied: "Promotion applied",
+  bookingUnavailableTitle: "Booking is temporarily unavailable",
+  bookingUnavailableBody:
+    "Online booking is paused right now. Please contact us and we will help with availability and next steps.",
+  bookingUnavailableContact: "contact us",
   resetSelection: "Reset selection",
   datePlaceholder: "MM/DD/YYYY",
   arrival: "Arrival",
@@ -109,6 +114,16 @@ const en = {
   authEmailPlaceholder: "you@example.com",
   authPasswordPlaceholder: "••••••••",
   authChoosePasswordPlaceholder: "Choose a secure password",
+  confirmPassword: "Confirm password",
+  passwordMismatch: "Passwords do not match.",
+  passwordRequirementsTitle: "Password must include:",
+  passwordReqMinLength: "At least 8 characters",
+  passwordReqUppercase: "One uppercase letter",
+  passwordReqLowercase: "One lowercase letter",
+  passwordReqNumber: "One number",
+  passwordReqSymbol: "One symbol",
+  passwordPolicyError:
+    "Password must be at least 8 characters and include uppercase, lowercase, number, and symbol.",
   authGoogleSignIn: "Sign in with Google",
   accountHeaderTitle: "Your account",
   accountHeaderHelp: "Use the tabs below to manage bookings or update your profile.",
@@ -265,11 +280,11 @@ const en = {
   unmuteAudio: "Unmute",
   switchToLanguage: "Switch to",
   cookieBannerBody:
-    "We use cookies to run the site, measure traffic, and improve your experience. You can accept all cookies, reject non-essential cookies, or customize your choices. Read our",
+    "We use necessary cookies and browser storage to run the site, remember your language, and keep account sessions secure. We do not currently use analytics or advertising cookies. Read our",
   cookiePolicyLink: "cookie policy",
   cookieBannerBodyEnd: "to learn more.",
-  acceptAllCookies: "Accept all",
-  rejectAllCookies: "Reject all",
+  acceptAllCookies: "OK",
+  rejectAllCookies: "Reject non-essential",
   customizeCookies: "Customize",
   necessaryCookies: "Necessary",
   necessaryCookiesBody: "Required for site operation and security. Always active.",
@@ -401,6 +416,10 @@ export const dictionaries: Record<Locale, Dictionary> = {
     bookingPromoAvailable: "Promotion disponible",
     bookingPromoRate: "{rate} par nuit",
     bookingPromoApplied: "Promotion appliquée",
+    bookingUnavailableTitle: "La réservation est temporairement indisponible",
+    bookingUnavailableBody:
+      "La réservation en ligne est suspendue pour le moment. Contactez-nous et nous vous aiderons pour les disponibilités et les prochaines étapes.",
+    bookingUnavailableContact: "contactez-nous",
     resetSelection: "Réinitialiser la sélection",
     datePlaceholder: "MM/JJ/AAAA",
     arrival: "Arrivée",
@@ -455,6 +474,16 @@ export const dictionaries: Record<Locale, Dictionary> = {
     authEmailPlaceholder: "vous@exemple.com",
     authPasswordPlaceholder: "••••••••",
     authChoosePasswordPlaceholder: "Choisissez un mot de passe sécurisé",
+    confirmPassword: "Confirmez le mot de passe",
+    passwordMismatch: "Les mots de passe ne correspondent pas.",
+    passwordRequirementsTitle: "Le mot de passe doit contenir :",
+    passwordReqMinLength: "Au moins 8 caracteres",
+    passwordReqUppercase: "Une majuscule",
+    passwordReqLowercase: "Une minuscule",
+    passwordReqNumber: "Un chiffre",
+    passwordReqSymbol: "Un symbole",
+    passwordPolicyError:
+      "Le mot de passe doit contenir au moins 8 caracteres, une majuscule, une minuscule, un chiffre et un symbole.",
     authGoogleSignIn: "Se connecter avec Google",
     accountHeaderTitle: "Votre compte",
     accountHeaderHelp:
@@ -606,11 +635,11 @@ export const dictionaries: Record<Locale, Dictionary> = {
     unmuteAudio: "Activer le son",
     switchToLanguage: "Passer à",
     cookieBannerBody:
-      "Nous utilisons des cookies pour faire fonctionner le site, mesurer son audience et améliorer votre expérience. Vous pouvez accepter tous les cookies, refuser les cookies non essentiels ou personnaliser vos choix. Consultez notre",
+      "Nous utilisons les cookies et le stockage navigateur necessaires au fonctionnement du site, a la langue choisie et a la securite des sessions compte. Nous n'utilisons actuellement aucun cookie d'analyse ou publicitaire. Consultez notre",
     cookiePolicyLink: "politique de cookies",
     cookieBannerBodyEnd: "pour en savoir plus.",
-    acceptAllCookies: "Tout accepter",
-    rejectAllCookies: "Tout refuser",
+    acceptAllCookies: "OK",
+    rejectAllCookies: "Refuser le non essentiel",
     customizeCookies: "Personnaliser",
     necessaryCookies: "Indispensables",
     necessaryCookiesBody:
@@ -746,6 +775,10 @@ export const dictionaries: Record<Locale, Dictionary> = {
     bookingPromoAvailable: "Aktion verfuegbar",
     bookingPromoRate: "{rate} pro Nacht",
     bookingPromoApplied: "Aktion angewendet",
+    bookingUnavailableTitle: "Buchungen sind voruebergehend nicht verfuegbar",
+    bookingUnavailableBody:
+      "Online-Buchungen sind derzeit pausiert. Bitte kontaktieren Sie uns, und wir helfen Ihnen mit Verfuegbarkeit und den naechsten Schritten.",
+    bookingUnavailableContact: "Kontakt aufnehmen",
     resetSelection: "Auswahl zuruecksetzen",
     datePlaceholder: "MM/TT/JJJJ",
     arrival: "Anreise",
@@ -800,6 +833,16 @@ export const dictionaries: Record<Locale, Dictionary> = {
     authEmailPlaceholder: "sie@beispiel.com",
     authPasswordPlaceholder: "••••••••",
     authChoosePasswordPlaceholder: "Sicheres Passwort waehlen",
+    confirmPassword: "Passwort bestaetigen",
+    passwordMismatch: "Die Passwoerter stimmen nicht ueberein.",
+    passwordRequirementsTitle: "Das Passwort muss enthalten:",
+    passwordReqMinLength: "Mindestens 8 Zeichen",
+    passwordReqUppercase: "Einen Grossbuchstaben",
+    passwordReqLowercase: "Einen Kleinbuchstaben",
+    passwordReqNumber: "Eine Zahl",
+    passwordReqSymbol: "Ein Symbol",
+    passwordPolicyError:
+      "Das Passwort muss mindestens 8 Zeichen lang sein und Grossbuchstaben, Kleinbuchstaben, Zahl und Symbol enthalten.",
     authGoogleSignIn: "Mit Google anmelden",
     accountHeaderTitle: "Ihr Konto",
     accountHeaderHelp:
@@ -951,11 +994,11 @@ export const dictionaries: Record<Locale, Dictionary> = {
     unmuteAudio: "Ton einschalten",
     switchToLanguage: "Wechseln zu",
     cookieBannerBody:
-      "Wir verwenden Cookies, um die Website zu betreiben, Besuche zu messen und Ihre Erfahrung zu verbessern. Sie koennen alle Cookies akzeptieren, nicht notwendige Cookies ablehnen oder Ihre Auswahl anpassen. Lesen Sie unsere",
+      "Wir verwenden notwendige Cookies und Browser-Speicher fuer den Betrieb der Website, Ihre Sprache und sichere Kontositzungen. Wir verwenden derzeit keine Analyse- oder Werbe-Cookies. Lesen Sie unsere",
     cookiePolicyLink: "Cookie-Richtlinie",
     cookieBannerBodyEnd: "fuer weitere Informationen.",
-    acceptAllCookies: "Alle akzeptieren",
-    rejectAllCookies: "Alle ablehnen",
+    acceptAllCookies: "OK",
+    rejectAllCookies: "Nicht notwendige ablehnen",
     customizeCookies: "Anpassen",
     necessaryCookies: "Notwendig",
     necessaryCookiesBody:
@@ -1091,6 +1134,10 @@ export const dictionaries: Record<Locale, Dictionary> = {
     bookingPromoAvailable: "Promotie beschikbaar",
     bookingPromoRate: "{rate} per nacht",
     bookingPromoApplied: "Promotie toegepast",
+    bookingUnavailableTitle: "Boeken is tijdelijk niet beschikbaar",
+    bookingUnavailableBody:
+      "Online boeken is momenteel gepauzeerd. Neem contact met ons op, dan helpen we met beschikbaarheid en de volgende stappen.",
+    bookingUnavailableContact: "contact opnemen",
     resetSelection: "Selectie resetten",
     datePlaceholder: "MM/DD/JJJJ",
     arrival: "Aankomst",
@@ -1145,6 +1192,16 @@ export const dictionaries: Record<Locale, Dictionary> = {
     authEmailPlaceholder: "jij@voorbeeld.com",
     authPasswordPlaceholder: "••••••••",
     authChoosePasswordPlaceholder: "Kies een veilig wachtwoord",
+    confirmPassword: "Bevestig wachtwoord",
+    passwordMismatch: "Wachtwoorden komen niet overeen.",
+    passwordRequirementsTitle: "Wachtwoord moet bevatten:",
+    passwordReqMinLength: "Minstens 8 tekens",
+    passwordReqUppercase: "Een hoofdletter",
+    passwordReqLowercase: "Een kleine letter",
+    passwordReqNumber: "Een cijfer",
+    passwordReqSymbol: "Een symbool",
+    passwordPolicyError:
+      "Wachtwoord moet minstens 8 tekens bevatten met hoofdletter, kleine letter, cijfer en symbool.",
     authGoogleSignIn: "Inloggen met Google",
     accountHeaderTitle: "Je account",
     accountHeaderHelp:
@@ -1295,11 +1352,11 @@ export const dictionaries: Record<Locale, Dictionary> = {
     unmuteAudio: "Geluid aan",
     switchToLanguage: "Schakel naar",
     cookieBannerBody:
-      "We gebruiken cookies om de site te laten werken, bezoek te meten en je ervaring te verbeteren. Je kunt alle cookies accepteren, niet-noodzakelijke cookies weigeren of je keuzes aanpassen. Lees ons",
+      "We gebruiken noodzakelijke cookies en browseropslag om de site te laten werken, je taal te onthouden en accountsessies te beveiligen. We gebruiken momenteel geen analyse- of advertentiecookies. Lees ons",
     cookiePolicyLink: "cookiebeleid",
     cookieBannerBodyEnd: "voor meer informatie.",
-    acceptAllCookies: "Alles accepteren",
-    rejectAllCookies: "Alles weigeren",
+    acceptAllCookies: "OK",
+    rejectAllCookies: "Niet-noodzakelijke weigeren",
     customizeCookies: "Aanpassen",
     necessaryCookies: "Noodzakelijk",
     necessaryCookiesBody:
@@ -1436,6 +1493,12 @@ export const dictionaries: Record<Locale, Dictionary> = {
     bookingPromoAvailable: "\u0410\u043a\u0446\u0438\u044f \u0434\u043e\u0441\u0442\u0443\u043f\u043d\u0430",
     bookingPromoRate: "{rate} \u0437\u0430 \u043d\u043e\u0447\u044c",
     bookingPromoApplied: "\u0410\u043a\u0446\u0438\u044f \u043f\u0440\u0438\u043c\u0435\u043d\u0435\u043d\u0430",
+    bookingUnavailableTitle:
+      "\u0411\u0440\u043e\u043d\u0438\u0440\u043e\u0432\u0430\u043d\u0438\u0435 \u0432\u0440\u0435\u043c\u0435\u043d\u043d\u043e \u043d\u0435\u0434\u043e\u0441\u0442\u0443\u043f\u043d\u043e",
+    bookingUnavailableBody:
+      "\u041e\u043d\u043b\u0430\u0439\u043d-\u0431\u0440\u043e\u043d\u0438\u0440\u043e\u0432\u0430\u043d\u0438\u0435 \u0441\u0435\u0439\u0447\u0430\u0441 \u043f\u0440\u0438\u043e\u0441\u0442\u0430\u043d\u043e\u0432\u043b\u0435\u043d\u043e. \u0421\u0432\u044f\u0436\u0438\u0442\u0435\u0441\u044c \u0441 \u043d\u0430\u043c\u0438, \u0438 \u043c\u044b \u043f\u043e\u043c\u043e\u0436\u0435\u043c \u0441 \u0434\u043e\u0441\u0442\u0443\u043f\u043d\u043e\u0441\u0442\u044c\u044e \u0438 \u0441\u043b\u0435\u0434\u0443\u044e\u0449\u0438\u043c\u0438 \u0448\u0430\u0433\u0430\u043c\u0438.",
+    bookingUnavailableContact:
+      "\u0441\u0432\u044f\u0437\u0430\u0442\u044c\u0441\u044f \u0441 \u043d\u0430\u043c\u0438",
     resetSelection: "\u0421\u0431\u0440\u043e\u0441\u0438\u0442\u044c \u0432\u044b\u0431\u043e\u0440",
     datePlaceholder: "\u041c\u041c/\u0414\u0414/\u0413\u0413\u0413\u0413",
     arrival: "\u041f\u0440\u0438\u0431\u044b\u0442\u0438\u0435",
@@ -1505,6 +1568,22 @@ export const dictionaries: Record<Locale, Dictionary> = {
     authPasswordPlaceholder: "••••••••",
     authChoosePasswordPlaceholder:
       "\u0412\u044b\u0431\u0435\u0440\u0438\u0442\u0435 \u043d\u0430\u0434\u0435\u0436\u043d\u044b\u0439 \u043f\u0430\u0440\u043e\u043b\u044c",
+    confirmPassword:
+      "\u041f\u043e\u0434\u0442\u0432\u0435\u0440\u0434\u0438\u0442\u0435 \u043f\u0430\u0440\u043e\u043b\u044c",
+    passwordMismatch:
+      "\u041f\u0430\u0440\u043e\u043b\u0438 \u043d\u0435 \u0441\u043e\u0432\u043f\u0430\u0434\u0430\u044e\u0442.",
+    passwordRequirementsTitle:
+      "\u041f\u0430\u0440\u043e\u043b\u044c \u0434\u043e\u043b\u0436\u0435\u043d \u0441\u043e\u0434\u0435\u0440\u0436\u0430\u0442\u044c:",
+    passwordReqMinLength:
+      "\u041d\u0435 \u043c\u0435\u043d\u0435\u0435 8 \u0441\u0438\u043c\u0432\u043e\u043b\u043e\u0432",
+    passwordReqUppercase:
+      "\u041e\u0434\u043d\u0443 \u0437\u0430\u0433\u043b\u0430\u0432\u043d\u0443\u044e \u0431\u0443\u043a\u0432\u0443",
+    passwordReqLowercase:
+      "\u041e\u0434\u043d\u0443 \u0441\u0442\u0440\u043e\u0447\u043d\u0443\u044e \u0431\u0443\u043a\u0432\u0443",
+    passwordReqNumber: "\u041e\u0434\u043d\u0443 \u0446\u0438\u0444\u0440\u0443",
+    passwordReqSymbol: "\u041e\u0434\u0438\u043d \u0441\u0438\u043c\u0432\u043e\u043b",
+    passwordPolicyError:
+      "\u041f\u0430\u0440\u043e\u043b\u044c \u0434\u043e\u043b\u0436\u0435\u043d \u0441\u043e\u0434\u0435\u0440\u0436\u0430\u0442\u044c \u043d\u0435 \u043c\u0435\u043d\u0435\u0435 8 \u0441\u0438\u043c\u0432\u043e\u043b\u043e\u0432, \u0437\u0430\u0433\u043b\u0430\u0432\u043d\u0443\u044e \u0438 \u0441\u0442\u0440\u043e\u0447\u043d\u0443\u044e \u0431\u0443\u043a\u0432\u044b, \u0446\u0438\u0444\u0440\u0443 \u0438 \u0441\u0438\u043c\u0432\u043e\u043b.",
     authGoogleSignIn: "\u0412\u043e\u0439\u0442\u0438 \u0447\u0435\u0440\u0435\u0437 Google",
     accountHeaderTitle: "\u0412\u0430\u0448 \u0430\u043a\u043a\u0430\u0443\u043d\u0442",
     accountHeaderHelp:
@@ -1665,14 +1744,12 @@ export const dictionaries: Record<Locale, Dictionary> = {
     unmuteAudio: "\u0412\u043a\u043b\u044e\u0447\u0438\u0442\u044c \u0437\u0432\u0443\u043a",
     switchToLanguage: "\u041f\u0435\u0440\u0435\u0439\u0442\u0438 \u043d\u0430",
     cookieBannerBody:
-      "\u041c\u044b \u0438\u0441\u043f\u043e\u043b\u044c\u0437\u0443\u0435\u043c cookies \u0434\u043b\u044f \u0440\u0430\u0431\u043e\u0442\u044b \u0441\u0430\u0439\u0442\u0430, \u0438\u0437\u043c\u0435\u0440\u0435\u043d\u0438\u044f \u0442\u0440\u0430\u0444\u0438\u043a\u0430 \u0438 \u0443\u043b\u0443\u0447\u0448\u0435\u043d\u0438\u044f \u043e\u043f\u044b\u0442\u0430. \u0412\u044b \u043c\u043e\u0436\u0435\u0442\u0435 \u043f\u0440\u0438\u043d\u044f\u0442\u044c \u0432\u0441\u0435 cookies, \u043e\u0442\u043a\u043b\u043e\u043d\u0438\u0442\u044c \u043d\u0435\u043e\u0431\u044f\u0437\u0430\u0442\u0435\u043b\u044c\u043d\u044b\u0435 \u0438\u043b\u0438 \u043d\u0430\u0441\u0442\u0440\u043e\u0438\u0442\u044c \u0432\u044b\u0431\u043e\u0440. \u041f\u0440\u043e\u0447\u0438\u0442\u0430\u0439\u0442\u0435 \u043d\u0430\u0448\u0443",
+      "We use necessary cookies and browser storage to run the site, remember your language, and keep account sessions secure. We do not currently use analytics or advertising cookies. Read our",
     cookiePolicyLink: "\u043f\u043e\u043b\u0438\u0442\u0438\u043a\u0443 cookies",
     cookieBannerBodyEnd:
-      "\u0447\u0442\u043e\u0431\u044b \u0443\u0437\u043d\u0430\u0442\u044c \u0431\u043e\u043b\u044c\u0448\u0435.",
-    acceptAllCookies:
-      "\u041f\u0440\u0438\u043d\u044f\u0442\u044c \u0432\u0441\u0435",
-    rejectAllCookies:
-      "\u041e\u0442\u043a\u043b\u043e\u043d\u0438\u0442\u044c \u0432\u0441\u0435",
+      "to learn more.",
+    acceptAllCookies: "OK",
+    rejectAllCookies: "Reject non-essential",
     customizeCookies: "\u041d\u0430\u0441\u0442\u0440\u043e\u0438\u0442\u044c",
     necessaryCookies: "\u041d\u0435\u043e\u0431\u0445\u043e\u0434\u0438\u043c\u044b\u0435",
     necessaryCookiesBody:
@@ -1831,6 +1908,10 @@ export const dictionaries: Record<Locale, Dictionary> = {
     bookingPromoAvailable: "Promocion disponible",
     bookingPromoRate: "{rate} por noche",
     bookingPromoApplied: "Promocion aplicada",
+    bookingUnavailableTitle: "Las reservas no estan disponibles temporalmente",
+    bookingUnavailableBody:
+      "Las reservas online estan pausadas en este momento. Contacta con nosotros y te ayudaremos con la disponibilidad y los siguientes pasos.",
+    bookingUnavailableContact: "contactanos",
     resetSelection: "Restablecer seleccion",
     datePlaceholder: "MM/DD/AAAA",
     arrival: "Llegada",
@@ -1885,6 +1966,16 @@ export const dictionaries: Record<Locale, Dictionary> = {
     authEmailPlaceholder: "tu@ejemplo.com",
     authPasswordPlaceholder: "••••••••",
     authChoosePasswordPlaceholder: "Elige una contrasena segura",
+    confirmPassword: "Confirmar contrasena",
+    passwordMismatch: "Las contrasenas no coinciden.",
+    passwordRequirementsTitle: "La contrasena debe incluir:",
+    passwordReqMinLength: "Al menos 8 caracteres",
+    passwordReqUppercase: "Una mayuscula",
+    passwordReqLowercase: "Una minuscula",
+    passwordReqNumber: "Un numero",
+    passwordReqSymbol: "Un simbolo",
+    passwordPolicyError:
+      "La contrasena debe tener al menos 8 caracteres e incluir mayuscula, minuscula, numero y simbolo.",
     authGoogleSignIn: "Iniciar sesion con Google",
     accountHeaderTitle: "Tu cuenta",
     accountHeaderHelp:
@@ -2036,11 +2127,11 @@ export const dictionaries: Record<Locale, Dictionary> = {
     unmuteAudio: "Activar sonido",
     switchToLanguage: "Cambiar a",
     cookieBannerBody:
-      "Usamos cookies para que el sitio funcione, medir el trafico y mejorar tu experiencia. Puedes aceptar todas las cookies, rechazar las no esenciales o personalizar tus elecciones. Lee nuestra",
+      "Usamos cookies necesarias y almacenamiento del navegador para que el sitio funcione, recordar tu idioma y proteger las sesiones de cuenta. Actualmente no usamos cookies de analitica ni publicidad. Lee nuestra",
     cookiePolicyLink: "politica de cookies",
     cookieBannerBodyEnd: "para saber mas.",
-    acceptAllCookies: "Aceptar todo",
-    rejectAllCookies: "Rechazar todo",
+    acceptAllCookies: "OK",
+    rejectAllCookies: "Rechazar no esenciales",
     customizeCookies: "Personalizar",
     necessaryCookies: "Necesarias",
     necessaryCookiesBody:
@@ -2176,6 +2267,10 @@ export const dictionaries: Record<Locale, Dictionary> = {
     bookingPromoAvailable: "Promozione disponibile",
     bookingPromoRate: "{rate} a notte",
     bookingPromoApplied: "Promozione applicata",
+    bookingUnavailableTitle: "La prenotazione e temporaneamente non disponibile",
+    bookingUnavailableBody:
+      "Le prenotazioni online sono al momento sospese. Contattaci e ti aiuteremo con disponibilita e prossimi passi.",
+    bookingUnavailableContact: "contattaci",
     resetSelection: "Reimposta selezione",
     datePlaceholder: "MM/GG/AAAA",
     arrival: "Arrivo",
@@ -2230,6 +2325,16 @@ export const dictionaries: Record<Locale, Dictionary> = {
     authEmailPlaceholder: "tu@esempio.com",
     authPasswordPlaceholder: "••••••••",
     authChoosePasswordPlaceholder: "Scegli una password sicura",
+    confirmPassword: "Conferma password",
+    passwordMismatch: "Le password non corrispondono.",
+    passwordRequirementsTitle: "La password deve includere:",
+    passwordReqMinLength: "Almeno 8 caratteri",
+    passwordReqUppercase: "Una maiuscola",
+    passwordReqLowercase: "Una minuscola",
+    passwordReqNumber: "Un numero",
+    passwordReqSymbol: "Un simbolo",
+    passwordPolicyError:
+      "La password deve avere almeno 8 caratteri e includere maiuscola, minuscola, numero e simbolo.",
     authGoogleSignIn: "Accedi con Google",
     accountHeaderTitle: "Il tuo account",
     accountHeaderHelp:
@@ -2381,11 +2486,11 @@ export const dictionaries: Record<Locale, Dictionary> = {
     unmuteAudio: "Attiva audio",
     switchToLanguage: "Passa a",
     cookieBannerBody:
-      "Usiamo i cookie per far funzionare il sito, misurare il traffico e migliorare l'esperienza. Puoi accettare tutti i cookie, rifiutare quelli non essenziali o personalizzare le scelte. Leggi la nostra",
+      "Usiamo cookie necessari e archiviazione del browser per far funzionare il sito, ricordare la lingua e proteggere le sessioni account. Attualmente non usiamo cookie di analisi o pubblicitari. Leggi la nostra",
     cookiePolicyLink: "politica sui cookie",
     cookieBannerBodyEnd: "per saperne di piu.",
-    acceptAllCookies: "Accetta tutto",
-    rejectAllCookies: "Rifiuta tutto",
+    acceptAllCookies: "OK",
+    rejectAllCookies: "Rifiuta non essenziali",
     customizeCookies: "Personalizza",
     necessaryCookies: "Necessari",
     necessaryCookiesBody:

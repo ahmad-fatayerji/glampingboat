@@ -1,6 +1,10 @@
 import bcrypt from "bcryptjs";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import {
+  PASSWORD_POLICY_ERROR,
+  validatePasswordPolicy,
+} from "@/lib/password-policy";
 import { getString, isRecord } from "@/lib/type-guards";
 
 export async function POST(req: Request) {
@@ -10,6 +14,10 @@ export async function POST(req: Request) {
 
   if (!token || !password) {
     return NextResponse.json({ error: "Invalid input" }, { status: 400 });
+  }
+
+  if (!validatePasswordPolicy(password).valid) {
+    return NextResponse.json({ error: PASSWORD_POLICY_ERROR }, { status: 400 });
   }
 
   const user = await prisma.user.findFirst({

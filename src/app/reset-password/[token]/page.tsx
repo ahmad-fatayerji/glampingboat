@@ -2,19 +2,35 @@
 import { useState }          from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useT } from "@/components/Language/useT";
+import { validatePasswordPolicy } from "@/lib/password-policy";
+import PasswordRequirements from "@/components/auth/PasswordRequirements";
 
 export default function ResetPasswordPage() {
   const t = useT();
   const { token } = useParams() as { token: string };
   const [pw, setPw]           = useState("");
+  const [confirmPw, setConfirmPw] = useState("");
   const [msg, setMsg]         = useState<string | null>(null);
   const [error, setError]     = useState<string | null>(null);
   const router                 = useRouter();
+  const passwordPolicy = validatePasswordPolicy(pw);
+  const passwordsMatch = pw === confirmPw;
+  const canSubmit = passwordPolicy.valid && passwordsMatch && Boolean(pw);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setMsg(null);
+
+    if (!passwordPolicy.valid) {
+      setError(t("passwordPolicyError"));
+      return;
+    }
+
+    if (!passwordsMatch) {
+      setError(t("passwordMismatch"));
+      return;
+    }
 
     const res = await fetch("/api/auth/reset-password", {
       method: "POST",
@@ -45,7 +61,22 @@ export default function ResetPasswordPage() {
           onChange={(e) => setPw(e.target.value)}
           required
         />
-        <button className="w-full bg-blue-600 text-white p-2 rounded">
+        <PasswordRequirements password={pw} tone="light" />
+        <input
+          type="password"
+          placeholder={t("confirmPassword")}
+          className="w-full border p-2 rounded"
+          value={confirmPw}
+          onChange={(e) => setConfirmPw(e.target.value)}
+          required
+        />
+        {confirmPw && !passwordsMatch && (
+          <p className="text-sm text-red-700">{t("passwordMismatch")}</p>
+        )}
+        <button
+          disabled={!canSubmit}
+          className="w-full bg-blue-600 text-white p-2 rounded disabled:cursor-not-allowed disabled:opacity-60"
+        >
           {t("resetPassword")}
         </button>
       </form>

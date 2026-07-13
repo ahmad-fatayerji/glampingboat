@@ -3,6 +3,9 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { FeatureFlagKey } from "@/lib/feature-flags";
+import { useLanguage } from "@/components/Language/LanguageContext";
+import { ADMIN_INTL_LOCALE } from "./admin-i18n";
+import { useAdminT } from "./useAdminT";
 
 type FeatureFlagView = {
   key: FeatureFlagKey;
@@ -28,6 +31,8 @@ export default function AdminFeatureFlags({
 
 function FeatureFlagRow({ flag }: { flag: FeatureFlagView }) {
   const router = useRouter();
+  const { locale } = useLanguage();
+  const t = useAdminT();
   const [enabled, setEnabled] = useState(flag.enabled);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -48,13 +53,13 @@ function FeatureFlagRow({ flag }: { flag: FeatureFlagView }) {
       };
 
       if (!response.ok) {
-        throw new Error(json.error || "Feature flag impossible a modifier");
+        throw new Error(json.error || t("featureFlagUpdateFailed"));
       }
 
       router.refresh();
     } catch (flagError) {
       setEnabled(!nextEnabled);
-      setError(flagError instanceof Error ? flagError.message : "Erreur");
+      setError(flagError instanceof Error ? flagError.message : t("error"));
     } finally {
       setSaving(false);
     }
@@ -70,19 +75,21 @@ function FeatureFlagRow({ flag }: { flag: FeatureFlagView }) {
               enabled ? "admin-pill-ok" : "admin-pill-warn"
             }`}
           >
-            {enabled ? "Active" : "Desactive"}
+            {enabled ? t("active") : t("disabled")}
           </span>
         </div>
         <p className="admin-muted mt-1 text-sm">{flag.description}</p>
         <p className="admin-muted mt-2 text-xs">
-          Derniere mise a jour: {new Date(flag.updatedAt).toLocaleString("fr-FR")}
+          {t("lastUpdated", {
+            date: new Date(flag.updatedAt).toLocaleString(ADMIN_INTL_LOCALE[locale]),
+          })}
         </p>
         {error && <p className="mt-2 text-sm text-[#ffd8d2]">{error}</p>}
       </div>
 
       <label className="inline-flex cursor-pointer items-center gap-3 justify-self-start md:justify-self-end">
         <span className="admin-muted text-sm">
-          {enabled ? "Actif" : "Inactif"}
+          {enabled ? t("active") : t("inactive")}
         </span>
         <input
           type="checkbox"

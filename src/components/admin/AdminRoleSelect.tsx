@@ -3,14 +3,11 @@
 import type { UserRole } from "@/generated/prisma/client";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useLanguage } from "@/components/Language/LanguageContext";
+import { roleLabel } from "./admin-i18n";
+import { useAdminT } from "./useAdminT";
 
 const ELEVATED_ROLE_CONFIRMATION = "CONFIRMER";
-
-const ROLE_LABELS: Record<UserRole, string> = {
-  CUSTOMER: "Client",
-  ADMIN: "Admin",
-  SUPER_ADMIN: "Super admin",
-};
 
 export default function AdminRoleSelect({
   userId,
@@ -22,6 +19,8 @@ export default function AdminRoleSelect({
   disabled?: boolean;
 }) {
   const router = useRouter();
+  const { locale } = useLanguage();
+  const t = useAdminT();
   const [editing, setEditing] = useState(false);
   const [selectedRole, setSelectedRole] = useState<UserRole>(value);
   const [pendingRole, setPendingRole] = useState<UserRole | null>(null);
@@ -42,7 +41,7 @@ export default function AdminRoleSelect({
       role === "ADMIN" &&
       confirmedByUser !== ELEVATED_ROLE_CONFIRMATION
     ) {
-      setError(`Tapez ${ELEVATED_ROLE_CONFIRMATION} pour confirmer.`);
+      setError(t("typeConfirm", { code: ELEVATED_ROLE_CONFIRMATION }));
       return;
     }
 
@@ -60,7 +59,7 @@ export default function AdminRoleSelect({
       });
       const json = (await response.json().catch(() => ({}))) as { error?: string };
       if (!response.ok) {
-        throw new Error(json.error || "Role impossible a modifier");
+        throw new Error(json.error || t("roleChangeFailed"));
       }
 
       setEditing(false);
@@ -68,7 +67,7 @@ export default function AdminRoleSelect({
       setConfirmation("");
       router.refresh();
     } catch (roleError) {
-      setError(roleError instanceof Error ? roleError.message : "Erreur");
+      setError(roleError instanceof Error ? roleError.message : t("error"));
     } finally {
       setSaving(false);
     }
@@ -87,8 +86,8 @@ export default function AdminRoleSelect({
             }}
             className="admin-input h-9 rounded-md px-2 text-sm disabled:opacity-55"
           >
-            <option value="CUSTOMER">Client</option>
-            <option value="ADMIN">Admin</option>
+            <option value="CUSTOMER">{roleLabel(locale, "CUSTOMER")}</option>
+            <option value="ADMIN">{roleLabel(locale, "ADMIN")}</option>
           </select>
           <button
             type="button"
@@ -105,7 +104,7 @@ export default function AdminRoleSelect({
             }}
             className="admin-button h-9 rounded-md px-3 text-xs font-medium disabled:opacity-55"
           >
-            Appliquer
+            {t("apply")}
           </button>
           <button
             type="button"
@@ -119,7 +118,7 @@ export default function AdminRoleSelect({
             }}
             className="admin-input h-9 rounded-md px-3 text-xs disabled:opacity-55"
           >
-            Annuler
+            {t("cancel")}
           </button>
         </div>
       ) : (
@@ -135,7 +134,7 @@ export default function AdminRoleSelect({
           }}
           className="admin-input h-9 rounded-md px-3 text-sm disabled:opacity-55"
         >
-          {ROLE_LABELS[value]}
+          {roleLabel(locale, value)}
         </button>
       )}
       {error && <p className="max-w-56 text-xs text-[#ffd8d2]">{error}</p>}
@@ -150,14 +149,13 @@ export default function AdminRoleSelect({
             id={`role-confirmation-${userId}`}
             className="text-sm font-semibold"
           >
-            Confirmer le changement de role
+            {t("confirmRoleChange")}
           </p>
           <p className="admin-muted mt-2 text-xs">
-            Pour attribuer le role {ROLE_LABELS[pendingRole]}, tapez{" "}
-            <span className="font-semibold text-[var(--color-beige)]">
-              {ELEVATED_ROLE_CONFIRMATION}
-            </span>
-            .
+            {t("typeConfirmRole", {
+              role: roleLabel(locale, pendingRole),
+              code: ELEVATED_ROLE_CONFIRMATION,
+            })}
           </p>
           <input
             value={confirmation}
@@ -180,7 +178,7 @@ export default function AdminRoleSelect({
               }}
               className="admin-input h-9 rounded-md px-3 text-xs disabled:opacity-55"
             >
-              Annuler
+              {t("cancel")}
             </button>
             <button
               type="button"
@@ -188,7 +186,7 @@ export default function AdminRoleSelect({
               onClick={() => updateRole(pendingRole, confirmation)}
               className="admin-button h-9 rounded-md px-3 text-xs font-medium disabled:opacity-55"
             >
-              Confirmer
+              {t("confirm")}
             </button>
           </div>
         </div>

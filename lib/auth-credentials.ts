@@ -1,5 +1,9 @@
 import type { UserRole } from "@/generated/prisma/client";
 import bcrypt from "bcryptjs";
+import {
+  PASSWORD_POLICY_ERROR,
+  validatePasswordPolicy,
+} from "@/lib/password-policy";
 
 export type CredentialsInput = Partial<
   Record<"email" | "password" | "isSignup", unknown>
@@ -98,6 +102,10 @@ export async function authorizeCredentials(
 
   if (!isSignup) {
     throw new Error("Invalid email or password");
+  }
+
+  if (!validatePasswordPolicy(password).valid) {
+    throw new Error(PASSWORD_POLICY_ERROR);
   }
 
   const hash = await bcrypt.hash(password, 12);

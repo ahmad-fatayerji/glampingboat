@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
+import { useAdminT } from "./useAdminT";
 
 type Promo = {
   id: string;
@@ -18,6 +19,7 @@ function dateValue(value: string) {
 
 export default function AdminBookingPromos({ promos }: { promos: Promo[] }) {
   const router = useRouter();
+  const t = useAdminT();
   const [busy, setBusy] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -49,17 +51,17 @@ export default function AdminBookingPromos({ promos }: { promos: Promo[] }) {
       });
       const json = (await response.json().catch(() => ({}))) as { error?: string };
       if (!response.ok) {
-        throw new Error(json.error || "Action impossible");
+        throw new Error(json.error || t("actionImpossible"));
       }
 
       if (method === "POST") {
         formElement.reset();
       }
-      setMessage("Promotion enregistree.");
+      setMessage(t("promotionSaved"));
       router.refresh();
     } catch (submissionError) {
       setError(
-        submissionError instanceof Error ? submissionError.message : "Erreur"
+        submissionError instanceof Error ? submissionError.message : t("error")
       );
     } finally {
       setBusy(null);
@@ -97,13 +99,13 @@ export default function AdminBookingPromos({ promos }: { promos: Promo[] }) {
       });
       const json = (await response.json().catch(() => ({}))) as { error?: string };
       if (!response.ok) {
-        throw new Error(json.error || "Suppression impossible");
+        throw new Error(json.error || t("actionImpossible"));
       }
 
-      setMessage("Promotion supprimee.");
+      setMessage(t("promotionDeleted"));
       router.refresh();
     } catch (deleteError) {
-      setError(deleteError instanceof Error ? deleteError.message : "Erreur");
+      setError(deleteError instanceof Error ? deleteError.message : t("error"));
     } finally {
       setBusy(null);
     }
@@ -112,7 +114,7 @@ export default function AdminBookingPromos({ promos }: { promos: Promo[] }) {
   return (
     <div className="grid gap-5 xl:grid-cols-[24rem_1fr]">
       <form onSubmit={createPromo} className="admin-surface h-fit space-y-3 p-4">
-        <h2 className="text-lg">Nouvelle promotion</h2>
+        <h2 className="text-lg">{t("newPromotion")}</h2>
         {(message || error) && (
           <p
             className={`rounded-md px-3 py-2 text-sm ${
@@ -125,11 +127,11 @@ export default function AdminBookingPromos({ promos }: { promos: Promo[] }) {
           </p>
         )}
         <label className="grid gap-1 text-sm">
-          Titre
+          {t("title")}
           <input name="title" required className="admin-input h-10 rounded-md px-3" />
         </label>
         <label className="grid gap-1 text-sm">
-          Debut
+          {t("arrival")}
           <input
             name="startDate"
             type="date"
@@ -138,7 +140,7 @@ export default function AdminBookingPromos({ promos }: { promos: Promo[] }) {
           />
         </label>
         <label className="grid gap-1 text-sm">
-          Fin
+          {t("end")}
           <input
             name="endDate"
             type="date"
@@ -147,7 +149,7 @@ export default function AdminBookingPromos({ promos }: { promos: Promo[] }) {
           />
         </label>
         <label className="grid gap-1 text-sm">
-          Prix promo TTC / nuit
+          {t("promoNightlyPrice")}
           <input
             name="nightlyTtc"
             type="number"
@@ -160,19 +162,19 @@ export default function AdminBookingPromos({ promos }: { promos: Promo[] }) {
         </label>
         <label className="flex items-center gap-2 text-sm">
           <input name="isActive" type="checkbox" defaultChecked />
-          Active
+          {t("active")}
         </label>
         <button
           disabled={busy === "create"}
           className="admin-button rounded-md px-4 py-2 text-sm font-medium"
         >
-          Ajouter la promotion
+          {t("addPromotion")}
         </button>
       </form>
 
       <section className="admin-surface p-4">
         <h2 className="mb-3 border-b border-[var(--admin-line)] pb-2 text-lg">
-          Promotions
+          {t("promotions")}
         </h2>
         <div className="grid gap-3">
           {promos.map((promo) => (
@@ -212,14 +214,14 @@ export default function AdminBookingPromos({ promos }: { promos: Promo[] }) {
                   type="checkbox"
                   defaultChecked={promo.isActive}
                 />
-                Active
+                {t("active")}
               </label>
               <div className="flex gap-2">
                 <button
                   disabled={busy === promo.id}
                   className="admin-button rounded-md px-3 py-2 text-sm"
                 >
-                  Sauver
+                  {t("save")}
                 </button>
                 <button
                   type="button"
@@ -227,14 +229,14 @@ export default function AdminBookingPromos({ promos }: { promos: Promo[] }) {
                   onClick={() => deletePromo(promo.id)}
                   className="rounded-md border border-[#d9b9b4] px-3 py-2 text-sm text-[#ffd8d2] disabled:opacity-55"
                 >
-                  Supprimer
+                  {t("delete")}
                 </button>
               </div>
             </form>
           ))}
           {!promos.length && (
             <p className="admin-muted py-8 text-center text-sm">
-              Aucune promotion.
+              {t("noPromotions")}
             </p>
           )}
         </div>

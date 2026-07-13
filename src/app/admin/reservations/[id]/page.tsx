@@ -4,34 +4,37 @@ import AdminReservationActions from "@/components/admin/AdminReservationActions"
 import { SHOW_TOURIST_TAX_BREAKDOWN } from "@/lib/booking-features";
 import { ADMIN_RESERVATION_INCLUDE } from "@/lib/admin-data";
 import { prisma } from "@/lib/prisma";
+import { getServerLocale } from "@/components/Language/server-locale";
+import {
+  adminDateFormatter,
+  adminMoneyFormatter,
+  paymentPurposeLabel,
+  paymentStatusLabel,
+  reservationStatusLabel,
+  tAdmin,
+} from "@/components/admin/admin-i18n";
 
 export const dynamic = "force-dynamic";
-
-const money = (cents: number) =>
-  new Intl.NumberFormat("fr-FR", {
-    style: "currency",
-    currency: "EUR",
-  }).format(cents / 100);
-
-const dateFmt = new Intl.DateTimeFormat("fr-FR", {
-  day: "2-digit",
-  month: "long",
-  year: "numeric",
-});
-
-const dateTimeFmt = new Intl.DateTimeFormat("fr-FR", {
-  day: "2-digit",
-  month: "short",
-  year: "numeric",
-  hour: "2-digit",
-  minute: "2-digit",
-});
 
 export default async function AdminReservationDetailPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
+  const locale = await getServerLocale();
+  const money = (cents: number) => adminMoneyFormatter(locale).format(cents / 100);
+  const dateFmt = adminDateFormatter(locale, {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  });
+  const dateTimeFmt = adminDateFormatter(locale, {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
   const { id } = await params;
   const reservation = await prisma.reservation.findUnique({
     where: { id },
@@ -61,38 +64,38 @@ export default async function AdminReservationDetailPage({
             href="/admin/reservations"
             className="admin-link text-sm"
           >
-            Retour aux reservations
+            {tAdmin(locale, "backToReservations")}
           </Link>
           <h1 className="mt-2 text-3xl">{reservation.bookingRef}</h1>
           <p className="admin-muted mt-1 text-sm">{customerDisplay}</p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Badge>{reservation.status}</Badge>
-          <Badge tone="payment">{reservation.paymentStatus}</Badge>
+          <Badge>{reservationStatusLabel(locale, reservation.status)}</Badge>
+          <Badge tone="payment">{paymentStatusLabel(locale, reservation.paymentStatus)}</Badge>
         </div>
       </header>
 
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_26rem]">
         <div className="space-y-5">
-          <Panel title="Sejour">
+          <Panel title={tAdmin(locale, "stay")}>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              <Info label="Arrivee" value={dateFmt.format(reservation.startDate)} />
-              <Info label="Depart" value={dateFmt.format(reservation.endDate)} />
-              <Info label="Adultes" value={String(reservation.adults)} />
-              <Info label="Enfants" value={String(reservation.children)} />
+              <Info label={tAdmin(locale, "arrival")} value={dateFmt.format(reservation.startDate)} />
+              <Info label={tAdmin(locale, "departure")} value={dateFmt.format(reservation.endDate)} />
+              <Info label={tAdmin(locale, "adults")} value={String(reservation.adults)} />
+              <Info label={tAdmin(locale, "children")} value={String(reservation.children)} />
             </div>
           </Panel>
 
-          <Panel title="Client">
+          <Panel title={tAdmin(locale, "client")}>
             <div className="grid gap-3 sm:grid-cols-2">
-              <Info label="Nom" value={customerDisplay} />
+              <Info label={tAdmin(locale, "name")} value={customerDisplay} />
               <Info
-                label="Email"
+                label={tAdmin(locale, "email")}
                 value={reservation.customerEmail ?? reservation.user.email}
                 href={`mailto:${reservation.customerEmail ?? reservation.user.email}`}
               />
               <Info
-                label="Telephone"
+                label={tAdmin(locale, "phone")}
                 value={reservation.customerPhone ?? reservation.user.phone ?? "-"}
                 href={
                   reservation.customerPhone ?? reservation.user.phone
@@ -101,7 +104,7 @@ export default async function AdminReservationDetailPage({
                 }
               />
               <Info
-                label="Mobile"
+                label={tAdmin(locale, "mobile")}
                 value={reservation.customerMobile ?? reservation.user.mobile ?? "-"}
                 href={
                   reservation.customerMobile ?? reservation.user.mobile
@@ -110,7 +113,7 @@ export default async function AdminReservationDetailPage({
                 }
               />
               <Info
-                label="Adresse"
+                label={tAdmin(locale, "address")}
                 value={[
                   reservation.billingAddressNumber,
                   reservation.billingAddressStreet,
@@ -121,52 +124,52 @@ export default async function AdminReservationDetailPage({
                   .join(" ") || "-"}
               />
               <Info
-                label="Compte"
+                label={tAdmin(locale, "account")}
                 value={reservation.user.email}
                 href={`/admin/customers?q=${encodeURIComponent(reservation.user.email)}`}
               />
             </div>
           </Panel>
 
-          <Panel title="Finances">
+          <Panel title={tAdmin(locale, "finances")}>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              <Info label="Base HT" value={money(reservation.baseAmountHtCents)} />
-              <Info label="Options HT" value={money(reservation.optionsAmountHtCents)} />
-              <Info label="TVA" value={money(reservation.vatAmountCents)} />
+              <Info label={tAdmin(locale, "baseHt")} value={money(reservation.baseAmountHtCents)} />
+              <Info label={tAdmin(locale, "optionsHt")} value={money(reservation.optionsAmountHtCents)} />
+              <Info label={tAdmin(locale, "vat")} value={money(reservation.vatAmountCents)} />
               {SHOW_TOURIST_TAX_BREAKDOWN && (
                 <Info
-                  label="Taxe sejour"
+                  label={tAdmin(locale, "touristTax")}
                   value={money(reservation.touristTaxAmountCents)}
                 />
               )}
-              <Info label="Total TTC" value={money(reservation.totalAmountTtcCents)} />
-              <Info label="Acompte" value={money(reservation.depositAmountCents)} />
-              <Info label="Solde" value={money(reservation.balanceAmountCents)} />
+              <Info label={tAdmin(locale, "totalInclTax")} value={money(reservation.totalAmountTtcCents)} />
+              <Info label={tAdmin(locale, "deposit")} value={money(reservation.depositAmountCents)} />
+              <Info label={tAdmin(locale, "balance")} value={money(reservation.balanceAmountCents)} />
               <Info
-                label="Date limite solde"
+                label={tAdmin(locale, "balanceDueDate")}
                 value={
                   reservation.balanceDueDate
                     ? dateFmt.format(reservation.balanceDueDate)
                     : "-"
                 }
               />
-              <Info label="Paye" value={money(reservation.paidAmountCents)} />
+              <Info label={tAdmin(locale, "paid")} value={money(reservation.paidAmountCents)} />
               <Info
-                label="Etat solde"
+                label={tAdmin(locale, "status")}
                 value={
                   reservation.paidAmountCents >= reservation.totalAmountTtcCents
-                    ? "Paye integralement"
+                    ? tAdmin(locale, "paidFull")
                     : balanceOverdue
-                      ? "Solde en retard"
+                      ? tAdmin(locale, "balanceOverdue")
                       : reservation.paidAmountCents > 0
-                        ? "Acompte paye"
-                        : "Non paye"
+                        ? tAdmin(locale, "paidDeposit")
+                        : tAdmin(locale, "unpaid")
                 }
               />
             </div>
           </Panel>
 
-          <Panel title="Options">
+          <Panel title={tAdmin(locale, "options")}>
             {reservation.items.length ? (
               <div className="divide-y divide-[var(--admin-line)]">
                 {reservation.items.map((item) => (
@@ -181,11 +184,11 @@ export default async function AdminReservationDetailPage({
                 ))}
               </div>
             ) : (
-              <p className="admin-muted text-sm">Aucune option.</p>
+              <p className="admin-muted text-sm">{tAdmin(locale, "noOptions")}</p>
             )}
           </Panel>
 
-          <Panel title="Paiements">
+          <Panel title={tAdmin(locale, "payments")}>
             {reservation.payments.length ? (
               <div className="divide-y divide-[var(--admin-line)]">
                 {reservation.payments.map((payment) => (
@@ -194,9 +197,9 @@ export default async function AdminReservationDetailPage({
                     className="grid gap-1 py-2 text-sm lg:grid-cols-[1fr_auto_auto_auto]"
                   >
                     <span>
-                      {payment.provider} - {payment.purpose}
+                      {payment.provider} - {paymentPurposeLabel(locale, payment.purpose)}
                     </span>
-                    <span>{payment.status}</span>
+                    <span>{paymentStatusLabel(locale, payment.status)}</span>
                     <span>{money(payment.amountCents)}</span>
                     <span className="admin-muted">
                       {payment.paidAt ? dateTimeFmt.format(payment.paidAt) : "-"}
@@ -205,11 +208,11 @@ export default async function AdminReservationDetailPage({
                 ))}
               </div>
             ) : (
-              <p className="admin-muted text-sm">Aucun paiement.</p>
+              <p className="admin-muted text-sm">{tAdmin(locale, "noPayments")}</p>
             )}
           </Panel>
 
-          <Panel title="Historique">
+          <Panel title={tAdmin(locale, "history")}>
             <div className="divide-y divide-[var(--admin-line)]">
               {reservation.events.map((event) => (
                 <div key={event.id} className="py-3 text-sm">
@@ -231,25 +234,25 @@ export default async function AdminReservationDetailPage({
         </div>
 
         <aside className="space-y-5">
-          <Panel title="Actions admin">
+          <Panel title={tAdmin(locale, "adminActions")}>
             <AdminReservationActions
               reservationId={reservation.id}
               showGtcrBalanceCancel={balanceOverdue}
             />
           </Panel>
-          <Panel title="Consentement">
+          <Panel title={tAdmin(locale, "consent")}>
             <div className="grid gap-3">
               <Info
-                label="Conditions"
+                label={tAdmin(locale, "consentTerms")}
                 value={
                   reservation.termsAcceptedAt
                     ? dateTimeFmt.format(reservation.termsAcceptedAt)
                     : "-"
                 }
               />
-              <Info label="Version CGV" value={reservation.termsVersion ?? "-"} />
-              <Info label="Langue" value={reservation.termsLocale ?? "-"} />
-              <Info label="IP" value={reservation.consentIpAddress ?? "-"} />
+              <Info label={tAdmin(locale, "versionTerms")} value={reservation.termsVersion ?? "-"} />
+              <Info label={tAdmin(locale, "language")} value={reservation.termsLocale ?? "-"} />
+              <Info label={tAdmin(locale, "ip")} value={reservation.consentIpAddress ?? "-"} />
             </div>
           </Panel>
         </aside>

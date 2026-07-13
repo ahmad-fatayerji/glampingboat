@@ -4,26 +4,29 @@ import {
   buildAdminReservationWhere,
 } from "@/lib/admin-data";
 import { prisma } from "@/lib/prisma";
+import { getServerLocale } from "@/components/Language/server-locale";
+import {
+  adminDateFormatter,
+  adminMoneyFormatter,
+  paymentStatusLabel,
+  reservationStatusLabel,
+  tAdmin,
+} from "@/components/admin/admin-i18n";
 
 export const dynamic = "force-dynamic";
-
-const dateFmt = new Intl.DateTimeFormat("fr-FR", {
-  day: "2-digit",
-  month: "short",
-  year: "numeric",
-});
-
-const money = (cents: number) =>
-  new Intl.NumberFormat("fr-FR", {
-    style: "currency",
-    currency: "EUR",
-  }).format(cents / 100);
 
 export default async function AdminReservationsPage({
   searchParams,
 }: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
+  const locale = await getServerLocale();
+  const dateFmt = adminDateFormatter(locale, {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+  const money = (cents: number) => adminMoneyFormatter(locale).format(cents / 100);
   const params = await searchParams;
   const q = readParam(params.q);
   const status = readParam(params.status) ?? "all";
@@ -42,39 +45,41 @@ export default async function AdminReservationsPage({
       <header className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
         <div>
           <p className="admin-eyebrow">
-            Gestion
+            {tAdmin(locale, "administration")}
           </p>
-          <h1 className="mt-2 text-3xl">Reservations</h1>
+          <h1 className="mt-2 text-3xl">{tAdmin(locale, "reservations")}</h1>
         </div>
-        <p className="admin-muted text-sm">{reservations.length} resultat(s)</p>
+        <p className="admin-muted text-sm">
+          {tAdmin(locale, "resultsCount", { count: reservations.length })}
+        </p>
       </header>
 
       <form className="admin-surface grid gap-3 p-4 md:grid-cols-[1fr_auto_auto_auto_auto]">
         <input
           name="q"
           defaultValue={q ?? ""}
-          placeholder="Reference, client, email, telephone"
+          placeholder={tAdmin(locale, "referenceClientEmailPhone")}
           className="admin-input h-10 rounded-md px-3 text-sm"
         />
-        <Select name="timing" defaultValue={timing} options={timingOptions} />
-        <Select name="status" defaultValue={status} options={statusOptions} />
+        <Select name="timing" defaultValue={timing} options={timingOptions(locale)} />
+        <Select name="status" defaultValue={status} options={statusOptions(locale)} />
         <Select
           name="paymentStatus"
           defaultValue={paymentStatus}
-          options={paymentOptions}
+          options={paymentOptions(locale)}
         />
         <button className="admin-button h-10 rounded-md px-4 text-sm font-medium">
-          Rechercher
+          {tAdmin(locale, "search")}
         </button>
       </form>
 
       <section className="admin-surface overflow-hidden">
         <div className="admin-eyebrow hidden grid-cols-[1.2fr_1.4fr_1fr_1fr_1fr_auto] gap-3 border-b border-[var(--admin-line)] bg-[rgba(228,219,206,0.08)] px-4 py-3 lg:grid">
-          <span>Reference</span>
-          <span>Client</span>
-          <span>Dates</span>
-          <span>Statut</span>
-          <span>Total</span>
+          <span>{tAdmin(locale, "reference")}</span>
+          <span>{tAdmin(locale, "client")}</span>
+          <span>{tAdmin(locale, "dates")}</span>
+          <span>{tAdmin(locale, "status")}</span>
+          <span>{tAdmin(locale, "total")}</span>
           <span />
         </div>
         <div className="divide-y divide-[var(--admin-line)]">
@@ -87,12 +92,14 @@ export default async function AdminReservationsPage({
               <div>
                 <p className="font-semibold">{reservation.bookingRef}</p>
                 <p className="admin-muted text-xs">
-                  creee le {dateFmt.format(reservation.createdAt)}
+                  {tAdmin(locale, "createdAt", {
+                    date: dateFmt.format(reservation.createdAt),
+                  })}
                 </p>
               </div>
               <div>
                 <p>
-                  {customerName(reservation) || "Client"}
+                  {customerName(reservation) || tAdmin(locale, "customer")}
                 </p>
                 <p className="admin-muted break-all text-xs">
                   {reservation.customerEmail ?? reservation.user.email}
@@ -103,16 +110,16 @@ export default async function AdminReservationsPage({
                 {dateFmt.format(reservation.endDate)}
               </p>
               <div className="flex flex-wrap gap-2">
-                <Badge>{reservation.status}</Badge>
-                <Badge tone="payment">{reservation.paymentStatus}</Badge>
+                <Badge>{reservationStatusLabel(locale, reservation.status)}</Badge>
+                <Badge tone="payment">{paymentStatusLabel(locale, reservation.paymentStatus)}</Badge>
               </div>
               <p>{money(reservation.totalAmountTtcCents)}</p>
-              <span className="admin-link">Ouvrir</span>
+              <span className="admin-link">{tAdmin(locale, "open")}</span>
             </Link>
           ))}
           {!reservations.length && (
             <p className="admin-muted px-4 py-8 text-center text-sm">
-              Aucune reservation trouvee.
+              {tAdmin(locale, "noReservationFound")}
             </p>
           )}
         </div>
@@ -181,27 +188,27 @@ function customerName(reservation: {
   );
 }
 
-const timingOptions = [
-  { value: "all", label: "Toutes les dates" },
-  { value: "upcoming", label: "A venir" },
-  { value: "past", label: "Passees" },
+const timingOptions = (locale: Parameters<typeof tAdmin>[0]) => [
+  { value: "all", label: tAdmin(locale, "allDates") },
+  { value: "upcoming", label: tAdmin(locale, "upcoming") },
+  { value: "past", label: tAdmin(locale, "past") },
 ];
 
-const statusOptions = [
-  { value: "all", label: "Tous les statuts" },
-  { value: "PENDING_PAYMENT", label: "Paiement en attente" },
-  { value: "CONFIRMED", label: "Confirmee" },
-  { value: "CANCELLED", label: "Annulee" },
-  { value: "EXPIRED", label: "Expiree" },
-  { value: "REFUNDED", label: "Remboursee" },
+const statusOptions = (locale: Parameters<typeof tAdmin>[0]) => [
+  { value: "all", label: tAdmin(locale, "allStatuses") },
+  { value: "PENDING_PAYMENT", label: reservationStatusLabel(locale, "PENDING_PAYMENT") },
+  { value: "CONFIRMED", label: reservationStatusLabel(locale, "CONFIRMED") },
+  { value: "CANCELLED", label: reservationStatusLabel(locale, "CANCELLED") },
+  { value: "EXPIRED", label: reservationStatusLabel(locale, "EXPIRED") },
+  { value: "REFUNDED", label: reservationStatusLabel(locale, "REFUNDED") },
 ];
 
-const paymentOptions = [
-  { value: "all", label: "Tous les paiements" },
-  { value: "UNPAID", label: "Non paye" },
-  { value: "CHECKOUT_OPEN", label: "Checkout ouvert" },
-  { value: "PAID_DEPOSIT", label: "Acompte paye" },
-  { value: "PAID_FULL", label: "Paye integralement" },
-  { value: "PAYMENT_FAILED", label: "Paiement echoue" },
-  { value: "REFUNDED", label: "Rembourse" },
+const paymentOptions = (locale: Parameters<typeof tAdmin>[0]) => [
+  { value: "all", label: tAdmin(locale, "allPayments") },
+  { value: "UNPAID", label: paymentStatusLabel(locale, "UNPAID") },
+  { value: "CHECKOUT_OPEN", label: paymentStatusLabel(locale, "CHECKOUT_OPEN") },
+  { value: "PAID_DEPOSIT", label: paymentStatusLabel(locale, "PAID_DEPOSIT") },
+  { value: "PAID_FULL", label: paymentStatusLabel(locale, "PAID_FULL") },
+  { value: "PAYMENT_FAILED", label: paymentStatusLabel(locale, "PAYMENT_FAILED") },
+  { value: "REFUNDED", label: paymentStatusLabel(locale, "REFUNDED") },
 ];

@@ -8,7 +8,7 @@ import React, {
   useMemo,
   useState,
 } from "react";
-import { LOCALES, type Locale } from "./dictionaries";
+import { LOCALES, LOCALE_STORAGE_KEY, type Locale } from "./dictionaries";
 
 type LanguageContextValue = {
   locale: Locale;
@@ -25,14 +25,12 @@ const FALLBACK_LANGUAGE_CONTEXT: LanguageContextValue = {
 const LanguageContext = createContext<LanguageContextValue | undefined>(
   undefined,
 );
-const STORAGE_KEY = "site-locale";
-
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [locale, setLocale] = useState<Locale>("en");
 
   useEffect(() => {
     try {
-      const saved = localStorage.getItem(STORAGE_KEY) as Locale | null;
+      const saved = localStorage.getItem(LOCALE_STORAGE_KEY) as Locale | null;
       if (saved && LOCALES.includes(saved)) {
         startTransition(() => {
           setLocale(saved);
@@ -43,7 +41,8 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     try {
-      localStorage.setItem(STORAGE_KEY, locale);
+      localStorage.setItem(LOCALE_STORAGE_KEY, locale);
+      document.cookie = `${LOCALE_STORAGE_KEY}=${locale}; path=/; max-age=31536000; samesite=lax`;
     } catch {}
   }, [locale]);
 

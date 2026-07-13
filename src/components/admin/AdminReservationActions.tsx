@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
+import { useAdminT } from "./useAdminT";
 
 export default function AdminReservationActions({
   reservationId,
@@ -11,6 +12,7 @@ export default function AdminReservationActions({
   showGtcrBalanceCancel?: boolean;
 }) {
   const router = useRouter();
+  const t = useAdminT();
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
@@ -36,17 +38,17 @@ export default function AdminReservationActions({
       });
       const json = (await response.json().catch(() => ({}))) as { error?: string };
       if (!response.ok) {
-        throw new Error(json.error || "Action impossible");
+        throw new Error(json.error || t("actionImpossible"));
       }
 
       formElement.reset();
-      setMessage("Action enregistree.");
+      setMessage(t("actionSaved"));
       router.refresh();
     } catch (submissionError) {
       setError(
         submissionError instanceof Error
           ? submissionError.message
-          : "Action impossible"
+          : t("actionImpossible")
       );
     } finally {
       setBusy(null);
@@ -73,19 +75,19 @@ export default function AdminReservationActions({
         }
         className="admin-card space-y-3 rounded-md p-3"
       >
-        <h3 className="text-sm font-semibold">Note interne</h3>
+        <h3 className="text-sm font-semibold">{t("internalNote")}</h3>
         <textarea
           name="internalNote"
           required
           rows={3}
           className="admin-input resize-y rounded-md px-3 py-2 text-sm"
-          placeholder="Information visible uniquement par les admins"
+          placeholder={t("adminNoteOnly")}
         />
         <button
           disabled={busy === "note"}
           className="admin-button rounded-md px-4 py-2 text-sm font-medium"
         >
-          Ajouter la note
+          {t("addNote")}
         </button>
       </form>
 
@@ -101,12 +103,10 @@ export default function AdminReservationActions({
           className="space-y-3 rounded-md border border-[#d9b9b4] bg-[#5a1e1a]/35 p-3"
         >
           <h3 className="text-sm font-semibold text-[#ffd8d2]">
-            Solde GTCR en retard
+            {t("gtcrBalanceLate")}
           </h3>
           <p className="text-xs leading-relaxed text-[#ffd8d2]/85">
-            Annule la reservation pour non-paiement du solde 15 jours avant
-            l&apos;arrivee. Les montants deja verses ne sont pas rembourses
-            automatiquement.
+            {t("gtcrBalanceLateBody")}
           </p>
           <input
             type="hidden"
@@ -117,7 +117,7 @@ export default function AdminReservationActions({
             disabled={busy === "cancel-gtcr"}
             className="admin-danger-button w-full rounded-md px-4 py-2 text-sm disabled:opacity-55"
           >
-            Annuler pour solde GTCR impaye
+            {t("cancelForGtcr")}
           </button>
         </form>
       )}
@@ -132,16 +132,16 @@ export default function AdminReservationActions({
         }
         className="admin-card grid min-w-0 gap-3 rounded-md p-3"
       >
-        <h3 className="text-sm font-semibold">Paiement manuel</h3>
+        <h3 className="text-sm font-semibold">{t("manualPayment")}</h3>
         <select
           name="purpose"
           required
           className="admin-input h-10 rounded-md px-3 text-sm"
         >
-          <option value="DEPOSIT">Acompte</option>
-          <option value="BALANCE">Solde</option>
-          <option value="FULL">Paiement complet</option>
-          <option value="SECURITY_DEPOSIT">Depot de garantie</option>
+          <option value="DEPOSIT">{t("deposit")}</option>
+          <option value="BALANCE">{t("balance")}</option>
+          <option value="FULL">{t("fullPayment")}</option>
+          <option value="SECURITY_DEPOSIT">{t("securityDeposit")}</option>
         </select>
         <input
           name="amount"
@@ -149,19 +149,19 @@ export default function AdminReservationActions({
           type="number"
           min="0.01"
           step="0.01"
-          placeholder="Montant EUR"
+          placeholder={t("amountEur")}
           className="admin-input h-10 rounded-md px-3 text-sm"
         />
         <input
           name="note"
-          placeholder="Note facultative"
+          placeholder={t("optionalNote")}
           className="admin-input h-10 rounded-md px-3 text-sm"
         />
         <button
           disabled={busy === "manual-payment"}
           className="admin-button w-full rounded-md px-4 py-2 text-sm font-medium"
         >
-          Enregistrer le paiement
+          {t("savePayment")}
         </button>
       </form>
 
@@ -176,19 +176,19 @@ export default function AdminReservationActions({
         className="space-y-3 rounded-md border border-[#d9b9b4] bg-[#5a1e1a]/35 p-3"
       >
         <h3 className="text-sm font-semibold text-[#ffd8d2]">
-          Annuler la reservation
+          {t("cancelReservation")}
         </h3>
         <input
           name="reason"
           required
-          placeholder="Motif obligatoire"
+          placeholder={t("requiredReason")}
           className="admin-input h-10 w-full rounded-md px-3 text-sm"
         />
         <button
           disabled={busy === "cancel"}
           className="admin-danger-button w-full rounded-md px-4 py-2 text-sm disabled:opacity-55"
         >
-          Confirmer l&apos;annulation
+          {t("confirmCancellation")}
         </button>
       </form>
     </div>

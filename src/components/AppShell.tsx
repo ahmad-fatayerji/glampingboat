@@ -81,6 +81,8 @@ const BOAT_SLIDES: BoatSlide[] = [
   },
 ];
 
+const OPEN_COOKIE_POLICY_EVENT = "open-cookie-policy";
+
 export default function AppShell({
   children,
   serverToday,
@@ -113,6 +115,19 @@ export default function AppShell({
       ? stage
       : "closed";
   }, [drawerOpen, isAccountRoute, isAdminRoute, stage]);
+
+  useEffect(() => {
+    const openCookiePolicy = () => {
+      setNavOpen(false);
+      setStage("cookies");
+      setDrawerOpen(true);
+    };
+
+    window.addEventListener(OPEN_COOKIE_POLICY_EVENT, openCookiePolicy);
+    return () => {
+      window.removeEventListener(OPEN_COOKIE_POLICY_EVENT, openCookiePolicy);
+    };
+  }, []);
 
   const openStage = (nextStage: Stage) => {
     if (drawerOpen && stage === nextStage) {
@@ -366,11 +381,10 @@ function BookingDisabledPanel({ onContact }: { onContact: () => void }) {
           {t("book")}
         </p>
         <h2 className="mt-3 font-serif text-3xl italic">
-          Booking is temporarily unavailable
+          {t("bookingUnavailableTitle")}
         </h2>
         <p className="mt-3 max-w-2xl text-sm leading-6 text-[var(--color-beige)]/78">
-          Online booking is paused right now. Please contact us and we will help
-          with availability and next steps.
+          {t("bookingUnavailableBody")}
         </p>
       </div>
       <button
@@ -378,7 +392,7 @@ function BookingDisabledPanel({ onContact }: { onContact: () => void }) {
         onClick={onContact}
         className="w-fit rounded-md bg-[var(--color-blue)] px-4 py-2 text-sm font-medium text-[var(--color-beige)] transition hover:bg-[#06324d]"
       >
-        {t("contactUs")}
+        {t("bookingUnavailableContact")}
       </button>
     </div>
   );

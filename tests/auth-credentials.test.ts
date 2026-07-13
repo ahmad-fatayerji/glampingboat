@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import type { UserRole } from "@/generated/prisma/client";
 import { authorizeCredentials } from "@/lib/auth-credentials";
+import { PASSWORD_POLICY_ERROR } from "@/lib/password-policy";
 
 type TestUser = {
   id: string;
@@ -69,7 +70,7 @@ test("credentials signup creates a normalized user", async () => {
   const result = await authorizeCredentials(
     {
       email: " NewUser@Example.COM ",
-      password: "correct-password",
+      password: "Correct-password1",
       isSignup: "true",
     },
     client,
@@ -80,6 +81,26 @@ test("credentials signup creates a normalized user", async () => {
   assert.equal(result.role, "CUSTOMER");
   assert.equal(users.size, 1);
   assert.ok(users.get("newuser@example.com")?.password);
+});
+
+test("credentials signup rejects weak passwords", async () => {
+  const { client, users } = makeClient();
+
+  await assert.rejects(
+    () =>
+      authorizeCredentials(
+        {
+          email: "newuser@example.com",
+          password: "weak-password",
+          isSignup: "true",
+        },
+        client,
+        customerRole
+      ),
+    new RegExp(PASSWORD_POLICY_ERROR.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
+  );
+
+  assert.equal(users.size, 0);
 });
 
 test("credentials signin does not create missing users", async () => {

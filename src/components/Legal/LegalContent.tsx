@@ -11,6 +11,144 @@ type LegalItem = {
   body: React.JSX.Element;
 };
 
+type CookiePolicyCopy = {
+  title: string;
+  intro: string;
+  usedTitle: string;
+  usedBody: string;
+  noTrackingTitle: string;
+  noTrackingBody: string;
+  choicesTitle: string;
+  choicesBody: string;
+};
+
+const cookiePolicyCopies: Record<Locale, CookiePolicyCopy> = {
+  en: {
+    title: "Cookies policy",
+    intro:
+      "This page explains how Glamping Boat uses cookies and browser storage.",
+    usedTitle: "What we use",
+    usedBody:
+      "We only use necessary storage to run the site, remember your language and cookie choice, keep account sessions secure, and support services you choose to use, such as Google sign-in, Stripe checkout, or the embedded YouTube video.",
+    noTrackingTitle: "No analytics or advertising cookies",
+    noTrackingBody:
+      "We do not currently use analytics, advertising, profiling, or marketing cookies on this site.",
+    choicesTitle: "Managing your choice",
+    choicesBody:
+      "You can reopen the cookie banner with the button below, or clear cookies and local storage in your browser settings.",
+  },
+  fr: {
+    title: "Politique de cookies",
+    intro:
+      "Cette page explique comment Glamping Boat utilise les cookies et le stockage navigateur.",
+    usedTitle: "Ce que nous utilisons",
+    usedBody:
+      "Nous utilisons uniquement le stockage necessaire au fonctionnement du site, a la memorisation de votre langue et de votre choix cookies, a la securite des sessions compte et aux services que vous choisissez d'utiliser, comme Google, Stripe ou la video YouTube integree.",
+    noTrackingTitle: "Aucun cookie d'analyse ou publicitaire",
+    noTrackingBody:
+      "Nous n'utilisons actuellement aucun cookie d'analyse, de publicite, de profilage ou de marketing sur ce site.",
+    choicesTitle: "Gerer votre choix",
+    choicesBody:
+      "Vous pouvez rouvrir le bandeau cookies avec le bouton ci-dessous, ou supprimer les cookies et le stockage local dans les reglages de votre navigateur.",
+  },
+  de: {
+    title: "Cookie-Richtlinie",
+    intro:
+      "Diese Seite erklaert, wie Glamping Boat Cookies und Browser-Speicher verwendet.",
+    usedTitle: "Was wir verwenden",
+    usedBody:
+      "Wir verwenden nur notwendigen Speicher, um die Website zu betreiben, Ihre Sprache und Cookie-Auswahl zu merken, Kontositzungen zu schuetzen und Dienste zu unterstuetzen, die Sie selbst nutzen, wie Google-Anmeldung, Stripe Checkout oder das eingebettete YouTube-Video.",
+    noTrackingTitle: "Keine Analyse- oder Werbe-Cookies",
+    noTrackingBody:
+      "Wir verwenden derzeit keine Analyse-, Werbe-, Profiling- oder Marketing-Cookies auf dieser Website.",
+    choicesTitle: "Auswahl verwalten",
+    choicesBody:
+      "Sie koennen den Cookie-Hinweis mit der Schaltflaeche unten erneut oeffnen oder Cookies und lokalen Speicher in den Browser-Einstellungen loeschen.",
+  },
+  nl: {
+    title: "Cookiebeleid",
+    intro:
+      "Deze pagina legt uit hoe Glamping Boat cookies en browseropslag gebruikt.",
+    usedTitle: "Wat we gebruiken",
+    usedBody:
+      "We gebruiken alleen noodzakelijke opslag om de site te laten werken, je taal en cookiekeuze te onthouden, accountsessies te beveiligen en diensten te ondersteunen die je zelf gebruikt, zoals Google-login, Stripe checkout of de ingesloten YouTube-video.",
+    noTrackingTitle: "Geen analyse- of advertentiecookies",
+    noTrackingBody:
+      "Wij gebruiken momenteel geen analyse-, advertentie-, profiling- of marketingcookies op deze site.",
+    choicesTitle: "Uw keuze beheren",
+    choicesBody:
+      "U kunt de cookiebanner opnieuw openen met de knop hieronder, of cookies en lokale opslag wissen in uw browserinstellingen.",
+  },
+  ru: {
+    title: "Cookie policy",
+    intro:
+      "This page explains how Glamping Boat uses cookies and browser storage.",
+    usedTitle: "What we use",
+    usedBody:
+      "We only use necessary storage to run the site, remember your language and cookie choice, keep account sessions secure, and support services you choose to use, such as Google sign-in, Stripe checkout, or the embedded YouTube video.",
+    noTrackingTitle: "No analytics or advertising cookies",
+    noTrackingBody:
+      "We do not currently use analytics, advertising, profiling, or marketing cookies on this site.",
+    choicesTitle: "Managing your choice",
+    choicesBody:
+      "You can reopen the cookie banner with the button below, or clear cookies and local storage in your browser settings.",
+  },
+  es: {
+    title: "Politica de cookies",
+    intro:
+      "Esta pagina explica como Glamping Boat utiliza cookies y almacenamiento del navegador.",
+    usedTitle: "Lo que usamos",
+    usedBody:
+      "Solo usamos almacenamiento necesario para que el sitio funcione, recordar tu idioma y eleccion de cookies, proteger sesiones de cuenta y permitir servicios que decides usar, como Google, Stripe o el video de YouTube incrustado.",
+    noTrackingTitle: "Sin cookies de analitica ni publicidad",
+    noTrackingBody:
+      "Actualmente no usamos cookies de analitica, publicidad, perfilado o marketing en este sitio.",
+    choicesTitle: "Gestionar su eleccion",
+    choicesBody:
+      "Puede volver a abrir el banner de cookies con el boton inferior, o borrar cookies y almacenamiento local en la configuracion del navegador.",
+  },
+  it: {
+    title: "Informativa sui cookie",
+    intro:
+      "Questa pagina spiega come Glamping Boat usa cookie e archiviazione del browser.",
+    usedTitle: "Cosa usiamo",
+    usedBody:
+      "Usiamo solo archiviazione necessaria per far funzionare il sito, ricordare lingua e scelta sui cookie, proteggere le sessioni account e supportare i servizi che scegli di usare, come Google, Stripe o il video YouTube incorporato.",
+    noTrackingTitle: "Nessun cookie di analisi o pubblicitario",
+    noTrackingBody:
+      "Attualmente non usiamo cookie di analisi, pubblicita, profilazione o marketing su questo sito.",
+    choicesTitle: "Gestire la scelta",
+    choicesBody:
+      "Puoi riaprire il banner cookie con il pulsante qui sotto, oppure cancellare cookie e archiviazione locale dalle impostazioni del browser.",
+  },
+};
+
+const cookiePolicyTitles: Record<Locale, string> = {
+  en: cookiePolicyCopies.en.title,
+  fr: cookiePolicyCopies.fr.title,
+  de: cookiePolicyCopies.de.title,
+  nl: cookiePolicyCopies.nl.title,
+  ru: cookiePolicyCopies.ru.title,
+  es: cookiePolicyCopies.es.title,
+  it: cookiePolicyCopies.it.title,
+};
+
+function CookiePolicyContent({ locale }: { locale: Locale }) {
+  const copy = cookiePolicyCopies[locale] ?? cookiePolicyCopies.en;
+
+  return (
+    <>
+      <p>{copy.intro}</p>
+      <h2>{copy.usedTitle}</h2>
+      <p>{copy.usedBody}</p>
+      <h2>{copy.noTrackingTitle}</h2>
+      <p>{copy.noTrackingBody}</p>
+      <h2>{copy.choicesTitle}</h2>
+      <p>{copy.choicesBody}</p>
+    </>
+  );
+}
+
 const content: Record<LegalKind, Record<Locale, LegalItem>> = {
   legal: {
     en: {
@@ -389,116 +527,13 @@ const content: Record<LegalKind, Record<Locale, LegalItem>> = {
     },
   },
   cookies: {
-    en: {
-      title: "Cookies policy",
-      body: (
-        <>
-          <p>
-            Mockup cookies policy; adapt with your actual details for GDPR
-            compliance.
-          </p>
-          <h2>Controller</h2>
-          <p>[Company name], [address], contact: [email].</p>
-          <h2>Cookies used</h2>
-          <p>
-            Strictly necessary, analytics, preferences/performance, marketing.
-          </p>
-        </>
-      ),
-    },
-    fr: {
-      title: "Politique de cookies",
-      body: (
-        <>
-          <p>
-            Maquette de politique de cookies conforme au RGPD et au droit
-            français.
-          </p>
-          <h2>Responsable du traitement</h2>
-          <p>[Nom/raison sociale], [adresse], contact: [email].</p>
-          <h2>Cookies utilisés</h2>
-          <p>
-            Indispensables, mesure d&apos;audience, confort et performance,
-            marketing.
-          </p>
-        </>
-      ),
-    },
-    de: {
-      title: "Cookie-Richtlinie",
-      body: (
-        <>
-          <p>
-            Muster einer Cookie-Richtlinie. Bitte mit Ihren tatsaechlichen
-            Angaben fuer DSGVO-Konformitaet anpassen.
-          </p>
-          <h2>Verantwortlicher</h2>
-          <p>[Unternehmen], [Adresse], Kontakt: [E-Mail].</p>
-          <h2>Verwendete Cookies</h2>
-          <p>Notwendig, Analyse, Praeferenzen/Leistung, Marketing.</p>
-        </>
-      ),
-    },
-    nl: {
-      title: "Cookiebeleid",
-      body: (
-        <>
-          <p>
-            Voorbeeld van een cookiebeleid. Pas dit aan met uw werkelijke
-            gegevens voor AVG-naleving.
-          </p>
-          <h2>Verwerkingsverantwoordelijke</h2>
-          <p>[Bedrijf], [adres], contact: [e-mail].</p>
-          <h2>Gebruikte cookies</h2>
-          <p>Noodzakelijk, analyse, voorkeuren/prestaties, marketing.</p>
-        </>
-      ),
-    },
-    ru: {
-      title: "Политика cookie",
-      body: (
-        <>
-          <p>
-            Это шаблон политики cookie. Адаптируйте его под фактические данные
-            для соответствия GDPR.
-          </p>
-          <h2>Оператор данных</h2>
-          <p>[Компания], [адрес], контакт: [email].</p>
-          <h2>Используемые cookie</h2>
-          <p>Обязательные, аналитика, предпочтения/производительность, маркетинг.</p>
-        </>
-      ),
-    },
-    es: {
-      title: "Politica de cookies",
-      body: (
-        <>
-          <p>
-            Modelo de politica de cookies. Adapte este texto con sus datos
-            reales para cumplir con el RGPD.
-          </p>
-          <h2>Responsable del tratamiento</h2>
-          <p>[Empresa], [direccion], contacto: [email].</p>
-          <h2>Cookies utilizadas</h2>
-          <p>Estrictamente necesarias, analitica, preferencias/rendimiento, marketing.</p>
-        </>
-      ),
-    },
-    it: {
-      title: "Informativa sui cookie",
-      body: (
-        <>
-          <p>
-            Modello di informativa sui cookie. Adattarlo con i dati reali per
-            la conformita al GDPR.
-          </p>
-          <h2>Titolare del trattamento</h2>
-          <p>[Societa], [indirizzo], contatto: [email].</p>
-          <h2>Cookie utilizzati</h2>
-          <p>Necessari, analitici, preferenze/prestazioni, marketing.</p>
-        </>
-      ),
-    },
+    en: { title: "Cookies policy", body: <CookiePolicyContent locale="en" /> },
+    fr: { title: "Politique de cookies", body: <CookiePolicyContent locale="fr" /> },
+    de: { title: "Cookie-Richtlinie", body: <CookiePolicyContent locale="de" /> },
+    nl: { title: "Cookiebeleid", body: <CookiePolicyContent locale="nl" /> },
+    ru: { title: "Cookie policy", body: <CookiePolicyContent locale="ru" /> },
+    es: { title: "Politica de cookies", body: <CookiePolicyContent locale="es" /> },
+    it: { title: "Informativa sui cookie", body: <CookiePolicyContent locale="it" /> },
   },
   terms: {
     en: {
@@ -537,6 +572,10 @@ export default function LegalContent({ kind }: { kind: LegalKind }) {
   const item = content[kind][locale] ?? content[kind].en;
   const isLegal = kind === "legal";
   const isTerms = kind === "terms";
+  const isCookies = kind === "cookies";
+  const title = isCookies
+    ? (cookiePolicyTitles[locale] ?? cookiePolicyTitles.en)
+    : item.title;
 
   return (
     <main
@@ -545,11 +584,13 @@ export default function LegalContent({ kind }: { kind: LegalKind }) {
           ? "max-w-[58rem] text-[var(--color-beige)] [&_h2]:mt-0 [&_h2]:mb-3 [&_h2]:text-[clamp(2rem,3.6vw,3.05rem)] [&_h2]:font-semibold [&_h2]:leading-[1.02] [&_p]:mb-10 [&_p]:max-w-[52rem] [&_p]:text-[clamp(1.05rem,1.7vw,1.35rem)] [&_p]:font-light [&_p]:leading-[1.2] [&_strong]:font-semibold"
           : isTerms
             ? "w-full max-w-[56rem] text-[var(--color-beige)]"
+            : isCookies
+              ? "w-full max-w-[58rem] text-[var(--color-beige)] [&_h1]:mb-8 [&_h1]:text-[clamp(2.45rem,5vw,4.5rem)] [&_h1]:font-semibold [&_h1]:leading-[0.98] [&_h2]:mb-3 [&_h2]:mt-10 [&_h2]:text-[clamp(1.75rem,3.2vw,2.75rem)] [&_h2]:font-semibold [&_h2]:leading-[1.04] [&_p]:mb-7 [&_p]:max-w-[52rem] [&_p]:text-[clamp(1rem,1.5vw,1.22rem)] [&_p]:font-light [&_p]:leading-[1.35]"
           : "prose prose-invert max-w-3xl text-[var(--color-beige)] [&_h1]:text-[var(--color-beige)] [&_h2]:text-[var(--color-beige)]"
       }
     >
-      {!isLegal && kind !== "terms" && <h1>{item.title}</h1>}
-      {item.body}
+      {!isLegal && kind !== "terms" && <h1>{title}</h1>}
+      {isCookies ? <CookiePolicyContent locale={locale} /> : item.body}
     </main>
   );
 }
