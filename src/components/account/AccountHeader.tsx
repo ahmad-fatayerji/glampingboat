@@ -7,14 +7,39 @@ import { useT } from "@/components/Language/useT";
 export default function AccountHeader({
   email,
   canAccessAdmin = false,
+  signedInRecently = false,
 }: {
   email: string;
   canAccessAdmin?: boolean;
+  signedInRecently?: boolean;
 }) {
   const t = useT();
 
   return (
     <div className="w-full border border-white/15 bg-[#3f5666]/82 px-6 py-5 md:px-8 md:py-6 shadow-[0_18px_55px_rgba(0,0,0,0.35)] backdrop-blur-sm space-y-4 text-[var(--color-beige)]">
+      {signedInRecently && (
+        <div
+          role="status"
+          className="flex items-start gap-3 rounded-lg border border-[#bdd7b7]/45 bg-[#1f5a46]/45 px-4 py-3 text-sm text-[#edf7e8]"
+        >
+          <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#edf7e8] text-[#1f5a46]">
+            <svg
+              width="13"
+              height="13"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="3"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M20 6 9 17l-5-5" />
+            </svg>
+          </span>
+          <span className="leading-6">{t("accountSignedInSuccess")}</span>
+        </div>
+      )}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <h1 className="border-b border-[#173c59] pb-2 text-[1.3rem] tracking-wide text-[var(--color-beige)] md:border-b-0 md:pb-0">
           {t("accountHeaderTitle")}

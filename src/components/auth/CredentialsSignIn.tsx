@@ -28,7 +28,7 @@ export default function CredentialsSignIn() {
         return;
       }
 
-      window.location.href = "/";
+      window.location.href = "/account?signedIn=1";
     } catch {
       setError(t("genericError"));
     } finally {

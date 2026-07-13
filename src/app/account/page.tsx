@@ -15,6 +15,7 @@ export default async function AccountPage({
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   const session = await auth();
+  const resolvedSearchParams = await searchParams;
 
   if (!session) {
     return (
@@ -31,12 +32,14 @@ export default async function AccountPage({
   });
   const serialized = reservations.map(serializeReservation);
 
-  const resolvedSearchParams = await searchParams;
   const tabRaw = resolvedSearchParams.tab;
+  const signedInRaw = resolvedSearchParams.signedIn;
   const initialTab: AccountTab =
     (Array.isArray(tabRaw) ? tabRaw[0] : tabRaw) === "profile"
       ? "profile"
       : "bookings";
+  const signedInRecently =
+    (Array.isArray(signedInRaw) ? signedInRaw[0] : signedInRaw) === "1";
 
   return (
     <div className="min-h-screen px-4 pt-40 pb-24 flex flex-col items-center">
@@ -44,6 +47,7 @@ export default async function AccountPage({
         <AccountHeader
           email={session.user.email || ""}
           canAccessAdmin={isAdminRole(session.user.role)}
+          signedInRecently={signedInRecently}
         />
         <AccountTabs reservations={serialized} initialTab={initialTab} />
       </div>
