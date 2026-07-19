@@ -5,6 +5,7 @@ import {
   formatMultilineHtml,
   getMailerAddress,
 } from "@/lib/mailer";
+import { getContactEmailCopy, normalizeEmailLocale } from "@/lib/email-i18n";
 import { getErrorMessage } from "@/lib/http";
 import { sanitizePhoneNumber } from "@/lib/input";
 import { getString, isRecord } from "@/lib/type-guards";
@@ -23,6 +24,7 @@ function parseContactPayload(payload: unknown) {
     phone: sanitizePhoneNumber(getString(payload, "phone") ?? ""),
     mobile: sanitizePhoneNumber(getString(payload, "mobile") ?? ""),
     email: getString(payload, "email") ?? "",
+    locale: normalizeEmailLocale(getString(payload, "locale")),
     message: getString(payload, "message") ?? "",
     address: {
       number: getString(payload.address, "number") ?? "",
@@ -36,6 +38,7 @@ function parseContactPayload(payload: unknown) {
 type ContactPayload = NonNullable<ReturnType<typeof parseContactPayload>>;
 
 function buildContactEmail(parsed: ContactPayload) {
+  const copy = getContactEmailCopy(parsed.locale);
   const fullName = `${parsed.firstName} ${parsed.lastName}`.trim();
   const phone = [parsed.phone, parsed.mobile].filter(Boolean).join(" / ");
   const addressLine = [
@@ -46,10 +49,10 @@ function buildContactEmail(parsed: ContactPayload) {
     .join("\n");
 
   const fields = [
-    ["Name", fullName],
-    ["Email", parsed.email],
-    ["Phone", phone],
-    ["Address", addressLine],
+    [copy.fields.name, fullName],
+    [copy.fields.email, parsed.email],
+    [copy.fields.phone, phone],
+    [copy.fields.address, addressLine],
   ] as const;
 
   const rowsHtml = fields
@@ -67,29 +70,30 @@ function buildContactEmail(parsed: ContactPayload) {
     .join("");
 
   const text = [
-    "New Contact Form Submission",
+    copy.textTitle,
     "",
-    `Name: ${fullName || "-"}`,
-    `Email: ${parsed.email || "-"}`,
-    `Phone: ${phone || "-"}`,
-    "Address:",
+    `${copy.fields.name}: ${fullName || "-"}`,
+    `${copy.fields.email}: ${parsed.email || "-"}`,
+    `${copy.fields.phone}: ${phone || "-"}`,
+    `${copy.fields.address}:`,
     addressLine || "-",
     "",
-    "Message:",
+    `${copy.fields.message}:`,
     parsed.message || "-",
   ].join("\n");
 
   const html = buildBrandedEmail({
-    title: "New contact form submission",
-    eyebrow: "Website contact",
-    preview: `New message from ${fullName || parsed.email || "the website contact form"}.`,
+    title: copy.title,
+    eyebrow: copy.eyebrow,
+    preview: copy.preview(fullName || parsed.email || copy.title),
+    locale: parsed.locale,
     bodyHtml: `
       <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse: collapse; background: rgba(255,255,255,0.32); border: 1px solid rgba(0,32,56,0.12);">
         ${rowsHtml}
       </table>
       <div style="margin-top: 18px; border-left: 5px solid #3f5666; background: rgba(255,255,255,0.38); padding: 20px 22px;">
         <div style="margin-bottom: 10px; color: #3f5666; font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;">
-          Message
+          ${copy.fields.message}
         </div>
         <div style="color: #002038; font-size: 17px; line-height: 1.65;">
           ${parsed.message ? formatMultilineHtml(parsed.message) : "-"}
@@ -98,7 +102,7 @@ function buildContactEmail(parsed: ContactPayload) {
     `,
   });
 
-  return { html, text };
+  return { html, subject: copy.subject, text };
 }
 
 export async function POST(req: Request) {
@@ -122,13 +126,13 @@ export async function POST(req: Request) {
     }
 
     const transporter = createGmailTransporter();
-    const { html, text } = buildContactEmail(parsed);
+    const { html, subject, text } = buildContactEmail(parsed);
 
     await transporter.sendMail({
       from: getMailerAddress("Website Contact"),
       to: process.env.CONTACT_EMAIL,
       replyTo: parsed.email,
-      subject: "New Contact Form Submission - Glamping Boat",
+      subject,
       text,
       html,
     });
