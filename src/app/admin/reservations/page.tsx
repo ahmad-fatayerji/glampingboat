@@ -12,8 +12,12 @@ import {
   reservationStatusLabel,
   tAdmin,
 } from "@/components/admin/admin-i18n";
+import { Badge, EmptyState, PageHeader } from "@/components/admin/ui";
+import { IconSearch } from "@/components/admin/icons";
 
 export const dynamic = "force-dynamic";
+
+const COLUMNS = "lg:grid-cols-[1.1fr_1.5fr_1.2fr_1.3fr_0.8fr_auto]";
 
 export default async function AdminReservationsPage({
   searchParams,
@@ -26,12 +30,15 @@ export default async function AdminReservationsPage({
     month: "short",
     year: "numeric",
   });
+  const shortDateFmt = adminDateFormatter(locale, { day: "2-digit", month: "short" });
   const money = (cents: number) => adminMoneyFormatter(locale).format(cents / 100);
   const params = await searchParams;
   const q = readParam(params.q);
   const status = readParam(params.status) ?? "all";
   const paymentStatus = readParam(params.paymentStatus) ?? "all";
   const timing = readParam(params.timing) ?? "all";
+  const isFiltered =
+    Boolean(q?.trim()) || status !== "all" || paymentStatus !== "all" || timing !== "all";
 
   const reservations = await prisma.reservation.findMany({
     where: buildAdminReservationWhere({ q, status, paymentStatus, timing }),
@@ -41,86 +48,112 @@ export default async function AdminReservationsPage({
   });
 
   return (
-    <div className="space-y-5">
-      <header className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-        <div>
-          <p className="admin-eyebrow">
-            {tAdmin(locale, "administration")}
-          </p>
-          <h1 className="mt-2 text-3xl">{tAdmin(locale, "reservations")}</h1>
-        </div>
-        <p className="admin-muted text-sm">
-          {tAdmin(locale, "resultsCount", { count: reservations.length })}
-        </p>
-      </header>
+    <div className="space-y-6">
+      <PageHeader
+        eyebrow={tAdmin(locale, "administration")}
+        title={tAdmin(locale, "reservations")}
+        actions={
+          <span className="admin-muted self-center text-sm tabular-nums">
+            {tAdmin(locale, "resultsCount", { count: reservations.length })}
+          </span>
+        }
+      />
 
-      <form className="admin-surface grid gap-3 p-4 md:grid-cols-[1fr_auto_auto_auto_auto]">
-        <input
-          name="q"
-          defaultValue={q ?? ""}
-          placeholder={tAdmin(locale, "referenceClientEmailPhone")}
-          className="admin-input h-10 rounded-md px-3 text-sm"
-        />
-        <Select name="timing" defaultValue={timing} options={timingOptions(locale)} />
-        <Select name="status" defaultValue={status} options={statusOptions(locale)} />
-        <Select
-          name="paymentStatus"
-          defaultValue={paymentStatus}
-          options={paymentOptions(locale)}
-        />
-        <button className="admin-button h-10 rounded-md px-4 text-sm font-medium">
-          {tAdmin(locale, "search")}
-        </button>
+      <form className="admin-surface grid gap-3 p-4 md:grid-cols-2 xl:grid-cols-[1.6fr_1fr_1fr_1fr_auto] xl:items-end">
+        <Field label={tAdmin(locale, "search")}>
+          <input
+            name="q"
+            defaultValue={q ?? ""}
+            placeholder={tAdmin(locale, "referenceClientEmailPhone")}
+            className="admin-input h-10 px-3 text-sm"
+          />
+        </Field>
+        <Field label={tAdmin(locale, "dates")}>
+          <Select name="timing" defaultValue={timing} options={timingOptions(locale)} />
+        </Field>
+        <Field label={tAdmin(locale, "status")}>
+          <Select name="status" defaultValue={status} options={statusOptions(locale)} />
+        </Field>
+        <Field label={tAdmin(locale, "payments")}>
+          <Select
+            name="paymentStatus"
+            defaultValue={paymentStatus}
+            options={paymentOptions(locale)}
+          />
+        </Field>
+        <div className="flex gap-2">
+          <button className="admin-button h-10 flex-1 px-4 text-sm font-medium xl:flex-none">
+            <IconSearch className="text-[0.95em]" />
+            {tAdmin(locale, "search")}
+          </button>
+          {isFiltered ? (
+            <Link
+              href="/admin/reservations"
+              className="admin-button-secondary h-10 px-4 text-sm font-medium"
+            >
+              &times;
+            </Link>
+          ) : null}
+        </div>
       </form>
 
       <section className="admin-surface overflow-hidden">
-        <div className="admin-eyebrow hidden grid-cols-[1.2fr_1.4fr_1fr_1fr_1fr_auto] gap-3 border-b border-[var(--admin-line)] bg-[rgba(228,219,206,0.08)] px-4 py-3 lg:grid">
+        <div
+          className={`admin-eyebrow admin-table-head hidden gap-3 border-b border-[var(--admin-line)] px-4 py-3 lg:grid ${COLUMNS}`}
+        >
           <span>{tAdmin(locale, "reference")}</span>
           <span>{tAdmin(locale, "client")}</span>
           <span>{tAdmin(locale, "dates")}</span>
           <span>{tAdmin(locale, "status")}</span>
-          <span>{tAdmin(locale, "total")}</span>
-          <span />
+          <span className="text-right">{tAdmin(locale, "total")}</span>
+          <span className="sr-only">{tAdmin(locale, "open")}</span>
         </div>
         <div className="divide-y divide-[var(--admin-line)]">
           {reservations.map((reservation) => (
             <Link
               key={reservation.id}
               href={`/admin/reservations/${reservation.id}`}
-              className="grid gap-2 px-4 py-4 text-sm transition hover:bg-[var(--admin-hover)] lg:grid-cols-[1.2fr_1.4fr_1fr_1fr_1fr_auto] lg:items-center"
+              className={`group grid gap-x-3 gap-y-2 px-4 py-3.5 text-sm transition hover:bg-[var(--admin-hover)] lg:items-center ${COLUMNS}`}
             >
-              <div>
-                <p className="font-semibold">{reservation.bookingRef}</p>
-                <p className="admin-muted text-xs">
+              <div className="min-w-0">
+                <p className="truncate font-mono font-medium">{reservation.bookingRef}</p>
+                <p className="admin-muted mt-0.5 text-xs">
                   {tAdmin(locale, "createdAt", {
-                    date: dateFmt.format(reservation.createdAt),
+                    date: shortDateFmt.format(reservation.createdAt),
                   })}
                 </p>
               </div>
-              <div>
-                <p>
+              <div className="min-w-0">
+                <p className="truncate">
                   {customerName(reservation) || tAdmin(locale, "customer")}
                 </p>
-                <p className="admin-muted break-all text-xs">
+                <p className="admin-muted truncate text-xs">
                   {reservation.customerEmail ?? reservation.user.email}
                 </p>
               </div>
-              <p>
-                {dateFmt.format(reservation.startDate)} -{" "}
+              <p className="tabular-nums">
+                {dateFmt.format(reservation.startDate)}
+                <span className="admin-muted"> &ndash; </span>
                 {dateFmt.format(reservation.endDate)}
               </p>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-1.5">
                 <Badge>{reservationStatusLabel(locale, reservation.status)}</Badge>
-                <Badge tone="payment">{paymentStatusLabel(locale, reservation.paymentStatus)}</Badge>
+                <Badge tone={reservation.paymentStatus === "PAID_FULL" ? "ok" : "blue"}>
+                  {paymentStatusLabel(locale, reservation.paymentStatus)}
+                </Badge>
               </div>
-              <p>{money(reservation.totalAmountTtcCents)}</p>
-              <span className="admin-link">{tAdmin(locale, "open")}</span>
+              <p className="font-medium tabular-nums lg:text-right">
+                {money(reservation.totalAmountTtcCents)}
+              </p>
+              <span className="admin-link hidden text-sm lg:inline">
+                {tAdmin(locale, "open")}
+              </span>
             </Link>
           ))}
           {!reservations.length && (
-            <p className="admin-muted px-4 py-8 text-center text-sm">
-              {tAdmin(locale, "noReservationFound")}
-            </p>
+            <div className="p-5">
+              <EmptyState label={tAdmin(locale, "noReservationFound")} />
+            </div>
           )}
         </div>
       </section>
@@ -130,6 +163,15 @@ export default async function AdminReservationsPage({
 
 function readParam(value: string | string[] | undefined) {
   return Array.isArray(value) ? value[0] : value;
+}
+
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <label className="grid gap-1.5">
+      <span className="admin-eyebrow">{label}</span>
+      {children}
+    </label>
+  );
 }
 
 function Select({
@@ -142,37 +184,13 @@ function Select({
   options: Array<{ value: string; label: string }>;
 }) {
   return (
-    <select
-      name={name}
-      defaultValue={defaultValue}
-      className="admin-input h-10 rounded-md px-3 text-sm"
-    >
+    <select name={name} defaultValue={defaultValue} className="admin-input h-10 px-3 text-sm">
       {options.map((option) => (
         <option key={option.value} value={option.value}>
           {option.label}
         </option>
       ))}
     </select>
-  );
-}
-
-function Badge({
-  children,
-  tone = "status",
-}: {
-  children: React.ReactNode;
-  tone?: "status" | "payment";
-}) {
-  return (
-    <span
-      className={`rounded-full px-2.5 py-1 text-[11px] font-medium ${
-        tone === "payment"
-          ? "admin-pill-blue"
-          : "admin-pill"
-      }`}
-    >
-      {children}
-    </span>
   );
 }
 

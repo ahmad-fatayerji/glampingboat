@@ -11,6 +11,8 @@ import {
   roleLabel,
   tAdmin,
 } from "@/components/admin/admin-i18n";
+import { Badge, EmptyState, PageHeader } from "@/components/admin/ui";
+import { IconSearch } from "@/components/admin/icons";
 
 export const dynamic = "force-dynamic";
 
@@ -25,6 +27,7 @@ export default async function AdminCustomersPage({
     month: "short",
     year: "numeric",
   });
+  const shortDateFmt = adminDateFormatter(locale, { day: "2-digit", month: "short" });
   const money = (cents: number) => adminMoneyFormatter(locale).format(cents / 100);
   const session = await requireAdmin();
   const params = await searchParams;
@@ -77,27 +80,44 @@ export default async function AdminCustomersPage({
   });
 
   return (
-    <div className="space-y-5">
-      <header>
-        <p className="admin-eyebrow">
-          {tAdmin(locale, "account")}
-        </p>
-        <h1 className="mt-2 text-3xl">{tAdmin(locale, "clients")}</h1>
-      </header>
+    <div className="space-y-6">
+      <PageHeader
+        eyebrow={tAdmin(locale, "account")}
+        title={tAdmin(locale, "clients")}
+        actions={
+          <span className="admin-muted self-center text-sm tabular-nums">
+            {tAdmin(locale, "resultsCount", { count: customers.length })}
+          </span>
+        }
+      />
 
-      <form className="admin-surface grid gap-3 p-4 md:grid-cols-[1fr_auto]">
-        <input
-          name="q"
-          defaultValue={search ?? ""}
-          placeholder={`${tAdmin(locale, "name")}, ${tAdmin(locale, "email")}, ${tAdmin(locale, "phone")}`}
-          className="admin-input h-10 rounded-md px-3 text-sm"
-        />
-        <button className="admin-button h-10 rounded-md px-4 text-sm font-medium">
-          {tAdmin(locale, "search")}
-        </button>
+      <form className="admin-surface flex flex-col gap-3 p-4 sm:flex-row sm:items-end">
+        <label className="grid flex-1 gap-1.5">
+          <span className="admin-eyebrow">{tAdmin(locale, "search")}</span>
+          <input
+            name="q"
+            defaultValue={search ?? ""}
+            placeholder={`${tAdmin(locale, "name")}, ${tAdmin(locale, "email")}, ${tAdmin(locale, "phone")}`}
+            className="admin-input h-10 px-3 text-sm"
+          />
+        </label>
+        <div className="flex gap-2">
+          <button className="admin-button h-10 flex-1 px-4 text-sm font-medium sm:flex-none">
+            <IconSearch className="text-[0.95em]" />
+            {tAdmin(locale, "search")}
+          </button>
+          {search ? (
+            <Link
+              href="/admin/customers"
+              className="admin-button-secondary h-10 px-4 text-sm font-medium"
+            >
+              &times;
+            </Link>
+          ) : null}
+        </div>
       </form>
 
-      <section className="grid gap-3">
+      <section className="grid gap-4">
         {customers.map((customer) => {
           const name =
             `${customer.firstName ?? ""} ${customer.lastName ?? ""}`.trim() ||
@@ -114,124 +134,120 @@ export default async function AdminCustomersPage({
             (sum, reservation) => sum + reservation.paidAmountCents,
             0
           );
-          const effectiveRole = getEffectiveRoleForEmail(
-            customer.email,
-            customer.role
-          );
+          const effectiveRole = getEffectiveRoleForEmail(customer.email, customer.role);
+          const initial = name.trim().charAt(0).toUpperCase() || "?";
 
           return (
-            <article
-              key={customer.id}
-              className="admin-surface grid gap-4 p-4 xl:grid-cols-[1.1fr_1fr_auto]"
-            >
-              <div className="space-y-2">
-                <div>
-                  <h2 className="text-lg">{name}</h2>
-                  <p className="admin-muted break-all text-sm">{customer.email}</p>
+            <article key={customer.id} className="admin-surface overflow-hidden">
+              {/* Identity + role control */}
+              <div className="flex flex-wrap items-start justify-between gap-4 border-b border-[var(--admin-line)] p-5">
+                <div className="flex min-w-0 items-start gap-3">
+                  <span
+                    className="grid size-10 shrink-0 place-items-center rounded-full border border-[var(--admin-line-strong)] bg-[rgba(228,219,206,0.12)] text-sm font-semibold"
+                    aria-hidden
+                  >
+                    {initial}
+                  </span>
+                  <div className="min-w-0">
+                    <h2 className="truncate text-lg font-medium leading-tight">{name}</h2>
+                    <Link
+                      href={`mailto:${customer.email}`}
+                      className="admin-link break-all text-sm"
+                    >
+                      {customer.email}
+                    </Link>
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                      <Badge>{roleLabel(locale, effectiveRole)}</Badge>
+                      <ProfileStatusBadge missingFields={missingProfileFields} locale={locale} />
+                      <Badge tone="blue">
+                        {tAdmin(locale, "reservationCount", {
+                          count: customer._count.reservations,
+                        })}
+                      </Badge>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex flex-wrap gap-2 text-xs">
-                  <Badge>{roleLabel(locale, effectiveRole)}</Badge>
-                  <ProfileStatusBadge
-                    missingFields={missingProfileFields}
-                    locale={locale}
-                  />
-                  <Badge>
-                    {tAdmin(locale, "reservationCount", {
-                      count: customer._count.reservations,
-                    })}
-                  </Badge>
+                <div className="shrink-0">
+                  {canManageRoles ? (
+                    <AdminRoleSelect
+                      userId={customer.id}
+                      value={effectiveRole}
+                      disabled={
+                        customer.id === session.user.id || effectiveRole === "SUPER_ADMIN"
+                      }
+                    />
+                  ) : (
+                    <p className="admin-muted max-w-48 text-xs leading-relaxed">
+                      {tAdmin(locale, "rolesManagedBySuperAdmin")}
+                    </p>
+                  )}
                 </div>
-                <div className="grid gap-1 text-sm text-[var(--admin-ink)] sm:grid-cols-2">
-                  <p>
-                    {tAdmin(locale, "phone")}:{" "}
+              </div>
+
+              <div className="grid gap-5 p-5 lg:grid-cols-2">
+                <dl className="grid gap-3 sm:grid-cols-2">
+                  <Detail label={tAdmin(locale, "phone")}>
                     {customer.phone ? (
                       <Link href={`tel:${customer.phone}`} className="admin-link">
                         {customer.phone}
                       </Link>
                     ) : (
-                      "-"
+                      <span className="admin-muted">&mdash;</span>
                     )}
-                  </p>
-                  <p>
-                    {tAdmin(locale, "createdAt", {
-                      date: dateFmt.format(customer.createdAt),
-                    })}
-                  </p>
-                  <p>{tAdmin(locale, "paidTotal", { amount: money(paidCents) })}</p>
+                  </Detail>
+                  <Detail label={tAdmin(locale, "createdOnLabel")}>
+                    <span className="tabular-nums">{dateFmt.format(customer.createdAt)}</span>
+                  </Detail>
+                  <Detail label={tAdmin(locale, "paidTotalLabel")}>
+                    <span className="font-medium tabular-nums">{money(paidCents)}</span>
+                  </Detail>
+                </dl>
+
+                <div>
+                  <p className="admin-eyebrow mb-2">{tAdmin(locale, "latestReservations")}</p>
+                  {customer.reservations.length ? (
+                    <ul className="grid gap-2">
+                      {customer.reservations.map((reservation) => (
+                        <li key={reservation.id}>
+                          <Link
+                            href={`/admin/reservations/${reservation.id}`}
+                            className="admin-row flex items-center justify-between gap-3 px-3 py-2 text-sm"
+                          >
+                            <span className="truncate font-mono text-xs font-medium">
+                              {reservation.bookingRef}
+                            </span>
+                            <span className="admin-muted shrink-0 text-xs tabular-nums">
+                              {shortDateFmt.format(reservation.startDate)} &ndash;{" "}
+                              {shortDateFmt.format(reservation.endDate)}
+                            </span>
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="admin-muted text-sm">{tAdmin(locale, "noReservation")}</p>
+                  )}
                 </div>
-              </div>
-
-              <div className="space-y-2">
-                <p className="admin-eyebrow">
-                  {tAdmin(locale, "latestReservations")}
-                </p>
-                {customer.reservations.length ? (
-                  customer.reservations.map((reservation) => (
-                    <Link
-                      key={reservation.id}
-                      href={`/admin/reservations/${reservation.id}`}
-                      className="admin-row block rounded-md px-3 py-2 text-sm"
-                    >
-                      <span className="font-medium">{reservation.bookingRef}</span>
-                      <span className="admin-muted ml-2">
-                        {dateFmt.format(reservation.startDate)} -{" "}
-                        {dateFmt.format(reservation.endDate)}
-                      </span>
-                    </Link>
-                  ))
-                ) : (
-                  <p className="admin-muted text-sm">{tAdmin(locale, "noReservation")}</p>
-                )}
-              </div>
-
-              <div className="xl:justify-self-end">
-                {canManageRoles ? (
-                  <AdminRoleSelect
-                    userId={customer.id}
-                    value={effectiveRole}
-                    disabled={
-                      customer.id === session.user.id ||
-                      effectiveRole === "SUPER_ADMIN"
-                    }
-                  />
-                ) : (
-                  <p className="admin-muted text-sm">
-                    {tAdmin(locale, "rolesManagedBySuperAdmin")}
-                  </p>
-                )}
               </div>
             </article>
           );
         })}
         {!customers.length && (
-          <p className="admin-surface admin-muted p-8 text-center text-sm">
-            {tAdmin(locale, "noCustomersFound")}
-          </p>
+          <div className="admin-surface p-5">
+            <EmptyState label={tAdmin(locale, "noCustomersFound")} />
+          </div>
         )}
       </section>
     </div>
   );
 }
 
-function Badge({
-  children,
-  tone = "neutral",
-}: {
-  children: React.ReactNode;
-  tone?: "neutral" | "ok" | "warn";
-}) {
+function Detail({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <span
-      className={`rounded-full px-2.5 py-1 font-medium ${
-        tone === "ok"
-          ? "admin-pill-ok"
-          : tone === "warn"
-            ? "admin-pill-warn"
-            : "admin-pill"
-      }`}
-    >
-      {children}
-    </span>
+    <div className="min-w-0">
+      <dt className="admin-eyebrow">{label}</dt>
+      <dd className="mt-1 break-words text-sm">{children}</dd>
+    </div>
   );
 }
 
@@ -247,13 +263,15 @@ function ProfileStatusBadge({
   }
 
   return (
-    <span className="group relative inline-flex w-fit" tabIndex={0}>
+    <span
+      className="group relative inline-flex w-fit"
+      tabIndex={0}
+      title={`${tAdmin(locale, "missingFields")} ${missingFields.join(", ")}`}
+    >
       <Badge tone="warn">{tAdmin(locale, "profileIncomplete")}</Badge>
-      <span className="pointer-events-none absolute left-0 top-full z-20 mt-2 hidden min-w-52 rounded-md border border-[#173c59] bg-[#0d3350] p-3 text-xs font-normal text-[var(--color-beige)] shadow-[0_14px_35px_rgba(0,0,0,0.32)] group-hover:block group-focus:block">
+      <span className="pointer-events-none absolute left-0 top-full z-20 mt-2 hidden min-w-52 rounded-[var(--admin-radius-sm)] border border-[#173c59] bg-[#0d3350] p-3 text-xs font-normal text-[var(--color-beige)] shadow-[0_14px_35px_rgba(0,0,0,0.32)] group-hover:block group-focus:block">
         <span className="block font-medium">{tAdmin(locale, "missingFields")}</span>
-        <span className="admin-muted mt-1 block">
-          {missingFields.join(", ")}
-        </span>
+        <span className="admin-muted mt-1 block">{missingFields.join(", ")}</span>
       </span>
     </span>
   );

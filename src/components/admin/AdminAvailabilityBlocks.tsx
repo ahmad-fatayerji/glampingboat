@@ -3,8 +3,9 @@
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { useLanguage } from "@/components/Language/LanguageContext";
-import { availabilityBlockTypeLabel } from "./admin-i18n";
+import { adminDateFormatter, availabilityBlockTypeLabel } from "./admin-i18n";
 import { useAdminT } from "./useAdminT";
+import { Badge, EmptyState } from "./ui";
 
 export default function AdminAvailabilityBlocks({
   blocks,
@@ -24,6 +25,11 @@ export default function AdminAvailabilityBlocks({
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const dateFmt = adminDateFormatter(locale, {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
 
   async function createBlock(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -55,6 +61,9 @@ export default function AdminAvailabilityBlocks({
   }
 
   async function deleteBlock(id: string) {
+    // Removing a block reopens those dates for booking — confirm first.
+    if (!window.confirm(t("confirmDeleteBlock"))) return;
+
     setBusy(true);
     setMessage(null);
     setError(null);
@@ -79,113 +88,97 @@ export default function AdminAvailabilityBlocks({
 
   return (
     <div className="grid gap-5 xl:grid-cols-[24rem_1fr]">
-      <form
-        onSubmit={createBlock}
-        className="admin-surface h-fit space-y-3 p-4"
-      >
-        <h2 className="text-lg">{t("newBlock")}</h2>
-        {(message || error) && (
-          <p
-            className={`rounded-md px-3 py-2 text-sm ${
-              error
-                ? "border border-[#b65c50] bg-[#5a1e1a]/70 text-[#ffe1dc]"
-                : "border border-[#80a68d] bg-[#1f4c32]/70 text-[#e1f5e6]"
-            }`}
-          >
-            {error || message}
-          </p>
-        )}
-        <label className="grid gap-1 text-sm">
-          {t("arrival")}
-          <input
-            name="startDate"
-            type="date"
-            required
-            className="admin-input h-10 rounded-md px-3"
-          />
-        </label>
-        <label className="grid gap-1 text-sm">
-          {t("end")}
-          <input
-            name="endDate"
-            type="date"
-            required
-            className="admin-input h-10 rounded-md px-3"
-          />
-        </label>
-        <label className="grid gap-1 text-sm">
-          {t("type")}
-          <select
-            name="type"
-            className="admin-input h-10 rounded-md px-3"
-          >
-            <option value="MAINTENANCE">{t("blockTypeMaintenance")}</option>
-            <option value="OWNER_USE">{t("blockTypeOwnerUse")}</option>
-            <option value="CLEANING_BUFFER">{t("blockTypeCleaning")}</option>
-            <option value="PRIVATE_HOLD">{t("blockTypePrivateHold")}</option>
-            <option value="OTHER">{t("blockTypeOther")}</option>
-          </select>
-        </label>
-        <label className="grid gap-1 text-sm">
-          {t("reason")}
-          <input
-            name="reason"
-            required
-            className="admin-input h-10 rounded-md px-3"
-          />
-        </label>
-        <label className="grid gap-1 text-sm">
-          {t("note")}
-          <textarea
-            name="note"
-            rows={3}
-            className="admin-input rounded-md px-3 py-2"
-          />
-        </label>
-        <button
-          disabled={busy}
-          className="admin-button rounded-md px-4 py-2 text-sm font-medium"
-        >
-          {t("blockDates")}
-        </button>
+      <form onSubmit={createBlock} className="admin-surface h-fit overflow-hidden">
+        <div className="border-b border-[var(--admin-line)] px-5 py-4">
+          <h2 className="text-lg font-medium leading-tight">{t("newBlock")}</h2>
+        </div>
+        <div className="space-y-3.5 p-5">
+          {(message || error) && (
+            <p
+              role={error ? "alert" : "status"}
+              className={`rounded-[var(--admin-radius-sm)] px-3 py-2 text-sm ${
+                error
+                  ? "border border-[#b65c50] bg-[#5a1e1a]/70 text-[#ffe1dc]"
+                  : "border border-[#80a68d] bg-[#1f4c32]/70 text-[#e1f5e6]"
+              }`}
+            >
+              {error || message}
+            </p>
+          )}
+          <div className="grid gap-3 sm:grid-cols-2">
+            <label className="grid gap-1.5">
+              <span className="admin-eyebrow">{t("arrival")}</span>
+              <input name="startDate" type="date" required className="admin-input h-10 px-3 text-sm" />
+            </label>
+            <label className="grid gap-1.5">
+              <span className="admin-eyebrow">{t("end")}</span>
+              <input name="endDate" type="date" required className="admin-input h-10 px-3 text-sm" />
+            </label>
+          </div>
+          <label className="grid gap-1.5">
+            <span className="admin-eyebrow">{t("type")}</span>
+            <select name="type" className="admin-input h-10 px-3 text-sm">
+              <option value="MAINTENANCE">{t("blockTypeMaintenance")}</option>
+              <option value="OWNER_USE">{t("blockTypeOwnerUse")}</option>
+              <option value="CLEANING_BUFFER">{t("blockTypeCleaning")}</option>
+              <option value="PRIVATE_HOLD">{t("blockTypePrivateHold")}</option>
+              <option value="OTHER">{t("blockTypeOther")}</option>
+            </select>
+          </label>
+          <label className="grid gap-1.5">
+            <span className="admin-eyebrow">{t("reason")}</span>
+            <input name="reason" required className="admin-input h-10 px-3 text-sm" />
+          </label>
+          <label className="grid gap-1.5">
+            <span className="admin-eyebrow">{t("note")}</span>
+            <textarea name="note" rows={3} className="admin-input resize-y px-3 py-2 text-sm" />
+          </label>
+          <button disabled={busy} className="admin-button w-full px-4 py-2 text-sm font-medium">
+            {busy ? `${t("blockDates")}…` : t("blockDates")}
+          </button>
+        </div>
       </form>
 
-      <section className="admin-surface p-4">
-        <h2 className="mb-3 border-b border-[var(--admin-line)] pb-2 text-lg">
-          {t("activeFutureBlocks")}
-        </h2>
-        <div className="grid gap-2">
-          {blocks.map((block) => (
-            <article
-              key={block.id}
-              className="admin-row grid gap-2 rounded-md p-3 text-sm md:grid-cols-[1fr_auto]"
-            >
-              <div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="font-medium">{block.reason}</span>
-                  <span className="admin-pill rounded-full px-2.5 py-1 text-xs">
-                    {availabilityBlockTypeLabel(locale, block.type)}
-                  </span>
-                </div>
-                <p className="admin-muted mt-1">
-                  {block.startDate.slice(0, 10)} - {block.endDate.slice(0, 10)}
-                </p>
-                {block.note && <p className="mt-1">{block.note}</p>}
-              </div>
-              <button
-                type="button"
-                disabled={busy}
-                onClick={() => deleteBlock(block.id)}
-                className="h-9 rounded-md border border-[#d9b9b4] px-3 text-sm text-[#ffd8d2] disabled:opacity-55"
-              >
-                {t("delete")}
-              </button>
-            </article>
-          ))}
-          {!blocks.length && (
-            <p className="admin-muted py-8 text-center text-sm">
-              {t("noActiveBlocks")}
-            </p>
+      <section className="admin-surface flex flex-col overflow-hidden">
+        <div className="border-b border-[var(--admin-line)] px-5 py-4">
+          <h2 className="text-lg font-medium leading-tight">{t("activeFutureBlocks")}</h2>
+        </div>
+        <div className="p-5">
+          {blocks.length ? (
+            <ul className="grid gap-2">
+              {blocks.map((block) => (
+                <li
+                  key={block.id}
+                  className="admin-row flex flex-wrap items-start justify-between gap-3 p-3.5 text-sm"
+                >
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="font-medium">{block.reason}</span>
+                      <Badge>{availabilityBlockTypeLabel(locale, block.type)}</Badge>
+                    </div>
+                    <p className="admin-muted mt-1 text-xs tabular-nums">
+                      {dateFmt.format(new Date(block.startDate))} &ndash;{" "}
+                      {dateFmt.format(new Date(block.endDate))}
+                    </p>
+                    {block.note && (
+                      <p className="admin-muted mt-1.5 text-xs leading-relaxed">
+                        {block.note}
+                      </p>
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    disabled={busy}
+                    onClick={() => deleteBlock(block.id)}
+                    className="h-9 shrink-0 rounded-[var(--admin-radius-sm)] border border-[#d9b9b4] px-3 text-sm text-[#ffd8d2] transition hover:bg-[#5a1e1a]/50 disabled:cursor-not-allowed disabled:opacity-55"
+                  >
+                    {t("delete")}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <EmptyState label={t("noActiveBlocks")} />
           )}
         </div>
       </section>

@@ -21,7 +21,7 @@ export default function AdminFeatureFlags({
   flags: FeatureFlagView[];
 }) {
   return (
-    <section className="grid gap-3">
+    <section className="grid gap-4">
       {flags.map((flag) => (
         <FeatureFlagRow key={flag.key} flag={flag} />
       ))}
@@ -66,45 +66,56 @@ function FeatureFlagRow({ flag }: { flag: FeatureFlagView }) {
   }
 
   return (
-    <article className="admin-surface grid gap-4 p-4 md:grid-cols-[1fr_auto] md:items-center">
-      <div>
+    <article className="admin-surface flex flex-wrap items-start justify-between gap-4 p-5">
+      <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-2">
-          <h2 className="text-lg">{flag.label}</h2>
+          <h2 className="text-lg font-medium leading-tight">{flag.label}</h2>
           <span
-            className={`rounded-full px-2.5 py-1 text-xs font-medium ${
-              enabled ? "admin-pill-ok" : "admin-pill-warn"
+            className={`inline-flex items-center whitespace-nowrap rounded-full px-2.5 py-1 text-[11px] font-medium leading-none ${
+              enabled ? "admin-pill-ok" : "admin-pill"
             }`}
           >
             {enabled ? t("active") : t("disabled")}
           </span>
         </div>
-        <p className="admin-muted mt-1 text-sm">{flag.description}</p>
-        <p className="admin-muted mt-2 text-xs">
+        <p className="admin-muted mt-1.5 max-w-prose text-sm leading-relaxed">
+          {flag.description}
+        </p>
+        <p className="admin-muted mt-2.5 text-xs">
           {t("lastUpdated", {
             date: new Date(flag.updatedAt).toLocaleString(ADMIN_INTL_LOCALE[locale]),
           })}
         </p>
-        {error && <p className="mt-2 text-sm text-[#ffd8d2]">{error}</p>}
+        {error && (
+          <p
+            role="alert"
+            className="mt-3 rounded-[var(--admin-radius-sm)] border border-[#b65c50] bg-[#5a1e1a]/70 px-3 py-2 text-sm text-[#ffe1dc]"
+          >
+            {error}
+          </p>
+        )}
       </div>
 
-      <label className="inline-flex cursor-pointer items-center gap-3 justify-self-start md:justify-self-end">
-        <span className="admin-muted text-sm">
-          {enabled ? t("active") : t("inactive")}
-        </span>
+      {/* The badge above already states the value, so the switch is label-free. */}
+      <label
+        className={`inline-flex shrink-0 items-center ${saving ? "cursor-wait" : "cursor-pointer"}`}
+      >
         <input
           type="checkbox"
+          role="switch"
           checked={enabled}
           disabled={saving}
+          aria-label={flag.label}
           onChange={(event) => toggleFlag(event.target.checked)}
           className="peer sr-only"
         />
         <span
-          className={`relative h-7 w-12 rounded-full border border-[var(--admin-line)] transition peer-disabled:opacity-55 ${
+          className={`relative h-7 w-12 rounded-full border border-[var(--admin-line)] transition peer-disabled:opacity-55 peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-[var(--admin-focus)] ${
             enabled ? "bg-[#7ea985]" : "bg-[var(--admin-field)]"
           }`}
         >
           <span
-            className={`absolute left-1 top-1 h-5 w-5 rounded-full bg-[var(--color-beige)] transition ${
+            className={`absolute left-1 top-1 size-5 rounded-full bg-[var(--color-beige)] transition-transform ${
               enabled ? "translate-x-5" : ""
             }`}
           />

@@ -1,6 +1,6 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import AdminReservationActions from "@/components/admin/AdminReservationActions";
+import AdminReservationFinance from "@/components/admin/AdminReservationFinance";
 import { SHOW_TOURIST_TAX_BREAKDOWN } from "@/lib/booking-features";
 import { ADMIN_RESERVATION_INCLUDE } from "@/lib/admin-data";
 import { prisma } from "@/lib/prisma";
@@ -8,11 +8,13 @@ import { getServerLocale } from "@/components/Language/server-locale";
 import {
   adminDateFormatter,
   adminMoneyFormatter,
+  bookingPaymentStatusLabel,
   paymentPurposeLabel,
   paymentStatusLabel,
   reservationStatusLabel,
   tAdmin,
 } from "@/components/admin/admin-i18n";
+import { Badge, EmptyState, Info, InfoRow, PageHeader, Panel } from "@/components/admin/ui";
 
 export const dynamic = "force-dynamic";
 
@@ -55,39 +57,64 @@ export default async function AdminReservationDetailPage({
     reservation.balanceDueDate !== null &&
     reservation.paidAmountCents < reservation.totalAmountTtcCents &&
     now > reservation.balanceDueDate;
+  const fullyPaid = reservation.paidAmountCents >= reservation.totalAmountTtcCents;
+  const nights = Math.max(
+    Math.round(
+      (reservation.endDate.getTime() - reservation.startDate.getTime()) / 86_400_000
+    ),
+    0
+  );
 
   return (
-    <div className="space-y-5">
-      <header className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-        <div>
-          <Link
-            href="/admin/reservations"
-            className="admin-link text-sm"
-          >
-            {tAdmin(locale, "backToReservations")}
-          </Link>
-          <h1 className="mt-2 text-3xl">{reservation.bookingRef}</h1>
-          <p className="admin-muted mt-1 text-sm">{customerDisplay}</p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Badge>{reservationStatusLabel(locale, reservation.status)}</Badge>
-          <Badge tone="payment">{paymentStatusLabel(locale, reservation.paymentStatus)}</Badge>
-        </div>
-      </header>
+    <div className="space-y-6">
+      <PageHeader
+        eyebrow={tAdmin(locale, "reservations")}
+        title={reservation.bookingRef}
+        description={customerDisplay}
+        backLink={{
+          href: "/admin/reservations",
+          label: tAdmin(locale, "backToReservations"),
+        }}
+        actions={
+          <div className="flex flex-wrap items-center gap-2 self-center">
+            <Badge>{reservationStatusLabel(locale, reservation.status)}</Badge>
+            <Badge tone={fullyPaid ? "ok" : balanceOverdue ? "warn" : "blue"}>
+              {paymentStatusLabel(locale, reservation.paymentStatus)}
+            </Badge>
+          </div>
+        }
+      />
 
-      <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_26rem]">
+      {balanceOverdue ? (
+        <p className="admin-pill-warn rounded-[var(--admin-radius-sm)] border px-4 py-3 text-sm">
+          {tAdmin(locale, "balanceOverdue")}
+        </p>
+      ) : null}
+
+      <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_24rem]">
         <div className="space-y-5">
           <Panel title={tAdmin(locale, "stay")}>
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              <Info label={tAdmin(locale, "arrival")} value={dateFmt.format(reservation.startDate)} />
-              <Info label={tAdmin(locale, "departure")} value={dateFmt.format(reservation.endDate)} />
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <Info
+                label={tAdmin(locale, "arrival")}
+                value={dateFmt.format(reservation.startDate)}
+              />
+              <Info
+                label={tAdmin(locale, "departure")}
+                value={dateFmt.format(reservation.endDate)}
+              />
               <Info label={tAdmin(locale, "adults")} value={String(reservation.adults)} />
               <Info label={tAdmin(locale, "children")} value={String(reservation.children)} />
             </div>
+            {nights > 0 ? (
+              <p className="admin-muted mt-4 border-t border-[var(--admin-line)] pt-3 text-xs tabular-nums">
+                {tAdmin(locale, "nightCount", { count: nights })}
+              </p>
+            ) : null}
           </Panel>
 
           <Panel title={tAdmin(locale, "client")}>
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid gap-4 sm:grid-cols-2">
               <Info label={tAdmin(locale, "name")} value={customerDisplay} />
               <Info
                 label={tAdmin(locale, "email")}
@@ -114,14 +141,16 @@ export default async function AdminReservationDetailPage({
               />
               <Info
                 label={tAdmin(locale, "address")}
-                value={[
-                  reservation.billingAddressNumber,
-                  reservation.billingAddressStreet,
-                  reservation.billingAddressCity,
-                  reservation.billingAddressState,
-                ]
-                  .filter(Boolean)
-                  .join(" ") || "-"}
+                value={
+                  [
+                    reservation.billingAddressNumber,
+                    reservation.billingAddressStreet,
+                    reservation.billingAddressCity,
+                    reservation.billingAddressState,
+                  ]
+                    .filter(Boolean)
+                    .join(" ") || "-"
+                }
               />
               <Info
                 label={tAdmin(locale, "account")}
@@ -132,108 +161,123 @@ export default async function AdminReservationDetailPage({
           </Panel>
 
           <Panel title={tAdmin(locale, "finances")}>
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              <Info label={tAdmin(locale, "baseHt")} value={money(reservation.baseAmountHtCents)} />
-              <Info label={tAdmin(locale, "optionsHt")} value={money(reservation.optionsAmountHtCents)} />
-              <Info label={tAdmin(locale, "vat")} value={money(reservation.vatAmountCents)} />
-              {SHOW_TOURIST_TAX_BREAKDOWN && (
-                <Info
-                  label={tAdmin(locale, "touristTax")}
-                  value={money(reservation.touristTaxAmountCents)}
-                />
-              )}
-              <Info label={tAdmin(locale, "totalInclTax")} value={money(reservation.totalAmountTtcCents)} />
-              <Info label={tAdmin(locale, "deposit")} value={money(reservation.depositAmountCents)} />
-              <Info label={tAdmin(locale, "balance")} value={money(reservation.balanceAmountCents)} />
-              <Info
-                label={tAdmin(locale, "balanceDueDate")}
-                value={
-                  reservation.balanceDueDate
-                    ? dateFmt.format(reservation.balanceDueDate)
-                    : "-"
-                }
-              />
-              <Info label={tAdmin(locale, "paid")} value={money(reservation.paidAmountCents)} />
-              <Info
-                label={tAdmin(locale, "status")}
-                value={
-                  reservation.paidAmountCents >= reservation.totalAmountTtcCents
-                    ? tAdmin(locale, "paidFull")
-                    : balanceOverdue
-                      ? tAdmin(locale, "balanceOverdue")
-                      : reservation.paidAmountCents > 0
-                        ? tAdmin(locale, "paidDeposit")
-                        : tAdmin(locale, "unpaid")
-                }
-              />
-            </div>
+            <AdminReservationFinance
+              locale={locale}
+              showTouristTaxBreakdown={SHOW_TOURIST_TAX_BREAKDOWN}
+              reservation={{
+                id: reservation.id,
+                paidAmountCents: reservation.paidAmountCents,
+                totalAmountTtcCents: reservation.totalAmountTtcCents,
+                baseAmountHtCents: reservation.baseAmountHtCents,
+                optionsAmountHtCents: reservation.optionsAmountHtCents,
+                vatAmountCents: reservation.vatAmountCents,
+                touristTaxAmountCents: reservation.touristTaxAmountCents,
+                depositAmountCents: reservation.depositAmountCents,
+                balanceDueDate: reservation.balanceDueDate?.toISOString() ?? null,
+                balanceOverdue,
+              }}
+            />
           </Panel>
 
           <Panel title={tAdmin(locale, "options")}>
             {reservation.items.length ? (
-              <div className="divide-y divide-[var(--admin-line)]">
+              <ul className="grid gap-2">
                 {reservation.items.map((item) => (
-                  <div
+                  <li
                     key={item.id}
-                    className="grid gap-1 py-2 text-sm md:grid-cols-[1fr_auto_auto]"
+                    className="admin-row flex items-center justify-between gap-3 px-3.5 py-2.5 text-sm"
                   >
-                    <span>{item.option.name}</span>
-                    <span>x {item.quantity}</span>
-                    <span>{money(item.totalPriceHtCents)}</span>
-                  </div>
+                    <span className="min-w-0 truncate">{item.option.name}</span>
+                    <span className="flex shrink-0 items-center gap-3">
+                      <span className="admin-muted tabular-nums">&times;{item.quantity}</span>
+                      <span className="font-medium tabular-nums">
+                        {money(item.totalPriceHtCents)}
+                      </span>
+                    </span>
+                  </li>
                 ))}
-              </div>
+              </ul>
             ) : (
-              <p className="admin-muted text-sm">{tAdmin(locale, "noOptions")}</p>
+              <EmptyState label={tAdmin(locale, "noOptions")} />
             )}
           </Panel>
 
           <Panel title={tAdmin(locale, "payments")}>
             {reservation.payments.length ? (
-              <div className="divide-y divide-[var(--admin-line)]">
+              <ul className="grid gap-2">
                 {reservation.payments.map((payment) => (
-                  <div
+                  <li
                     key={payment.id}
-                    className="grid gap-1 py-2 text-sm lg:grid-cols-[1fr_auto_auto_auto]"
+                    className="admin-row flex flex-col gap-2 px-3.5 py-3 text-sm sm:flex-row sm:items-center sm:justify-between"
                   >
-                    <span>
-                      {payment.provider} - {paymentPurposeLabel(locale, payment.purpose)}
-                    </span>
-                    <span>{paymentStatusLabel(locale, payment.status)}</span>
-                    <span>{money(payment.amountCents)}</span>
-                    <span className="admin-muted">
-                      {payment.paidAt ? dateTimeFmt.format(payment.paidAt) : "-"}
-                    </span>
-                  </div>
+                    <div className="min-w-0">
+                      <p className="truncate font-medium">
+                        {paymentPurposeLabel(locale, payment.purpose)}
+                      </p>
+                      <p className="admin-muted mt-0.5 text-xs">
+                        {payment.provider}
+                        {payment.paidAt ? ` · ${dateTimeFmt.format(payment.paidAt)}` : ""}
+                      </p>
+                    </div>
+                    <div className="flex items-center justify-between gap-3 sm:justify-end">
+                      <Badge
+                        tone={
+                          payment.status === "PAID"
+                            ? "ok"
+                            : payment.status === "FAILED" || payment.status === "EXPIRED"
+                              ? "warn"
+                              : "blue"
+                        }
+                      >
+                        {bookingPaymentStatusLabel(locale, payment.status)}
+                      </Badge>
+                      <span className="shrink-0 font-medium tabular-nums">
+                        {money(payment.amountCents)}
+                      </span>
+                    </div>
+                  </li>
                 ))}
-              </div>
+              </ul>
             ) : (
-              <p className="admin-muted text-sm">{tAdmin(locale, "noPayments")}</p>
+              <EmptyState label={tAdmin(locale, "noPayments")} />
             )}
           </Panel>
 
           <Panel title={tAdmin(locale, "history")}>
-            <div className="divide-y divide-[var(--admin-line)]">
-              {reservation.events.map((event) => (
-                <div key={event.id} className="py-3 text-sm">
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <span className="font-medium">{event.type}</span>
-                    <span className="admin-muted">
-                      {dateTimeFmt.format(event.createdAt)}
-                    </span>
-                  </div>
-                  {event.metadata ? (
-                    <pre className="mt-2 overflow-x-auto rounded-md bg-[rgba(244,234,219,0.12)] p-2 text-xs text-[var(--admin-ink)]">
-                      {JSON.stringify(event.metadata, null, 2)}
-                    </pre>
-                  ) : null}
-                </div>
-              ))}
-            </div>
+            {reservation.events.length ? (
+              <ol className="relative grid gap-4 border-l border-[var(--admin-line)] pl-5">
+                {reservation.events.map((event) => (
+                  <li key={event.id} className="relative text-sm">
+                    <span
+                      className="absolute -left-[1.4rem] top-1.5 size-2 rounded-full bg-[var(--admin-muted)]"
+                      aria-hidden
+                    />
+                    <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+                      <span className="font-mono text-xs font-medium">{event.type}</span>
+                      <span className="admin-muted text-xs tabular-nums">
+                        {dateTimeFmt.format(event.createdAt)}
+                      </span>
+                    </div>
+                    {event.metadata ? (
+                      <details className="mt-1.5">
+                        <summary className="admin-muted cursor-pointer text-xs">
+                          {tAdmin(locale, "details")}
+                        </summary>
+                        <pre className="admin-card mt-2 overflow-x-auto p-2.5 text-xs leading-relaxed">
+                          {JSON.stringify(event.metadata, null, 2)}
+                        </pre>
+                      </details>
+                    ) : null}
+                  </li>
+                ))}
+              </ol>
+            ) : (
+              <EmptyState label={tAdmin(locale, "noHistory")} />
+            )}
           </Panel>
         </div>
 
-        <aside className="space-y-5">
+        <aside className="space-y-5 xl:sticky xl:top-28 xl:self-start">
           <Panel title={tAdmin(locale, "adminActions")}>
             <AdminReservationActions
               reservationId={reservation.id}
@@ -241,8 +285,8 @@ export default async function AdminReservationDetailPage({
             />
           </Panel>
           <Panel title={tAdmin(locale, "consent")}>
-            <div className="grid gap-3">
-              <Info
+            <div className="grid gap-2.5">
+              <InfoRow
                 label={tAdmin(locale, "consentTerms")}
                 value={
                   reservation.termsAcceptedAt
@@ -250,73 +294,19 @@ export default async function AdminReservationDetailPage({
                     : "-"
                 }
               />
-              <Info label={tAdmin(locale, "versionTerms")} value={reservation.termsVersion ?? "-"} />
-              <Info label={tAdmin(locale, "language")} value={reservation.termsLocale ?? "-"} />
-              <Info label={tAdmin(locale, "ip")} value={reservation.consentIpAddress ?? "-"} />
+              <InfoRow
+                label={tAdmin(locale, "versionTerms")}
+                value={reservation.termsVersion ?? "-"}
+              />
+              <InfoRow
+                label={tAdmin(locale, "language")}
+                value={reservation.termsLocale ?? "-"}
+              />
+              <InfoRow label={tAdmin(locale, "ip")} value={reservation.consentIpAddress ?? "-"} />
             </div>
           </Panel>
         </aside>
       </div>
     </div>
-  );
-}
-
-function Panel({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <section className="admin-surface p-5">
-      <h2 className="mb-3 border-b border-[var(--admin-line)] pb-2 text-lg">{title}</h2>
-      {children}
-    </section>
-  );
-}
-
-function Info({
-  label,
-  value,
-  href,
-}: {
-  label: string;
-  value: string;
-  href?: string;
-}) {
-  const content = href ? (
-    <Link href={href} className="admin-link break-words">
-      {value}
-    </Link>
-  ) : (
-    <span className="break-words">{value}</span>
-  );
-
-  return (
-    <div>
-      <p className="admin-eyebrow">{label}</p>
-      <p className="mt-1 text-sm">{content}</p>
-    </div>
-  );
-}
-
-function Badge({
-  children,
-  tone = "status",
-}: {
-  children: React.ReactNode;
-  tone?: "status" | "payment";
-}) {
-  return (
-    <span
-      className={`rounded-full px-3 py-1 text-xs font-medium ${
-        tone === "payment"
-          ? "admin-pill-blue"
-          : "admin-pill"
-      }`}
-    >
-      {children}
-    </span>
   );
 }

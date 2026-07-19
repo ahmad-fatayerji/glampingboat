@@ -2,18 +2,41 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { startOfToday } from "@/lib/admin-data";
 import { getServerLocale } from "@/components/Language/server-locale";
-import { adminDateFormatter, adminMoneyFormatter, tAdmin } from "@/components/admin/admin-i18n";
+import type { Locale } from "@/components/Language/dictionaries";
+import {
+  adminDateFormatter,
+  adminMoneyFormatter,
+  paymentStatusLabel,
+  reservationStatusLabel,
+  tAdmin,
+} from "@/components/admin/admin-i18n";
+import { Badge, EmptyState, Metric, PageHeader, Panel } from "@/components/admin/ui";
+import {
+  IconBan,
+  IconCalendar,
+  IconCoins,
+  IconWallet,
+} from "@/components/admin/icons";
 
 export const dynamic = "force-dynamic";
+
+const reservationSelect = {
+  id: true,
+  bookingRef: true,
+  startDate: true,
+  endDate: true,
+  customerFirstName: true,
+  customerLastName: true,
+  customerEmail: true,
+  totalAmountTtcCents: true,
+  status: true,
+  paymentStatus: true,
+} as const;
 
 export default async function AdminDashboardPage() {
   const locale = await getServerLocale();
   const money = (cents: number) => adminMoneyFormatter(locale).format(cents / 100);
-  const dateFmt = adminDateFormatter(locale, {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
+  const dateFmt = adminDateFormatter(locale, { day: "2-digit", month: "short" });
   const today = startOfToday();
   const nextWeek = new Date(today);
   nextWeek.setDate(today.getDate() + 7);
@@ -47,13 +70,13 @@ export default async function AdminDashboardPage() {
         startDate: { gte: today, lt: nextWeek },
       },
       orderBy: { startDate: "asc" },
-      take: 8,
-      include: { user: { select: { email: true } } },
+      take: 6,
+      select: reservationSelect,
     }),
     prisma.reservation.findMany({
       orderBy: { createdAt: "desc" },
-      take: 8,
-      include: { user: { select: { email: true } } },
+      take: 6,
+      select: reservationSelect,
     }),
     prisma.availabilityBlock.findMany({
       where: { endDate: { gte: today } },
@@ -64,92 +87,99 @@ export default async function AdminDashboardPage() {
 
   return (
     <div className="space-y-6">
-      <header>
-        <p className="admin-eyebrow">
-          {tAdmin(locale, "operations")}
-        </p>
-        <h1 className="mt-2 text-3xl">{tAdmin(locale, "dashboard")}</h1>
-      </header>
+      <PageHeader eyebrow={tAdmin(locale, "operations")} title={tAdmin(locale, "dashboard")} />
 
-      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <Metric label={tAdmin(locale, "upcomingReservations")} value={String(upcomingCount)} />
-        <Metric label={tAdmin(locale, "paymentsToFollow")} value={String(pendingPaymentCount)} />
-        <Metric label={tAdmin(locale, "unpaidBalance")} value={money(unpaidBalances._sum.balanceAmountCents ?? 0)} />
-        <Metric label={tAdmin(locale, "cancelledReservations")} value={String(cancelledCount)} />
+      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <Metric
+          label={tAdmin(locale, "upcomingReservations")}
+          value={String(upcomingCount)}
+          icon={<IconCalendar />}
+        />
+        <Metric
+          label={tAdmin(locale, "paymentsToFollow")}
+          value={String(pendingPaymentCount)}
+          icon={<IconWallet />}
+          tone={pendingPaymentCount > 0 ? "warn" : undefined}
+        />
+        <Metric
+          label={tAdmin(locale, "unpaidBalance")}
+          value={money(unpaidBalances._sum.balanceAmountCents ?? 0)}
+          icon={<IconCoins />}
+        />
+        <Metric
+          label={tAdmin(locale, "cancelledReservations")}
+          value={String(cancelledCount)}
+          icon={<IconBan />}
+        />
       </section>
 
-      <section className="grid gap-6 xl:grid-cols-2">
-        <Panel title={tAdmin(locale, "arrivalsNext7Days")} href="/admin/reservations?timing=upcoming" openLabel={tAdmin(locale, "open")}>
-          <ReservationRows reservations={upcomingReservations} empty={tAdmin(locale, "noNearbyArrivals")} dateFmt={dateFmt} money={money} fallbackCustomer={tAdmin(locale, "customer")} />
+      <section className="grid gap-4 xl:grid-cols-2">
+        <Panel
+          title={tAdmin(locale, "arrivalsNext7Days")}
+          href="/admin/reservations?timing=upcoming"
+          openLabel={tAdmin(locale, "open")}
+        >
+          <ReservationRows
+            locale={locale}
+            reservations={upcomingReservations}
+            empty={tAdmin(locale, "noNearbyArrivals")}
+            dateFmt={dateFmt}
+            money={money}
+            fallbackCustomer={tAdmin(locale, "customer")}
+          />
         </Panel>
-        <Panel title={tAdmin(locale, "recentReservations")} href="/admin/reservations" openLabel={tAdmin(locale, "open")}>
-          <ReservationRows reservations={recentReservations} empty={tAdmin(locale, "noReservation")} dateFmt={dateFmt} money={money} fallbackCustomer={tAdmin(locale, "customer")} />
+        <Panel
+          title={tAdmin(locale, "recentReservations")}
+          href="/admin/reservations"
+          openLabel={tAdmin(locale, "open")}
+        >
+          <ReservationRows
+            locale={locale}
+            reservations={recentReservations}
+            empty={tAdmin(locale, "noReservation")}
+            dateFmt={dateFmt}
+            money={money}
+            fallbackCustomer={tAdmin(locale, "customer")}
+          />
         </Panel>
       </section>
 
-      <Panel title={tAdmin(locale, "blocks")} href="/admin/calendar" openLabel={tAdmin(locale, "open")}>
+      <Panel
+        title={tAdmin(locale, "blocks")}
+        href="/admin/calendar"
+        openLabel={tAdmin(locale, "open")}
+      >
         {blocks.length ? (
-          <div className="grid gap-2">
+          <ul className="grid gap-2">
             {blocks.map((block) => (
-              <div
+              <li
                 key={block.id}
-                className="admin-row grid gap-1 rounded-md px-3 py-2 text-sm md:grid-cols-[1fr_auto]"
+                className="admin-row flex flex-wrap items-center justify-between gap-x-3 gap-y-1 px-3.5 py-3 text-sm"
               >
-                <span>{block.reason}</span>
-                <span className="admin-muted">
-                  {dateFmt.format(block.startDate)} - {dateFmt.format(block.endDate)}
+                <span className="font-medium">{block.reason}</span>
+                <span className="admin-muted tabular-nums">
+                  {dateFmt.format(block.startDate)} &ndash; {dateFmt.format(block.endDate)}
                 </span>
-              </div>
+              </li>
             ))}
-          </div>
+          </ul>
         ) : (
-          <p className="admin-muted text-sm">{tAdmin(locale, "noActiveBlocks")}</p>
+          <EmptyState label={tAdmin(locale, "noActiveBlocks")} />
         )}
       </Panel>
     </div>
   );
 }
 
-function Metric({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="admin-surface p-4">
-      <p className="admin-eyebrow">{label}</p>
-      <p className="mt-3 text-2xl font-semibold">{value}</p>
-    </div>
-  );
-}
-
-function Panel({
-  title,
-  href,
-  children,
-  openLabel,
-}: {
-  title: string;
-  href: string;
-  openLabel: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <section className="admin-surface p-4">
-      <div className="mb-3 flex items-center justify-between gap-3 border-b border-[var(--admin-line)] pb-2">
-        <h2 className="text-lg">{title}</h2>
-        <Link href={href} className="admin-link text-sm">
-          {openLabel}
-        </Link>
-      </div>
-      {children}
-    </section>
-  );
-}
-
 function ReservationRows({
+  locale,
   reservations,
   empty,
   dateFmt,
   money,
   fallbackCustomer,
 }: {
+  locale: Locale;
   reservations: Array<{
     id: string;
     bookingRef: string;
@@ -159,6 +189,8 @@ function ReservationRows({
     customerLastName: string | null;
     customerEmail: string | null;
     totalAmountTtcCents: number;
+    status: string;
+    paymentStatus: string;
   }>;
   empty: string;
   dateFmt: Intl.DateTimeFormat;
@@ -166,29 +198,53 @@ function ReservationRows({
   fallbackCustomer: string;
 }) {
   if (!reservations.length) {
-    return <p className="admin-muted text-sm">{empty}</p>;
+    return <EmptyState label={empty} />;
   }
 
   return (
-    <div className="grid gap-2">
-      {reservations.map((reservation) => (
-        <Link
-          key={reservation.id}
-          href={`/admin/reservations/${reservation.id}`}
-          className="admin-row grid gap-1 rounded-md px-3 py-2 text-sm md:grid-cols-[1fr_auto_auto]"
-        >
-          <span>
-            {reservation.bookingRef} -{" "}
-            {reservation.customerFirstName || reservation.customerLastName
-              ? `${reservation.customerFirstName ?? ""} ${reservation.customerLastName ?? ""}`.trim()
-              : reservation.customerEmail ?? fallbackCustomer}
-          </span>
-          <span className="admin-muted">
-            {dateFmt.format(reservation.startDate)} - {dateFmt.format(reservation.endDate)}
-          </span>
-          <span>{money(reservation.totalAmountTtcCents)}</span>
-        </Link>
-      ))}
-    </div>
+    <ul className="grid gap-2">
+      {reservations.map((reservation) => {
+        const name =
+          reservation.customerFirstName || reservation.customerLastName
+            ? `${reservation.customerFirstName ?? ""} ${reservation.customerLastName ?? ""}`.trim()
+            : reservation.customerEmail ?? fallbackCustomer;
+        const cancelled =
+          reservation.status === "CANCELLED" ||
+          reservation.status === "EXPIRED" ||
+          reservation.status === "REFUNDED";
+        const paid = reservation.paymentStatus === "PAID_FULL";
+
+        return (
+          <li key={reservation.id}>
+            <Link
+              href={`/admin/reservations/${reservation.id}`}
+              className="admin-row flex flex-col gap-2 px-3.5 py-3 text-sm sm:flex-row sm:items-center sm:justify-between"
+            >
+              <div className="min-w-0">
+                <p className="truncate font-medium">{name}</p>
+                <p className="admin-muted mt-0.5 flex flex-wrap items-center gap-x-2 text-xs">
+                  <span className="font-mono">{reservation.bookingRef}</span>
+                  <span aria-hidden>&middot;</span>
+                  <span className="tabular-nums">
+                    {dateFmt.format(reservation.startDate)} &ndash;{" "}
+                    {dateFmt.format(reservation.endDate)}
+                  </span>
+                </p>
+              </div>
+              <div className="flex items-center justify-between gap-3 sm:justify-end">
+                <Badge tone={cancelled ? "neutral" : paid ? "ok" : "warn"}>
+                  {cancelled
+                    ? reservationStatusLabel(locale, reservation.status)
+                    : paymentStatusLabel(locale, reservation.paymentStatus)}
+                </Badge>
+                <span className="shrink-0 font-medium tabular-nums">
+                  {money(reservation.totalAmountTtcCents)}
+                </span>
+              </div>
+            </Link>
+          </li>
+        );
+      })}
+    </ul>
   );
 }

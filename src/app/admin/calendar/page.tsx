@@ -10,6 +10,7 @@ import {
   reservationStatusLabel,
   tAdmin,
 } from "@/components/admin/admin-i18n";
+import { Badge, EmptyState, PageHeader, Panel } from "@/components/admin/ui";
 
 export const dynamic = "force-dynamic";
 
@@ -49,49 +50,52 @@ export default async function AdminCalendarPage() {
   ]);
 
   return (
-    <div className="space-y-5">
-      <header>
-        <p className="admin-eyebrow">
-          {tAdmin(locale, "availability")}
-        </p>
-        <h1 className="mt-2 text-3xl">{tAdmin(locale, "calendar")}</h1>
-      </header>
+    <div className="space-y-6">
+      <PageHeader
+        eyebrow={tAdmin(locale, "availability")}
+        title={tAdmin(locale, "calendar")}
+      />
 
-      <section className="admin-surface p-4">
-        <h2 className="mb-3 border-b border-[var(--admin-line)] pb-2 text-lg">
-          {tAdmin(locale, "blockingReservations")}
-        </h2>
-        <div className="grid gap-2 lg:grid-cols-2">
-          {reservations.map((reservation) => (
-            <Link
-              key={reservation.id}
-              href={`/admin/reservations/${reservation.id}`}
-              className="admin-row rounded-md p-3 text-sm"
-            >
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <span className="font-medium">{reservation.bookingRef}</span>
-                <span className="admin-pill-blue rounded-full px-2.5 py-1 text-xs">
-                  {reservationStatusLabel(locale, reservation.status)}
-                </span>
-              </div>
-              <p className="admin-muted mt-1">
-                {dateFmt.format(reservation.startDate)} -{" "}
-                {dateFmt.format(reservation.endDate)}
-              </p>
-              <p className="mt-1">
-                {reservation.customerFirstName || reservation.customerLastName
+      <Panel title={tAdmin(locale, "blockingReservations")}>
+        {reservations.length ? (
+          <ul className="grid gap-2 lg:grid-cols-2">
+            {reservations.map((reservation) => {
+              const name =
+                reservation.customerFirstName || reservation.customerLastName
                   ? `${reservation.customerFirstName ?? ""} ${
                       reservation.customerLastName ?? ""
                     }`.trim()
-                  : reservation.user.email}
-              </p>
-            </Link>
-          ))}
-          {!reservations.length && (
-            <p className="admin-muted text-sm">{tAdmin(locale, "noFutureReservations")}</p>
-          )}
-        </div>
-      </section>
+                  : reservation.user.email;
+
+              return (
+                <li key={reservation.id}>
+                  <Link
+                    href={`/admin/reservations/${reservation.id}`}
+                    className="admin-row flex h-full flex-col gap-2 p-3.5 text-sm"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <span className="min-w-0 truncate font-medium">{name}</span>
+                      <Badge tone="blue">
+                        {reservationStatusLabel(locale, reservation.status)}
+                      </Badge>
+                    </div>
+                    <p className="admin-muted flex flex-wrap items-center gap-x-2 text-xs">
+                      <span className="font-mono">{reservation.bookingRef}</span>
+                      <span aria-hidden>&middot;</span>
+                      <span className="tabular-nums">
+                        {dateFmt.format(reservation.startDate)} &ndash;{" "}
+                        {dateFmt.format(reservation.endDate)}
+                      </span>
+                    </p>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        ) : (
+          <EmptyState label={tAdmin(locale, "noFutureReservations")} />
+        )}
+      </Panel>
 
       <AdminAvailabilityBlocks
         blocks={blocks.map((block) => {
