@@ -8,6 +8,7 @@ import BoatSlideshow, { type BoatSlide } from "@/components/Boat/BoatSlideshow";
 import BookingCalendar from "@/components/Booking/BookingCalendar";
 import BookingConfirmationPage from "@/components/Booking/BookingConfirmationPage";
 import BookingForm from "@/components/Booking/BookingForm";
+import BookingIntro from "@/components/Booking/BookingIntro";
 import BookingStripePage from "@/components/Booking/BookingStripePage";
 import type { BookingPromoRecord, ReservationSerialized } from "@/lib/types";
 import ContactForm from "@/components/Contact/ContactForm";
@@ -82,6 +83,7 @@ const BOAT_SLIDES: BoatSlide[] = [
 ];
 
 const OPEN_COOKIE_POLICY_EVENT = "open-cookie-policy";
+const BOOKING_CALENDAR_ANCHOR = "booking-calendar";
 
 export default function AppShell({
   children,
@@ -101,6 +103,8 @@ export default function AppShell({
   const [completedReservation, setCompletedReservation] =
     useState<ReservationSerialized | null>(null);
   const { data: session } = useSession();
+  const drawerRef = useRef<HTMLDivElement>(null);
+  const focusCalendarRef = useRef(false);
   const touchStartX = useRef<number | null>(null);
   const touchStartY = useRef<number | null>(null);
   const isAccountRoute = pathname.startsWith("/account");
@@ -115,6 +119,27 @@ export default function AppShell({
       ? stage
       : "closed";
   }, [drawerOpen, isAccountRoute, isAdminRoute, stage]);
+
+  // The booking stage now leads with a long intro, so decide each time it opens
+  // whether to land at the top of the story or jump straight to the calendar.
+  useEffect(() => {
+    if (!drawerOpen) return;
+
+    const container = drawerRef.current;
+    if (!container) return;
+
+    const focusCalendar = focusCalendarRef.current;
+    focusCalendarRef.current = false;
+
+    if (stage === "calendar" && focusCalendar) {
+      document
+        .getElementById(BOOKING_CALENDAR_ANCHOR)
+        ?.scrollIntoView({ block: "start" });
+      return;
+    }
+
+    container.scrollTop = 0;
+  }, [drawerOpen, stage]);
 
   useEffect(() => {
     const openCookiePolicy = () => {
@@ -260,6 +285,7 @@ export default function AppShell({
           </div>
 
           <div
+            ref={drawerRef}
             className={`fixed inset-y-0 right-0 z-50 w-full overflow-y-auto bg-transparent p-0 text-gray-100 transition-transform duration-300 ease-in-out sm:w-[82vw] lg:w-[72vw] xl:w-[64vw] ${
               drawerOpen ? "translate-x-0" : "translate-x-full"
             }`}
@@ -277,27 +303,33 @@ export default function AppShell({
               />
             )}
 
+            {stage === "calendar" && bookingEnabled && (
+              <BookingIntro calendarAnchorId={BOOKING_CALENDAR_ANCHOR} />
+            )}
+
             {stage === "calendar" && (
-              <DrawerSurface>
-                {bookingEnabled ? (
-                  <BookingCalendar
-                    serverToday={serverToday}
-                    signedIn={!!session}
-                    onContinue={handleCalendarContinue}
-                    onContact={() => {
-                      setStage("contact");
-                      setDrawerOpen(true);
-                    }}
-                  />
-                ) : (
-                  <BookingDisabledPanel
-                    onContact={() => {
-                      setStage("contact");
-                      setDrawerOpen(true);
-                    }}
-                  />
-                )}
-              </DrawerSurface>
+              <div id={BOOKING_CALENDAR_ANCHOR}>
+                <DrawerSurface>
+                  {bookingEnabled ? (
+                    <BookingCalendar
+                      serverToday={serverToday}
+                      signedIn={!!session}
+                      onContinue={handleCalendarContinue}
+                      onContact={() => {
+                        setStage("contact");
+                        setDrawerOpen(true);
+                      }}
+                    />
+                  ) : (
+                    <BookingDisabledPanel
+                      onContact={() => {
+                        setStage("contact");
+                        setDrawerOpen(true);
+                      }}
+                    />
+                  )}
+                </DrawerSurface>
+              </div>
             )}
 
             {stage === "form" && bookingEnabled && rangeStart && rangeEnd && (
@@ -308,7 +340,10 @@ export default function AppShell({
                   initialAdults={bookingAdults}
                   initialChildren={bookingChildren}
                   promos={bookingPromos}
-                  onBack={() => setStage("calendar")}
+                  onBack={() => {
+                    focusCalendarRef.current = true;
+                    setStage("calendar");
+                  }}
                   onReserved={(reservation) => {
                     setCompletedReservation(reservation);
                     setStage("stripe");
