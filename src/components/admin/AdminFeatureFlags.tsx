@@ -110,12 +110,12 @@ function FeatureFlagRow({ flag }: { flag: FeatureFlagView }) {
           className="peer sr-only"
         />
         <span
-          className={`relative h-7 w-12 rounded-full border border-[var(--admin-line)] transition peer-disabled:opacity-55 peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-[var(--admin-focus)] ${
-            enabled ? "bg-[#7ea985]" : "bg-[var(--admin-field)]"
+          className={`relative h-7 w-12 rounded-full border border-[var(--admin-line-strong)] shadow-[inset_0_1px_3px_rgba(0,0,0,0.35)] transition peer-disabled:opacity-55 peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-[var(--admin-focus)] ${
+            enabled ? "bg-[#7ea985]" : "bg-[#0d3350]"
           }`}
         >
           <span
-            className={`absolute left-1 top-1 size-5 rounded-full bg-[var(--color-beige)] transition-transform ${
+            className={`absolute left-1 top-1 size-5 rounded-full bg-[var(--color-beige)] shadow-[0_2px_5px_rgba(0,0,0,0.4)] transition-transform ${
               enabled ? "translate-x-5" : ""
             }`}
           />

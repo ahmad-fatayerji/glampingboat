@@ -10,6 +10,8 @@ import { useT, type TranslationKey } from "@/components/Language/useT";
 interface BookingIntroProps {
   /** Element id of the calendar section the "see availability" pill jumps to. */
   calendarAnchorId: string;
+  /** When false, the "see availability" pill renders disabled with a tooltip. */
+  bookingEnabled?: boolean;
 }
 
 const DRAWER_IMAGE_SIZES =
@@ -379,7 +381,10 @@ function DetailSection({
   );
 }
 
-export default function BookingIntro({ calendarAnchorId }: BookingIntroProps) {
+export default function BookingIntro({
+  calendarAnchorId,
+  bookingEnabled = true,
+}: BookingIntroProps) {
   const t = useT();
   const [activeImage, setActiveImage] = useState<number | null>(null);
 
@@ -391,14 +396,26 @@ export default function BookingIntro({ calendarAnchorId }: BookingIntroProps) {
 
   return (
     <DrawerSurface className="gap-8 overflow-visible !bg-transparent !p-3 !shadow-none !backdrop-blur-0 sm:!p-4">
-      {/* Full-bleed within the surface so sections scrolling under it stay legible. */}
-      <div className="sticky top-0 z-20 -mx-5 -mb-8 flex justify-end bg-gradient-to-b from-[#0b1e2b]/88 via-[#0b1e2b]/55 to-transparent px-5 pb-10 pt-3 sm:-mx-10 sm:px-10">
-        <a
-          href={`#${calendarAnchorId}`}
-          className="inline-flex items-center bg-[var(--color-blue)] px-[clamp(0.9rem,1.6vw,1.5rem)] py-[clamp(0.45rem,0.8vw,0.7rem)] text-[clamp(0.85rem,1.1vw,1.05rem)] font-light text-[var(--color-beige)] shadow-[0_10px_30px_rgba(0,0,0,0.35)] transition hover:bg-[#06324d] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-beige)]/70"
-        >
-          {t("bookIntroSeeAvailability")}
-        </a>
+      <div className="sticky top-0 z-20 -mx-5 -mb-8 flex justify-end px-5 pb-10 pt-3 sm:-mx-10 sm:px-10">
+        {bookingEnabled ? (
+          <a
+            href={`#${calendarAnchorId}`}
+            className="inline-flex items-center bg-[var(--color-blue)] px-[clamp(0.9rem,1.6vw,1.5rem)] py-[clamp(0.45rem,0.8vw,0.7rem)] text-[clamp(0.85rem,1.1vw,1.05rem)] font-light text-[var(--color-beige)] shadow-[0_10px_30px_rgba(0,0,0,0.35)] transition hover:bg-[#06324d] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-beige)]/70"
+          >
+            {t("bookIntroSeeAvailability")}
+          </a>
+        ) : (
+          <span
+            role="link"
+            aria-disabled="true"
+            className="group relative inline-flex cursor-not-allowed items-center bg-[var(--color-blue)]/45 px-[clamp(0.9rem,1.6vw,1.5rem)] py-[clamp(0.45rem,0.8vw,0.7rem)] text-[clamp(0.85rem,1.1vw,1.05rem)] font-light text-[var(--color-beige)]/60 shadow-[0_10px_30px_rgba(0,0,0,0.35)]"
+          >
+            {t("bookIntroSeeAvailability")}
+            <span className="pointer-events-none absolute right-0 top-full z-30 mt-2 w-max max-w-[14rem] whitespace-normal rounded-md bg-[#0b1e2b] px-3 py-2 text-xs font-normal text-[var(--color-beige)] opacity-0 shadow-[0_10px_30px_rgba(0,0,0,0.4)] transition group-hover:opacity-100">
+              {t("bookIntroUnavailableTooltip")}
+            </span>
+          </span>
+        )}
       </div>
 
       <ValleySection priority />

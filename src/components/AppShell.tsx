@@ -303,8 +303,11 @@ export default function AppShell({
               />
             )}
 
-            {stage === "calendar" && bookingEnabled && (
-              <BookingIntro calendarAnchorId={BOOKING_CALENDAR_ANCHOR} />
+            {stage === "calendar" && (
+              <BookingIntro
+                calendarAnchorId={BOOKING_CALENDAR_ANCHOR}
+                bookingEnabled={bookingEnabled}
+              />
             )}
 
             {stage === "calendar" && (
