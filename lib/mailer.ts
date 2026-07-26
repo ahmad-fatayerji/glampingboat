@@ -45,6 +45,7 @@ type BrandedEmailOptions = {
   eyebrow: string;
   preview: string;
   bodyHtml: string;
+  locale?: string;
   action?: EmailAction;
   footer?: string;
 };
@@ -54,6 +55,7 @@ export function buildBrandedEmail({
   eyebrow,
   preview,
   bodyHtml,
+  locale = "en",
   action,
   footer,
 }: BrandedEmailOptions) {
@@ -83,7 +85,7 @@ export function buildBrandedEmail({
 
   return `
     <!doctype html>
-    <html lang="en">
+    <html lang="${escapeHtml(locale)}">
       <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />

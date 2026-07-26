@@ -7,12 +7,17 @@
   --color-white: #ffffff;
   --admin-ink: var(--color-beige);
   --admin-muted: rgba(228, 219, 206, 0.7);
-  --admin-line: rgba(255, 255, 255, 0.15);
+  --admin-line: rgba(23, 60, 89, 0.9);
+  --admin-line-strong: rgba(35, 77, 105, 0.95);
   --admin-panel: rgba(63, 86, 102, 0.82);
   --admin-panel-strong: rgba(63, 86, 102, 0.88);
   --admin-row: rgba(13, 51, 80, 0.25);
   --admin-field: rgba(13, 51, 80, 0.3);
   --admin-hover: rgba(13, 51, 80, 0.42);
+  --admin-active: rgba(13, 51, 80, 0.62);
+  --admin-focus: #9fc4dd;
+  --admin-radius: 0.75rem;
+  --admin-radius-sm: 0.5rem;
 }
 
 /* Reset default margin/padding */
@@ -39,6 +44,7 @@ body {
 .admin-surface,
 .admin-sidebar {
   border: 1px solid var(--admin-line);
+  border-radius: var(--admin-radius);
   background: var(--admin-panel) !important;
   color: var(--admin-ink);
   box-shadow: 0 18px 55px rgba(0, 0, 0, 0.35);
@@ -51,11 +57,13 @@ body {
 
 .admin-card {
   border: 1px solid #173c59;
+  border-radius: var(--admin-radius-sm);
   background: var(--admin-row);
 }
 
 .admin-row {
   border: 1px solid #173c59;
+  border-radius: var(--admin-radius-sm);
   background: var(--admin-row);
   transition: border-color 0.2s ease, background-color 0.2s ease;
 }
@@ -65,6 +73,40 @@ body {
   background: var(--admin-hover);
 }
 
+/* Keyboard focus: the admin UI previously had no visible focus state at all. */
+.admin-shell :is(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--admin-focus);
+  outline-offset: 2px;
+  border-radius: var(--admin-radius-sm);
+}
+
+/* Sidebar navigation */
+.admin-nav-link {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  border-radius: var(--admin-radius-sm);
+  padding: 0.5rem 0.75rem;
+  color: var(--admin-muted);
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.admin-nav-link:hover {
+  background: var(--admin-hover);
+  color: var(--admin-ink);
+}
+
+.admin-nav-link[aria-current="page"] {
+  background: var(--admin-active);
+  color: var(--admin-ink);
+  font-weight: 500;
+}
+
+.admin-nav-link svg {
+  flex-shrink: 0;
+  opacity: 0.85;
+}
+
 .admin-muted {
   color: var(--admin-muted);
 }
@@ -72,7 +114,7 @@ body {
 .admin-eyebrow {
   color: var(--admin-muted);
   font-size: 0.75rem;
-  letter-spacing: 0.22em;
+  letter-spacing: 0;
   text-transform: uppercase;
 }
 
@@ -90,9 +132,10 @@ body {
   min-width: 0;
   width: 100%;
   border: 1px solid #173c59;
+  border-radius: var(--admin-radius-sm);
   background: var(--admin-field);
   color: var(--admin-ink);
-  outline: none;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
 }
 
 .admin-input::placeholder {
@@ -112,27 +155,65 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 0.5rem;
+  border-radius: var(--admin-radius-sm);
   background: var(--color-blue);
   color: var(--color-beige);
   text-align: center;
-  transition: background-color 0.2s ease, transform 0.2s ease;
+  transition: background-color 0.2s ease, opacity 0.2s ease;
 }
 
-.admin-button:hover {
+.admin-button:hover:not(:disabled) {
   background: #06324d;
 }
 
-.admin-button:disabled {
+.admin-button:disabled,
+.admin-danger-button:disabled {
   opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.admin-button-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border: 1px solid var(--admin-line-strong);
+  border-radius: var(--admin-radius-sm);
+  background: transparent;
+  color: var(--admin-ink);
+  text-align: center;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.admin-button-secondary:hover:not(:disabled) {
+  background: var(--admin-hover);
+  border-color: var(--admin-ink);
 }
 
 .admin-danger-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 0.5rem;
+  border-radius: var(--admin-radius-sm);
   background: #8f3128;
   color: white;
   text-align: center;
+  transition: background-color 0.2s ease, opacity 0.2s ease;
+}
+
+.admin-danger-button:hover:not(:disabled) {
+  background: #a3382e;
+}
+
+/* Sticky column header for list views */
+.admin-table-head {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: #40565f;
+  backdrop-filter: blur(6px);
 }
 
 .button-arrow-icon {

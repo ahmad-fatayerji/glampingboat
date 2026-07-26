@@ -1,4 +1,4 @@
-export const LOCALES = ["en", "fr", "de", "nl", "ru", "es", "it"] as const;
+﻿export const LOCALES = ["en", "fr", "de", "nl", "ru", "es", "it"] as const;
 export type Locale = (typeof LOCALES)[number];
 export const LOCALE_STORAGE_KEY = "site-locale";
 
@@ -100,6 +100,51 @@ const en = {
   visionGlampTags: "Easy \u00b7 Lightweight \u00b7 Spacious \u00b7 Bio friendly",
   visionSynergiesTitle: "Synergies of fluvial and terrestrial",
   visionSynergiesTags: "Free time \u00b7 No chores \u00b7 Nature immersion",
+  bookIntroSeeAvailability: "see availability",
+  bookIntroUnavailableTooltip: "not available at the moment",
+  bookIntroValleyTitle: "The Lot Valley in Aveyron",
+  bookIntroValleyThermalism: "thermalism",
+  bookIntroValleyCompostela: "ways of Compostela",
+  bookIntroValleyBike: "the Lot valley by bike",
+  bookIntroRiverTitle: "The river Lot",
+  bookIntroRiverStretch: "6 mi stretch",
+  bookIntroRiverArea: "100 Ha",
+  bookIntroRiverLocks: "3 river locks",
+  bookIntroZnieffTitle:
+    "National area of natural interest for fauna and flora",
+  bookIntroPhotoLock: "The Penchot lock",
+  bookIntroPhotoCruising: "Cruising at sunrise",
+  bookIntroPhotoMooring: "Moored on the bank",
+  bookIntroPhotoRiver: "Reflections on the Lot",
+  bookIntroPhotoMist: "At anchor in the morning mist",
+  bookIntroPhotoBridge: "The cast-iron footbridge",
+  bookPlanAccessGate: "Access gate to the control bridge",
+  bookPlanSteering: "Steering position",
+  bookPlanLifebuoy: "Lifebuoy and fire extinguisher",
+  bookPlanDeck: "The deck",
+  bookPlanKitchenette: "Kitchenette",
+  bookPlanToilet: "Manual marine toilet and deck shower",
+  bookPlanDoubleBed: "Double bed (140 x 190 cm)",
+  bookPlanBunkBeds: "Single bunk beds (80 x 190 cm)",
+  bookPlanControlBridge: "Control bridge",
+  bookPlanLadder: "Boarding ladder",
+  bookPlanHammock: "Hammock",
+  bookIntroAboard:
+    "Step aboard the glampingboat, a simple, lightweight, economical and eco-friendly vessel offering a unique river experience, synergies of fluvial and terrestrial. The trip offers an immersive experience in the heart of nature, set to your own pace with no time constraints. The boat moves slowly and is unobtrusive thanks to its electric motor, meaning no pollution and no need to refuel. The boat respects the water cycle with a closed-loop system for fresh water supply and grey water treatment on board; the boat operates sustainably, with no need to top up fresh water or empty grey water. Equipped with a glamping tent, you\u2019ll enjoy every comfort on board.",
+  bookIntroSleeping:
+    "Sleeping area fitted with a double bed 140x190cm and two bunk beds 80x190cm\nFoam mattresses with protective covers\nA rechargeable portable LED lamp\nTowels not provided \u2013 Bed linen available as an option",
+  bookIntroSaloon:
+    "Saloon fitted with a wooden tabletop and four chairs.\nOne rechargeable portable LED lamp\nWheelhouse, wooden steering wheel, electric motor remote control and battery level monitor, shore power socket, 4 x USB ports for recharging the portable LED lamps. Boat fitted and equipped for safe navigation",
+  bookIntroKitchen:
+    "60x200cm kitchenette fitted with a single-bowl sink with timed hot water, two-burner gas hob, high-end electric cooler, crockery and cutlery for four people\n10L insulated drinking water dispenser with tap; mineral water or spring water not provided\nA rechargeable portable LED lamp",
+  bookIntroBathroom:
+    "Bathroom 90x200cm fitted with a manual marine toilet and a deck shower with a hot-water timer.\nA rechargeable portable LED lamp\nInstant gas water heater with temperature control.",
+  bookIntroHygiene:
+    "The water available at the sink and in the shower is adjustable hot water, not drinkable, intended for washing up and personal hygiene.\nToilet paper provided\nOutdoor Pharmavoyage liquid soap for washing up, cleaning and personal hygiene provided\nDo not use any products other than those provided on board",
+  bookIntroDeck:
+    "Aft deck fitted with a boarding ladder\nSupport bar with hammock",
+  bookIntroWaterNote:
+    "The boat is equipped with an on-board biological water treatment plant that does not use chlorine. To ensure the system\u2019s daily treatment capacity, it is essential to keep water consumption on board to a strict minimum and to use non-biocidal hygiene products. Please inform us at the time of booking if you are taking any antibiotics.",
   accountMenu: "Account",
   bookingsMenu: "Bookings",
   profileMenu: "Profile",
@@ -314,7 +359,6 @@ const en = {
     "Glamping Boat is not available on the dates you have chosen",
   priceForNightsExcl:
     "price for {nights} nights, including tourist tax and excluding options",
-  disabilityHealthCure: "in a disability situation or health cure?",
   contactUs: "contact us",
   accommodationPrice: "Accommodation price",
   excludingTax: "€ excluding tax",
@@ -462,6 +506,51 @@ export const dictionaries: Record<Locale, Dictionary> = {
     visionGlampTags: "Facile \u00b7 Léger \u00b7 Spacieux \u00b7 Écologique",
     visionSynergiesTitle: "Synergies fluviales et terrestres",
     visionSynergiesTags: "Temps libre \u00b7 Sans corvées \u00b7 Immersion dans la nature",
+    bookIntroSeeAvailability: "voir les disponibilités",
+    bookIntroUnavailableTooltip: "non disponible pour le moment",
+    bookIntroValleyTitle: "La vallée du Lot en Aveyron",
+    bookIntroValleyThermalism: "thermalisme",
+    bookIntroValleyCompostela: "chemins de Compostelle",
+    bookIntroValleyBike: "la vallée du Lot à vélo",
+    bookIntroRiverTitle: "La rivière Lot",
+    bookIntroRiverStretch: "10 km de bief",
+    bookIntroRiverArea: "100 ha",
+    bookIntroRiverLocks: "3 écluses",
+    bookIntroZnieffTitle:
+      "Zone naturelle d'intérêt écologique, faunistique et floristique",
+    bookIntroPhotoLock: "L'écluse de Penchot",
+    bookIntroPhotoCruising: "Navigation au lever du soleil",
+    bookIntroPhotoMooring: "Amarré sur la berge",
+    bookIntroPhotoRiver: "Reflets sur le Lot",
+    bookIntroPhotoMist: "Au mouillage dans la brume du matin",
+    bookIntroPhotoBridge: "La passerelle en fonte",
+    bookPlanAccessGate: "Portillon d'accès à la passerelle de commande",
+    bookPlanSteering: "Poste de barre",
+    bookPlanLifebuoy: "Bouée de sauvetage et extincteur",
+    bookPlanDeck: "Le pont",
+    bookPlanKitchenette: "Kitchenette",
+    bookPlanToilet: "WC marin manuel et douche de pont",
+    bookPlanDoubleBed: "Lit double (140 x 190 cm)",
+    bookPlanBunkBeds: "Lits superposés simples (80 x 190 cm)",
+    bookPlanControlBridge: "Passerelle de commande",
+    bookPlanLadder: "Échelle d'embarquement",
+    bookPlanHammock: "Hamac",
+    bookIntroAboard:
+      "Montez à bord du glampingboat, un bateau simple, léger, économique et écologique qui offre une expérience fluviale unique, en synergie entre le fluvial et le terrestre. Le voyage propose une immersion au cœur de la nature, à votre rythme et sans contrainte de temps. Le bateau avance lentement et discrètement grâce à son moteur électrique : aucune pollution et aucun ravitaillement en carburant. Le bateau respecte le cycle de l'eau grâce à un système en circuit fermé pour l'alimentation en eau douce et le traitement des eaux grises à bord ; il fonctionne durablement, sans avoir à faire le plein d'eau douce ni à vidanger les eaux grises. Équipé d'une tente de glamping, vous profiterez de tout le confort à bord.",
+    bookIntroSleeping:
+      "Espace nuit équipé d'un lit double 140x190 cm et de deux lits superposés 80x190 cm\nMatelas en mousse avec housses de protection\nUne lampe LED portable rechargeable\nServiettes non fournies – Linge de lit disponible en option",
+    bookIntroSaloon:
+      "Salon équipé d'un plateau de table en bois et de quatre chaises.\nUne lampe LED portable rechargeable\nTimonerie, barre à roue en bois, télécommande du moteur électrique et contrôleur de niveau de batterie, prise de quai, 4 ports USB pour recharger les lampes LED portables. Bateau aménagé et équipé pour une navigation en toute sécurité",
+    bookIntroKitchen:
+      "Kitchenette 60x200 cm équipée d'un évier une cuve avec eau chaude temporisée, d'une plaque gaz deux feux, d'une glacière électrique haut de gamme, de vaisselle et de couverts pour quatre personnes\nFontaine à eau isotherme de 10 L avec robinet ; eau minérale ou de source non fournie\nUne lampe LED portable rechargeable",
+    bookIntroBathroom:
+      "Salle d'eau 90x200 cm équipée d'un WC marin manuel et d'une douche de pont avec eau chaude temporisée.\nUne lampe LED portable rechargeable\nChauffe-eau gaz instantané avec réglage de la température.",
+    bookIntroHygiene:
+      "L'eau disponible à l'évier et à la douche est une eau chaude réglable, non potable, destinée à la vaisselle et à l'hygiène personnelle.\nPapier toilette fourni\nSavon liquide Pharmavoyage Outdoor fourni pour la vaisselle, le nettoyage et l'hygiène personnelle\nN'utilisez aucun produit autre que ceux fournis à bord",
+    bookIntroDeck:
+      "Pont arrière équipé d'une échelle de bain\nBarre de support avec hamac",
+    bookIntroWaterNote:
+      "Le bateau est équipé d'une station de traitement biologique des eaux à bord, sans chlore. Pour garantir la capacité de traitement quotidienne du système, il est essentiel de limiter au strict minimum la consommation d'eau à bord et d'utiliser des produits d'hygiène non biocides. Merci de nous informer au moment de la réservation si vous suivez un traitement antibiotique.",
     accountMenu: "Compte",
     bookingsMenu: "Réservations",
     profileMenu: "Profil",
@@ -681,7 +770,6 @@ export const dictionaries: Record<Locale, Dictionary> = {
       "Glamping Boat n'est pas disponible aux dates choisies",
     priceForNightsExcl:
       "prix pour {nights} nuits, taxe de séjour incluse et options exclues",
-    disabilityHealthCure: "en situation de handicap ou en cure ?",
     contactUs: "contactez-nous",
     accommodationPrice: "Prix de l'hébergement",
     excludingTax: "€ hors taxe",
@@ -823,6 +911,51 @@ export const dictionaries: Record<Locale, Dictionary> = {
     visionGlampTags: "Einfach \u00b7 Leicht \u00b7 Geraeumig \u00b7 Umweltfreundlich",
     visionSynergiesTitle: "Synergien von Fluss und Land",
     visionSynergiesTags: "Freizeit \u00b7 Keine Pflichten \u00b7 Natur pur",
+    bookIntroSeeAvailability: "Verfügbarkeit ansehen",
+    bookIntroUnavailableTooltip: "derzeit nicht verfügbar",
+    bookIntroValleyTitle: "Das Lot-Tal im Aveyron",
+    bookIntroValleyThermalism: "Thermalbäder",
+    bookIntroValleyCompostela: "Jakobswege",
+    bookIntroValleyBike: "das Lot-Tal mit dem Rad",
+    bookIntroRiverTitle: "Der Fluss Lot",
+    bookIntroRiverStretch: "10 km Flussabschnitt",
+    bookIntroRiverArea: "100 ha",
+    bookIntroRiverLocks: "3 Schleusen",
+    bookIntroZnieffTitle:
+      "Nationales Naturgebiet von ökologischem Interesse für Fauna und Flora",
+    bookIntroPhotoLock: "Die Schleuse von Penchot",
+    bookIntroPhotoCruising: "Fahrt bei Sonnenaufgang",
+    bookIntroPhotoMooring: "Am Ufer vertäut",
+    bookIntroPhotoRiver: "Spiegelungen auf dem Lot",
+    bookIntroPhotoMist: "Vor Anker im Morgennebel",
+    bookIntroPhotoBridge: "Die gusseiserne Fußgängerbrücke",
+    bookPlanAccessGate: "Zugangstür zum Steuerstand",
+    bookPlanSteering: "Steuerstand",
+    bookPlanLifebuoy: "Rettungsring und Feuerlöscher",
+    bookPlanDeck: "Das Deck",
+    bookPlanKitchenette: "Küchenzeile",
+    bookPlanToilet: "Manuelle Bordtoilette und Decksdusche",
+    bookPlanDoubleBed: "Doppelbett (140 x 190 cm)",
+    bookPlanBunkBeds: "Einzel-Etagenbetten (80 x 190 cm)",
+    bookPlanControlBridge: "Steuerbrücke",
+    bookPlanLadder: "Einstiegsleiter",
+    bookPlanHammock: "Hängematte",
+    bookIntroAboard:
+      "Gehen Sie an Bord des glampingboat, eines einfachen, leichten, sparsamen und umweltfreundlichen Bootes, das ein einzigartiges Flusserlebnis bietet – die Synergie von Fluss und Land. Die Reise ist ein Eintauchen mitten in die Natur, in Ihrem eigenen Tempo und ohne Zeitdruck. Dank des Elektromotors fährt das Boot langsam und unaufdringlich: keine Abgase und kein Tanken. Das Boot respektiert den Wasserkreislauf durch ein geschlossenes System für die Frischwasserversorgung und die Grauwasseraufbereitung an Bord; es arbeitet nachhaltig, ohne Frischwasser nachfüllen oder Grauwasser entleeren zu müssen. Mit einem Glamping-Zelt ausgestattet, genießen Sie an Bord jeden Komfort.",
+    bookIntroSleeping:
+      "Schlafbereich mit Doppelbett 140x190 cm und zwei Etagenbetten 80x190 cm\nSchaumstoffmatratzen mit Schutzbezügen\nEine wiederaufladbare tragbare LED-Lampe\nHandtücher nicht inbegriffen – Bettwäsche optional erhältlich",
+    bookIntroSaloon:
+      "Salon mit Holztischplatte und vier Stühlen.\nEine wiederaufladbare tragbare LED-Lampe\nSteuerhaus, hölzernes Steuerrad, Fernbedienung des Elektromotors und Batterieanzeige, Landstromanschluss, 4 USB-Anschlüsse zum Laden der tragbaren LED-Lampen. Boot ausgestattet und ausgerüstet für sicheres Navigieren",
+    bookIntroKitchen:
+      "Küchenzeile 60x200 cm mit Einzelspüle mit zeitgesteuertem Warmwasser, Zweiflamm-Gaskochfeld, hochwertiger elektrischer Kühlbox, Geschirr und Besteck für vier Personen\n10-L-Isolierbehälter für Trinkwasser mit Zapfhahn; Mineral- oder Quellwasser nicht inbegriffen\nEine wiederaufladbare tragbare LED-Lampe",
+    bookIntroBathroom:
+      "Bad 90x200 cm mit manueller Bordtoilette und Decksdusche mit Warmwasser-Zeitschaltung.\nEine wiederaufladbare tragbare LED-Lampe\nGas-Durchlauferhitzer mit Temperaturregelung.",
+    bookIntroHygiene:
+      "Das Wasser an Spüle und Dusche ist regelbares Warmwasser, kein Trinkwasser, bestimmt zum Abwaschen und für die Körperpflege.\nToilettenpapier wird gestellt\nPharmavoyage Outdoor Flüssigseife für Abwasch, Reinigung und Körperpflege wird gestellt\nVerwenden Sie ausschließlich die an Bord bereitgestellten Produkte",
+    bookIntroDeck:
+      "Achterdeck mit Badeleiter\nTragstange mit Hängematte",
+    bookIntroWaterNote:
+      "Das Boot verfügt über eine biologische Wasseraufbereitungsanlage an Bord, die ohne Chlor arbeitet. Um die tägliche Reinigungsleistung der Anlage sicherzustellen, ist es unerlässlich, den Wasserverbrauch an Bord auf ein Minimum zu beschränken und nicht-biozide Hygieneprodukte zu verwenden. Bitte teilen Sie uns bei der Buchung mit, wenn Sie Antibiotika einnehmen.",
     accountMenu: "Konto",
     bookingsMenu: "Buchungen",
     profileMenu: "Profil",
@@ -1042,7 +1175,6 @@ export const dictionaries: Record<Locale, Dictionary> = {
       "Glamping Boat ist an den gewaehlten Daten nicht verfuegbar",
     priceForNightsExcl:
       "Preis fuer {nights} Naechte, inklusive Kurtaxe und ohne Optionen",
-    disabilityHealthCure: "Behinderung oder Kuraufenthalt?",
     contactUs: "Kontaktieren Sie uns",
     accommodationPrice: "Preis der Unterkunft",
     excludingTax: "€ ohne Steuer",
@@ -1184,6 +1316,51 @@ export const dictionaries: Record<Locale, Dictionary> = {
     visionGlampTags: "Eenvoudig \u00b7 Licht \u00b7 Ruim \u00b7 Milieuvriendelijk",
     visionSynergiesTitle: "Synergie van water en land",
     visionSynergiesTags: "Vrije tijd \u00b7 Geen klussen \u00b7 Natuur beleven",
+    bookIntroSeeAvailability: "beschikbaarheid bekijken",
+    bookIntroUnavailableTooltip: "momenteel niet beschikbaar",
+    bookIntroValleyTitle: "De Lot-vallei in de Aveyron",
+    bookIntroValleyThermalism: "thermale baden",
+    bookIntroValleyCompostela: "wegen naar Compostela",
+    bookIntroValleyBike: "de Lot-vallei op de fiets",
+    bookIntroRiverTitle: "De rivier de Lot",
+    bookIntroRiverStretch: "10 km vaartraject",
+    bookIntroRiverArea: "100 ha",
+    bookIntroRiverLocks: "3 sluizen",
+    bookIntroZnieffTitle:
+      "Nationaal natuurgebied van ecologisch belang voor fauna en flora",
+    bookIntroPhotoLock: "De sluis van Penchot",
+    bookIntroPhotoCruising: "Varen bij zonsopgang",
+    bookIntroPhotoMooring: "Afgemeerd aan de oever",
+    bookIntroPhotoRiver: "Weerspiegelingen op de Lot",
+    bookIntroPhotoMist: "Voor anker in de ochtendmist",
+    bookIntroPhotoBridge: "De gietijzeren voetbrug",
+    bookPlanAccessGate: "Toegangspoortje naar de stuurbrug",
+    bookPlanSteering: "Stuurpositie",
+    bookPlanLifebuoy: "Reddingsboei en brandblusser",
+    bookPlanDeck: "Het dek",
+    bookPlanKitchenette: "Keukenblok",
+    bookPlanToilet: "Handbediend scheepstoilet en dekdouche",
+    bookPlanDoubleBed: "Tweepersoonsbed (140 x 190 cm)",
+    bookPlanBunkBeds: "Eenpersoons stapelbedden (80 x 190 cm)",
+    bookPlanControlBridge: "Stuurbrug",
+    bookPlanLadder: "Instapladder",
+    bookPlanHammock: "Hangmat",
+    bookIntroAboard:
+      "Stap aan boord van de glampingboat, een eenvoudig, licht, zuinig en milieuvriendelijk vaartuig dat een unieke riviervaart biedt, een synergie van water en land. De reis is een onderdompeling midden in de natuur, in uw eigen tempo en zonder tijdsdruk. De boot vaart langzaam en onopvallend dankzij de elektrische motor: geen vervuiling en geen brandstof bijtanken. De boot respecteert de waterkringloop met een gesloten systeem voor drinkwatervoorziening en grijswaterzuivering aan boord; de boot werkt duurzaam, zonder water bij te vullen of grijswater te lozen. Uitgerust met een glampingtent geniet u aan boord van alle comfort.",
+    bookIntroSleeping:
+      "Slaapruimte met een tweepersoonsbed van 140x190 cm en twee stapelbedden van 80x190 cm\nSchuimmatrassen met beschermhoezen\nEen oplaadbare draagbare ledlamp\nHanddoeken niet inbegrepen – Beddengoed optioneel verkrijgbaar",
+    bookIntroSaloon:
+      "Salon met houten tafelblad en vier stoelen.\nEen oplaadbare draagbare ledlamp\nStuurhut, houten stuurwiel, afstandsbediening van de elektrische motor en accuniveaumeter, walstroomaansluiting, 4 USB-poorten om de draagbare ledlampen op te laden. Boot ingericht en uitgerust om veilig te varen",
+    bookIntroKitchen:
+      "Keukenblok van 60x200 cm met eenbaks spoelbak met warm water op tijdschakelaar, gaspit met twee branders, hoogwaardige elektrische koelbox, servies en bestek voor vier personen\nGeïsoleerde drinkwatertank van 10 l met kraan; mineraal- of bronwater niet inbegrepen\nEen oplaadbare draagbare ledlamp",
+    bookIntroBathroom:
+      "Badruimte van 90x200 cm met handbediend scheepstoilet en dekdouche met warm water op tijdschakelaar.\nEen oplaadbare draagbare ledlamp\nGasgeiser met temperatuurregeling.",
+    bookIntroHygiene:
+      "Het water bij de spoelbak en de douche is regelbaar warm water, geen drinkwater, bedoeld om af te wassen en voor persoonlijke hygiëne.\nToiletpapier aanwezig\nPharmavoyage Outdoor vloeibare zeep voor afwas, schoonmaak en persoonlijke hygiëne aanwezig\nGebruik uitsluitend de aan boord aanwezige producten",
+    bookIntroDeck:
+      "Achterdek met zwemtrap\nSteunbalk met hangmat",
+    bookIntroWaterNote:
+      "De boot is uitgerust met een biologische waterzuiveringsinstallatie aan boord die geen chloor gebruikt. Om de dagelijkse zuiveringscapaciteit van het systeem te waarborgen, is het essentieel het waterverbruik aan boord tot een strikt minimum te beperken en niet-biocide hygiëneproducten te gebruiken. Laat het ons bij de boeking weten als u antibiotica gebruikt.",
     accountMenu: "Account",
     bookingsMenu: "Boekingen",
     profileMenu: "Profiel",
@@ -1402,7 +1579,6 @@ export const dictionaries: Record<Locale, Dictionary> = {
       "Glamping Boat is niet beschikbaar op de gekozen data",
     priceForNightsExcl:
       "prijs voor {nights} nachten, inclusief toeristenbelasting en exclusief opties",
-    disabilityHealthCure: "een beperking of kuurverblijf?",
     contactUs: "neem contact op",
     accommodationPrice: "Prijs accommodatie",
     excludingTax: "€ excl. belasting",
@@ -1560,6 +1736,51 @@ export const dictionaries: Record<Locale, Dictionary> = {
       "\u0421\u0438\u043d\u0435\u0440\u0433\u0438\u044f \u0440\u0435\u043a\u0438 \u0438 \u0441\u0443\u0448\u0438",
     visionSynergiesTags:
       "\u0421\u0432\u043e\u0431\u043e\u0434\u043d\u043e\u0435 \u0432\u0440\u0435\u043c\u044f \u00b7 \u0411\u0435\u0437 \u0445\u043b\u043e\u043f\u043e\u0442 \u00b7 \u041f\u043e\u0433\u0440\u0443\u0436\u0435\u043d\u0438\u0435 \u0432 \u043f\u0440\u0438\u0440\u043e\u0434\u0443",
+    bookIntroSeeAvailability: "\u043f\u043e\u0441\u043c\u043e\u0442\u0440\u0435\u0442\u044c \u0434\u043e\u0441\u0442\u0443\u043f\u043d\u044b\u0435 \u0434\u0430\u0442\u044b",
+    bookIntroUnavailableTooltip: "\u0441\u0435\u0439\u0447\u0430\u0441 \u043d\u0435\u0434\u043e\u0441\u0442\u0443\u043f\u043d\u043e",
+    bookIntroValleyTitle: "\u0414\u043e\u043b\u0438\u043d\u0430 \u041b\u043e \u0432 \u0410\u0432\u0435\u0440\u043e\u043d\u0435",
+    bookIntroValleyThermalism: "\u0442\u0435\u0440\u043c\u0430\u043b\u044c\u043d\u044b\u0435 \u043a\u0443\u0440\u043e\u0440\u0442\u044b",
+    bookIntroValleyCompostela: "\u043f\u0443\u0442\u0438 \u0421\u0430\u043d\u0442\u044c\u044f\u0433\u043e-\u0434\u0435-\u041a\u043e\u043c\u043f\u043e\u0441\u0442\u0435\u043b\u0430",
+    bookIntroValleyBike: "\u0434\u043e\u043b\u0438\u043d\u0430 \u041b\u043e \u043d\u0430 \u0432\u0435\u043b\u043e\u0441\u0438\u043f\u0435\u0434\u0435",
+    bookIntroRiverTitle: "\u0420\u0435\u043a\u0430 \u041b\u043e",
+    bookIntroRiverStretch: "10 \u043a\u043c \u0441\u0443\u0434\u043e\u0445\u043e\u0434\u043d\u043e\u0433\u043e \u0443\u0447\u0430\u0441\u0442\u043a\u0430",
+    bookIntroRiverArea: "100 \u0433\u0430",
+    bookIntroRiverLocks: "3 \u0448\u043b\u044e\u0437\u0430",
+    bookIntroZnieffTitle:
+      "\u041d\u0430\u0446\u0438\u043e\u043d\u0430\u043b\u044c\u043d\u0430\u044f \u043f\u0440\u0438\u0440\u043e\u0434\u043d\u0430\u044f \u0437\u043e\u043d\u0430, \u0446\u0435\u043d\u043d\u0430\u044f \u0434\u043b\u044f \u0444\u0430\u0443\u043d\u044b \u0438 \u0444\u043b\u043e\u0440\u044b",
+    bookIntroPhotoLock: "\u0428\u043b\u044e\u0437 \u041f\u0435\u043d\u0448\u043e",
+    bookIntroPhotoCruising: "\u041f\u043b\u0430\u0432\u0430\u043d\u0438\u0435 \u043d\u0430 \u0440\u0430\u0441\u0441\u0432\u0435\u0442\u0435",
+    bookIntroPhotoMooring: "\u041f\u0440\u0438\u0448\u0432\u0430\u0440\u0442\u043e\u0432\u0430\u043d \u0443 \u0431\u0435\u0440\u0435\u0433\u0430",
+    bookIntroPhotoRiver: "\u041e\u0442\u0440\u0430\u0436\u0435\u043d\u0438\u044f \u043d\u0430 \u0440\u0435\u043a\u0435 \u041b\u043e",
+    bookIntroPhotoMist: "\u041d\u0430 \u044f\u043a\u043e\u0440\u0435 \u0432 \u0443\u0442\u0440\u0435\u043d\u043d\u0435\u043c \u0442\u0443\u043c\u0430\u043d\u0435",
+    bookIntroPhotoBridge: "\u0427\u0443\u0433\u0443\u043d\u043d\u044b\u0439 \u043f\u0435\u0448\u0435\u0445\u043e\u0434\u043d\u044b\u0439 \u043c\u043e\u0441\u0442",
+    bookPlanAccessGate: "\u041a\u0430\u043b\u0438\u0442\u043a\u0430 \u043d\u0430 \u0445\u043e\u0434\u043e\u0432\u043e\u0439 \u043c\u043e\u0441\u0442\u0438\u043a",
+    bookPlanSteering: "\u041f\u043e\u0441\u0442 \u0443\u043f\u0440\u0430\u0432\u043b\u0435\u043d\u0438\u044f",
+    bookPlanLifebuoy: "\u0421\u043f\u0430\u0441\u0430\u0442\u0435\u043b\u044c\u043d\u044b\u0439 \u043a\u0440\u0443\u0433 \u0438 \u043e\u0433\u043d\u0435\u0442\u0443\u0448\u0438\u0442\u0435\u043b\u044c",
+    bookPlanDeck: "\u041f\u0430\u043b\u0443\u0431\u0430",
+    bookPlanKitchenette: "\u041a\u0443\u0445\u043e\u043d\u043d\u044b\u0439 \u0431\u043b\u043e\u043a",
+    bookPlanToilet: "\u0420\u0443\u0447\u043d\u043e\u0439 \u043c\u043e\u0440\u0441\u043a\u043e\u0439 \u0442\u0443\u0430\u043b\u0435\u0442 \u0438 \u043f\u0430\u043b\u0443\u0431\u043d\u044b\u0439 \u0434\u0443\u0448",
+    bookPlanDoubleBed: "\u0414\u0432\u0443\u0441\u043f\u0430\u043b\u044c\u043d\u0430\u044f \u043a\u0440\u043e\u0432\u0430\u0442\u044c (140 x 190 \u0441\u043c)",
+    bookPlanBunkBeds: "\u041e\u0434\u043d\u043e\u0441\u043f\u0430\u043b\u044c\u043d\u044b\u0435 \u0434\u0432\u0443\u0445\u044a\u044f\u0440\u0443\u0441\u043d\u044b\u0435 \u043a\u0440\u043e\u0432\u0430\u0442\u0438 (80 x 190 \u0441\u043c)",
+    bookPlanControlBridge: "\u0425\u043e\u0434\u043e\u0432\u043e\u0439 \u043c\u043e\u0441\u0442\u0438\u043a",
+    bookPlanLadder: "\u0422\u0440\u0430\u043f \u0434\u043b\u044f \u043f\u043e\u0441\u0430\u0434\u043a\u0438",
+    bookPlanHammock: "\u0413\u0430\u043c\u0430\u043a",
+    bookIntroAboard:
+      "\u041f\u043e\u0434\u043d\u0438\u043c\u0438\u0442\u0435\u0441\u044c \u043d\u0430 \u0431\u043e\u0440\u0442 glampingboat \u2014 \u043f\u0440\u043e\u0441\u0442\u043e\u0433\u043e, \u043b\u0451\u0433\u043a\u043e\u0433\u043e, \u044d\u043a\u043e\u043d\u043e\u043c\u0438\u0447\u043d\u043e\u0433\u043e \u0438 \u044d\u043a\u043e\u043b\u043e\u0433\u0438\u0447\u043d\u043e\u0433\u043e \u0441\u0443\u0434\u043d\u0430, \u043a\u043e\u0442\u043e\u0440\u043e\u0435 \u0434\u0430\u0440\u0438\u0442 \u0443\u043d\u0438\u043a\u0430\u043b\u044c\u043d\u043e\u0435 \u0440\u0435\u0447\u043d\u043e\u0435 \u043f\u0443\u0442\u0435\u0448\u0435\u0441\u0442\u0432\u0438\u0435, \u043e\u0431\u044a\u0435\u0434\u0438\u043d\u044f\u044f \u0432\u043e\u0434\u0443 \u0438 \u0441\u0443\u0448\u0443. \u041f\u043e\u0435\u0437\u0434\u043a\u0430 \u2014 \u044d\u0442\u043e \u043f\u043e\u0433\u0440\u0443\u0436\u0435\u043d\u0438\u0435 \u0432 \u0441\u0430\u043c\u043e\u0435 \u0441\u0435\u0440\u0434\u0446\u0435 \u043f\u0440\u0438\u0440\u043e\u0434\u044b, \u0432 \u0432\u0430\u0448\u0435\u043c \u0441\u043e\u0431\u0441\u0442\u0432\u0435\u043d\u043d\u043e\u043c \u0440\u0438\u0442\u043c\u0435 \u0438 \u0431\u0435\u0437 \u043e\u0433\u0440\u0430\u043d\u0438\u0447\u0435\u043d\u0438\u0439 \u043f\u043e \u0432\u0440\u0435\u043c\u0435\u043d\u0438. \u0421\u0443\u0434\u043d\u043e \u0434\u0432\u0438\u0436\u0435\u0442\u0441\u044f \u043c\u0435\u0434\u043b\u0435\u043d\u043d\u043e \u0438 \u043d\u0435\u0437\u0430\u043c\u0435\u0442\u043d\u043e \u0431\u043b\u0430\u0433\u043e\u0434\u0430\u0440\u044f \u044d\u043b\u0435\u043a\u0442\u0440\u043e\u043c\u043e\u0442\u043e\u0440\u0443: \u043d\u0438\u043a\u0430\u043a\u043e\u0433\u043e \u0437\u0430\u0433\u0440\u044f\u0437\u043d\u0435\u043d\u0438\u044f \u0438 \u043d\u0438\u043a\u0430\u043a\u043e\u0439 \u0434\u043e\u0437\u0430\u043f\u0440\u0430\u0432\u043a\u0438. \u0421\u0443\u0434\u043d\u043e \u0431\u0435\u0440\u0435\u0436\u043d\u043e \u043e\u0442\u043d\u043e\u0441\u0438\u0442\u0441\u044f \u043a \u043a\u0440\u0443\u0433\u043e\u0432\u043e\u0440\u043e\u0442\u0443 \u0432\u043e\u0434\u044b: \u0437\u0430\u043c\u043a\u043d\u0443\u0442\u0430\u044f \u0441\u0438\u0441\u0442\u0435\u043c\u0430 \u043f\u043e\u0434\u0430\u0447\u0438 \u043f\u0440\u0435\u0441\u043d\u043e\u0439 \u0432\u043e\u0434\u044b \u0438 \u043e\u0447\u0438\u0441\u0442\u043a\u0438 \u0441\u0435\u0440\u044b\u0445 \u0441\u0442\u043e\u043a\u043e\u0432 \u0440\u0430\u0431\u043e\u0442\u0430\u0435\u0442 \u043f\u0440\u044f\u043c\u043e \u043d\u0430 \u0431\u043e\u0440\u0442\u0443, \u043f\u043e\u044d\u0442\u043e\u043c\u0443 \u043d\u0435 \u043d\u0443\u0436\u043d\u043e \u043d\u0438 \u043f\u043e\u043f\u043e\u043b\u043d\u044f\u0442\u044c \u0437\u0430\u043f\u0430\u0441 \u0432\u043e\u0434\u044b, \u043d\u0438 \u0441\u043b\u0438\u0432\u0430\u0442\u044c \u0441\u0442\u043e\u043a\u0438. \u0413\u043b\u044d\u043c\u043f\u0438\u043d\u0433-\u043f\u0430\u043b\u0430\u0442\u043a\u0430 \u043d\u0430 \u0431\u043e\u0440\u0442\u0443 \u043e\u0431\u0435\u0441\u043f\u0435\u0447\u0438\u0432\u0430\u0435\u0442 \u043f\u043e\u043b\u043d\u044b\u0439 \u043a\u043e\u043c\u0444\u043e\u0440\u0442.",
+    bookIntroSleeping:
+      "\u0421\u043f\u0430\u043b\u044c\u043d\u0430\u044f \u0437\u043e\u043d\u0430 \u0441 \u0434\u0432\u0443\u0441\u043f\u0430\u043b\u044c\u043d\u043e\u0439 \u043a\u0440\u043e\u0432\u0430\u0442\u044c\u044e 140x190 \u0441\u043c \u0438 \u0434\u0432\u0443\u043c\u044f \u0434\u0432\u0443\u0445\u044a\u044f\u0440\u0443\u0441\u043d\u044b\u043c\u0438 \u0441\u043f\u0430\u043b\u044c\u043d\u044b\u043c\u0438 \u043c\u0435\u0441\u0442\u0430\u043c\u0438 80x190 \u0441\u043c\n\u041f\u043e\u0440\u043e\u043b\u043e\u043d\u043e\u0432\u044b\u0435 \u043c\u0430\u0442\u0440\u0430\u0441\u044b \u0441 \u0437\u0430\u0449\u0438\u0442\u043d\u044b\u043c\u0438 \u0447\u0435\u0445\u043b\u0430\u043c\u0438\n\u041f\u043e\u0440\u0442\u0430\u0442\u0438\u0432\u043d\u0430\u044f \u0430\u043a\u043a\u0443\u043c\u0443\u043b\u044f\u0442\u043e\u0440\u043d\u0430\u044f \u0441\u0432\u0435\u0442\u043e\u0434\u0438\u043e\u0434\u043d\u0430\u044f \u043b\u0430\u043c\u043f\u0430\n\u041f\u043e\u043b\u043e\u0442\u0435\u043d\u0446\u0430 \u043d\u0435 \u043f\u0440\u0435\u0434\u043e\u0441\u0442\u0430\u0432\u043b\u044f\u044e\u0442\u0441\u044f \u2014 \u043f\u043e\u0441\u0442\u0435\u043b\u044c\u043d\u043e\u0435 \u0431\u0435\u043b\u044c\u0451 \u0434\u043e\u0441\u0442\u0443\u043f\u043d\u043e \u043a\u0430\u043a \u043e\u043f\u0446\u0438\u044f",
+    bookIntroSaloon:
+      "\u0421\u0430\u043b\u043e\u043d \u0441 \u0434\u0435\u0440\u0435\u0432\u044f\u043d\u043d\u043e\u0439 \u0441\u0442\u043e\u043b\u0435\u0448\u043d\u0438\u0446\u0435\u0439 \u0438 \u0447\u0435\u0442\u044b\u0440\u044c\u043c\u044f \u0441\u0442\u0443\u043b\u044c\u044f\u043c\u0438.\n\u041e\u0434\u043d\u0430 \u043f\u043e\u0440\u0442\u0430\u0442\u0438\u0432\u043d\u0430\u044f \u0430\u043a\u043a\u0443\u043c\u0443\u043b\u044f\u0442\u043e\u0440\u043d\u0430\u044f \u0441\u0432\u0435\u0442\u043e\u0434\u0438\u043e\u0434\u043d\u0430\u044f \u043b\u0430\u043c\u043f\u0430\n\u0420\u0443\u0431\u043a\u0430, \u0434\u0435\u0440\u0435\u0432\u044f\u043d\u043d\u044b\u0439 \u0448\u0442\u0443\u0440\u0432\u0430\u043b, \u043f\u0443\u043b\u044c\u0442 \u0443\u043f\u0440\u0430\u0432\u043b\u0435\u043d\u0438\u044f \u044d\u043b\u0435\u043a\u0442\u0440\u043e\u043c\u043e\u0442\u043e\u0440\u043e\u043c \u0438 \u0438\u043d\u0434\u0438\u043a\u0430\u0442\u043e\u0440 \u0437\u0430\u0440\u044f\u0434\u0430 \u0431\u0430\u0442\u0430\u0440\u0435\u0439, \u0440\u0430\u0437\u044a\u0451\u043c \u0431\u0435\u0440\u0435\u0433\u043e\u0432\u043e\u0433\u043e \u043f\u0438\u0442\u0430\u043d\u0438\u044f, 4 \u043f\u043e\u0440\u0442\u0430 USB \u0434\u043b\u044f \u0437\u0430\u0440\u044f\u0434\u043a\u0438 \u043f\u043e\u0440\u0442\u0430\u0442\u0438\u0432\u043d\u044b\u0445 \u0441\u0432\u0435\u0442\u043e\u0434\u0438\u043e\u0434\u043d\u044b\u0445 \u043b\u0430\u043c\u043f. \u0421\u0443\u0434\u043d\u043e \u043e\u0441\u043d\u0430\u0449\u0435\u043d\u043e \u0432\u0441\u0435\u043c \u043d\u0435\u043e\u0431\u0445\u043e\u0434\u0438\u043c\u044b\u043c \u0434\u043b\u044f \u0431\u0435\u0437\u043e\u043f\u0430\u0441\u043d\u043e\u0433\u043e \u043f\u043b\u0430\u0432\u0430\u043d\u0438\u044f",
+    bookIntroKitchen:
+      "\u041a\u0443\u0445\u043e\u043d\u043d\u044b\u0439 \u0431\u043b\u043e\u043a 60x200 \u0441\u043c \u0441 \u043e\u0434\u0438\u043d\u0430\u0440\u043d\u043e\u0439 \u043c\u043e\u0439\u043a\u043e\u0439 \u0441 \u0433\u043e\u0440\u044f\u0447\u0435\u0439 \u0432\u043e\u0434\u043e\u0439 \u043f\u043e \u0442\u0430\u0439\u043c\u0435\u0440\u0443, \u0434\u0432\u0443\u0445\u043a\u043e\u043d\u0444\u043e\u0440\u043e\u0447\u043d\u043e\u0439 \u0433\u0430\u0437\u043e\u0432\u043e\u0439 \u043f\u043b\u0438\u0442\u043e\u0439, \u044d\u043b\u0435\u043a\u0442\u0440\u0438\u0447\u0435\u0441\u043a\u0438\u043c \u0445\u043e\u043b\u043e\u0434\u0438\u043b\u044c\u043d\u0438\u043a\u043e\u043c \u043f\u0440\u0435\u043c\u0438\u0443\u043c-\u043a\u043b\u0430\u0441\u0441\u0430, \u043f\u043e\u0441\u0443\u0434\u043e\u0439 \u0438 \u043f\u0440\u0438\u0431\u043e\u0440\u0430\u043c\u0438 \u043d\u0430 \u0447\u0435\u0442\u0432\u0435\u0440\u044b\u0445\n\u0418\u0437\u043e\u0442\u0435\u0440\u043c\u0438\u0447\u0435\u0441\u043a\u0438\u0439 \u0434\u0438\u0441\u043f\u0435\u043d\u0441\u0435\u0440 \u0434\u043b\u044f \u043f\u0438\u0442\u044c\u0435\u0432\u043e\u0439 \u0432\u043e\u0434\u044b 10 \u043b \u0441 \u043a\u0440\u0430\u043d\u043e\u043c; \u043c\u0438\u043d\u0435\u0440\u0430\u043b\u044c\u043d\u0430\u044f \u0438\u043b\u0438 \u0440\u043e\u0434\u043d\u0438\u043a\u043e\u0432\u0430\u044f \u0432\u043e\u0434\u0430 \u043d\u0435 \u043f\u0440\u0435\u0434\u043e\u0441\u0442\u0430\u0432\u043b\u044f\u0435\u0442\u0441\u044f\n\u041f\u043e\u0440\u0442\u0430\u0442\u0438\u0432\u043d\u0430\u044f \u0430\u043a\u043a\u0443\u043c\u0443\u043b\u044f\u0442\u043e\u0440\u043d\u0430\u044f \u0441\u0432\u0435\u0442\u043e\u0434\u0438\u043e\u0434\u043d\u0430\u044f \u043b\u0430\u043c\u043f\u0430",
+    bookIntroBathroom:
+      "\u0421\u0430\u043d\u0443\u0437\u0435\u043b 90x200 \u0441\u043c \u0441 \u0440\u0443\u0447\u043d\u044b\u043c \u043c\u043e\u0440\u0441\u043a\u0438\u043c \u0442\u0443\u0430\u043b\u0435\u0442\u043e\u043c \u0438 \u043f\u0430\u043b\u0443\u0431\u043d\u044b\u043c \u0434\u0443\u0448\u0435\u043c \u0441 \u0442\u0430\u0439\u043c\u0435\u0440\u043e\u043c \u0433\u043e\u0440\u044f\u0447\u0435\u0439 \u0432\u043e\u0434\u044b.\n\u041f\u043e\u0440\u0442\u0430\u0442\u0438\u0432\u043d\u0430\u044f \u0430\u043a\u043a\u0443\u043c\u0443\u043b\u044f\u0442\u043e\u0440\u043d\u0430\u044f \u0441\u0432\u0435\u0442\u043e\u0434\u0438\u043e\u0434\u043d\u0430\u044f \u043b\u0430\u043c\u043f\u0430\n\u0413\u0430\u0437\u043e\u0432\u0430\u044f \u043f\u0440\u043e\u0442\u043e\u0447\u043d\u0430\u044f \u043a\u043e\u043b\u043e\u043d\u043a\u0430 \u0441 \u0440\u0435\u0433\u0443\u043b\u0438\u0440\u043e\u0432\u043a\u043e\u0439 \u0442\u0435\u043c\u043f\u0435\u0440\u0430\u0442\u0443\u0440\u044b.",
+    bookIntroHygiene:
+      "\u0412\u043e\u0434\u0430 \u0432 \u043c\u043e\u0439\u043a\u0435 \u0438 \u0434\u0443\u0448\u0435 \u2014 \u0440\u0435\u0433\u0443\u043b\u0438\u0440\u0443\u0435\u043c\u0430\u044f \u0433\u043e\u0440\u044f\u0447\u0430\u044f \u0432\u043e\u0434\u0430, \u043d\u0435 \u043f\u0438\u0442\u044c\u0435\u0432\u0430\u044f, \u043f\u0440\u0435\u0434\u043d\u0430\u0437\u043d\u0430\u0447\u0435\u043d\u043d\u0430\u044f \u0434\u043b\u044f \u043c\u044b\u0442\u044c\u044f \u043f\u043e\u0441\u0443\u0434\u044b \u0438 \u043b\u0438\u0447\u043d\u043e\u0439 \u0433\u0438\u0433\u0438\u0435\u043d\u044b.\n\u0422\u0443\u0430\u043b\u0435\u0442\u043d\u0430\u044f \u0431\u0443\u043c\u0430\u0433\u0430 \u043f\u0440\u0435\u0434\u043e\u0441\u0442\u0430\u0432\u043b\u044f\u0435\u0442\u0441\u044f\n\u0416\u0438\u0434\u043a\u043e\u0435 \u043c\u044b\u043b\u043e Pharmavoyage Outdoor \u0434\u043b\u044f \u043c\u044b\u0442\u044c\u044f \u043f\u043e\u0441\u0443\u0434\u044b, \u0443\u0431\u043e\u0440\u043a\u0438 \u0438 \u043b\u0438\u0447\u043d\u043e\u0439 \u0433\u0438\u0433\u0438\u0435\u043d\u044b \u043f\u0440\u0435\u0434\u043e\u0441\u0442\u0430\u0432\u043b\u044f\u0435\u0442\u0441\u044f\n\u041d\u0435 \u0438\u0441\u043f\u043e\u043b\u044c\u0437\u0443\u0439\u0442\u0435 \u0441\u0440\u0435\u0434\u0441\u0442\u0432\u0430, \u043a\u0440\u043e\u043c\u0435 \u043f\u0440\u0435\u0434\u043e\u0441\u0442\u0430\u0432\u043b\u0435\u043d\u043d\u044b\u0445 \u043d\u0430 \u0431\u043e\u0440\u0442\u0443",
+    bookIntroDeck:
+      "\u041a\u043e\u0440\u043c\u043e\u0432\u0430\u044f \u043f\u0430\u043b\u0443\u0431\u0430 \u0441 \u0442\u0440\u0430\u043f\u043e\u043c \u0434\u043b\u044f \u043f\u043e\u0441\u0430\u0434\u043a\u0438\n\u041e\u043f\u043e\u0440\u043d\u0430\u044f \u0448\u0442\u0430\u043d\u0433\u0430 \u0441 \u0433\u0430\u043c\u0430\u043a\u043e\u043c",
+    bookIntroWaterNote:
+      "\u0421\u0443\u0434\u043d\u043e \u043e\u0441\u043d\u0430\u0449\u0435\u043d\u043e \u0431\u043e\u0440\u0442\u043e\u0432\u043e\u0439 \u0441\u0442\u0430\u043d\u0446\u0438\u0435\u0439 \u0431\u0438\u043e\u043b\u043e\u0433\u0438\u0447\u0435\u0441\u043a\u043e\u0439 \u043e\u0447\u0438\u0441\u0442\u043a\u0438 \u0432\u043e\u0434\u044b, \u0440\u0430\u0431\u043e\u0442\u0430\u044e\u0449\u0435\u0439 \u0431\u0435\u0437 \u0445\u043b\u043e\u0440\u0430. \u0427\u0442\u043e\u0431\u044b \u0441\u043e\u0445\u0440\u0430\u043d\u0438\u0442\u044c \u0441\u0443\u0442\u043e\u0447\u043d\u0443\u044e \u043f\u0440\u043e\u0438\u0437\u0432\u043e\u0434\u0438\u0442\u0435\u043b\u044c\u043d\u043e\u0441\u0442\u044c \u0441\u0438\u0441\u0442\u0435\u043c\u044b, \u043d\u0435\u043e\u0431\u0445\u043e\u0434\u0438\u043c\u043e \u0441\u0432\u043e\u0434\u0438\u0442\u044c \u0440\u0430\u0441\u0445\u043e\u0434 \u0432\u043e\u0434\u044b \u043d\u0430 \u0431\u043e\u0440\u0442\u0443 \u043a \u0441\u0442\u0440\u043e\u0433\u043e\u043c\u0443 \u043c\u0438\u043d\u0438\u043c\u0443\u043c\u0443 \u0438 \u0438\u0441\u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u044c \u043d\u0435\u0431\u0438\u043e\u0446\u0438\u0434\u043d\u044b\u0435 \u0441\u0440\u0435\u0434\u0441\u0442\u0432\u0430 \u0433\u0438\u0433\u0438\u0435\u043d\u044b. \u041f\u043e\u0436\u0430\u043b\u0443\u0439\u0441\u0442\u0430, \u0441\u043e\u043e\u0431\u0449\u0438\u0442\u0435 \u043d\u0430\u043c \u043f\u0440\u0438 \u0431\u0440\u043e\u043d\u0438\u0440\u043e\u0432\u0430\u043d\u0438\u0438, \u0435\u0441\u043b\u0438 \u0432\u044b \u043f\u0440\u0438\u043d\u0438\u043c\u0430\u0435\u0442\u0435 \u0430\u043d\u0442\u0438\u0431\u0438\u043e\u0442\u0438\u043a\u0438.",
     accountMenu: "\u0410\u043a\u043a\u0430\u0443\u043d\u0442",
     bookingsMenu: "\u0411\u0440\u043e\u043d\u0438",
     profileMenu: "\u041f\u0440\u043e\u0444\u0438\u043b\u044c",
@@ -1812,8 +2033,6 @@ export const dictionaries: Record<Locale, Dictionary> = {
       "Glamping Boat \u043d\u0435\u0434\u043e\u0441\u0442\u0443\u043f\u0435\u043d \u043d\u0430 \u0432\u044b\u0431\u0440\u0430\u043d\u043d\u044b\u0435 \u0434\u0430\u0442\u044b",
     priceForNightsExcl:
       "\u0446\u0435\u043d\u0430 \u0437\u0430 {nights} \u043d\u043e\u0447\u0435\u0439, \u0432\u043a\u043b\u044e\u0447\u0430\u044f \u0442\u0443\u0440\u0438\u0441\u0442\u0438\u0447\u0435\u0441\u043a\u0438\u0439 \u0441\u0431\u043e\u0440 \u0438 \u0431\u0435\u0437 \u043e\u043f\u0446\u0438\u0439",
-    disabilityHealthCure:
-      "\u0438\u043d\u0432\u0430\u043b\u0438\u0434\u043d\u043e\u0441\u0442\u044c \u0438\u043b\u0438 \u043a\u0443\u0440\u043e\u0440\u0442\u043d\u043e\u0435 \u043b\u0435\u0447\u0435\u043d\u0438\u0435?",
     contactUs: "\u0441\u0432\u044f\u0436\u0438\u0442\u0435\u0441\u044c \u0441 \u043d\u0430\u043c\u0438",
     accommodationPrice: "\u0421\u0442\u043e\u0438\u043c\u043e\u0441\u0442\u044c \u043f\u0440\u043e\u0436\u0438\u0432\u0430\u043d\u0438\u044f",
     excludingTax: "\u20ac \u0431\u0435\u0437 \u043d\u0430\u043b\u043e\u0433\u0430",
@@ -1964,6 +2183,51 @@ export const dictionaries: Record<Locale, Dictionary> = {
     visionGlampTags: "Facil \u00b7 Ligero \u00b7 Espacioso \u00b7 Ecologico",
     visionSynergiesTitle: "Sinergia fluvial y terrestre",
     visionSynergiesTags: "Tiempo libre \u00b7 Sin tareas \u00b7 Inmersion en la naturaleza",
+    bookIntroSeeAvailability: "ver disponibilidad",
+    bookIntroUnavailableTooltip: "no disponible en este momento",
+    bookIntroValleyTitle: "El valle del Lot en Aveyron",
+    bookIntroValleyThermalism: "termalismo",
+    bookIntroValleyCompostela: "caminos de Compostela",
+    bookIntroValleyBike: "el valle del Lot en bicicleta",
+    bookIntroRiverTitle: "El río Lot",
+    bookIntroRiverStretch: "10 km de tramo navegable",
+    bookIntroRiverArea: "100 ha",
+    bookIntroRiverLocks: "3 esclusas",
+    bookIntroZnieffTitle:
+      "Zona natural nacional de interés ecológico, faunístico y florístico",
+    bookIntroPhotoLock: "La esclusa de Penchot",
+    bookIntroPhotoCruising: "Navegando al amanecer",
+    bookIntroPhotoMooring: "Amarrado en la orilla",
+    bookIntroPhotoRiver: "Reflejos en el Lot",
+    bookIntroPhotoMist: "Fondeado en la niebla de la mañana",
+    bookIntroPhotoBridge: "La pasarela de hierro fundido",
+    bookPlanAccessGate: "Portillo de acceso al puente de mando",
+    bookPlanSteering: "Puesto de gobierno",
+    bookPlanLifebuoy: "Salvavidas y extintor",
+    bookPlanDeck: "La cubierta",
+    bookPlanKitchenette: "Cocina",
+    bookPlanToilet: "Inodoro marino manual y ducha de cubierta",
+    bookPlanDoubleBed: "Cama doble (140 x 190 cm)",
+    bookPlanBunkBeds: "Literas individuales (80 x 190 cm)",
+    bookPlanControlBridge: "Puente de mando",
+    bookPlanLadder: "Escalera de embarque",
+    bookPlanHammock: "Hamaca",
+    bookIntroAboard:
+      "Suba a bordo del glampingboat, una embarcación sencilla, ligera, económica y ecológica que ofrece una experiencia fluvial única, en sinergia entre el río y la tierra. El viaje es una inmersión en plena naturaleza, a su propio ritmo y sin límites de tiempo. La embarcación avanza despacio y discretamente gracias a su motor eléctrico: sin contaminación y sin necesidad de repostar. El barco respeta el ciclo del agua con un sistema de circuito cerrado para el suministro de agua dulce y el tratamiento de las aguas grises a bordo; funciona de forma sostenible, sin tener que rellenar agua dulce ni vaciar aguas grises. Equipado con una tienda de glamping, disfrutará de todas las comodidades a bordo.",
+    bookIntroSleeping:
+      "Zona de descanso con una cama doble de 140x190 cm y dos literas de 80x190 cm\nColchones de espuma con fundas protectoras\nUna lámpara LED portátil recargable\nToallas no incluidas – Ropa de cama disponible como opción",
+    bookIntroSaloon:
+      "Salón con tablero de mesa de madera y cuatro sillas.\nUna lámpara LED portátil recargable\nTimonera, timón de madera, mando a distancia del motor eléctrico y control del nivel de batería, toma de corriente de puerto, 4 puertos USB para recargar las lámparas LED portátiles. Embarcación acondicionada y equipada para navegar con seguridad",
+    bookIntroKitchen:
+      "Cocina de 60x200 cm con fregadero de una cubeta con agua caliente temporizada, placa de gas de dos fuegos, nevera eléctrica de gama alta, vajilla y cubertería para cuatro personas\nDispensador isotérmico de agua potable de 10 l con grifo; agua mineral o de manantial no incluida\nUna lámpara LED portátil recargable",
+    bookIntroBathroom:
+      "Baño de 90x200 cm con inodoro marino manual y ducha de cubierta con temporizador de agua caliente.\nUna lámpara LED portátil recargable\nCalentador de agua a gas instantáneo con control de temperatura.",
+    bookIntroHygiene:
+      "El agua del fregadero y de la ducha es agua caliente regulable, no potable, destinada a fregar y a la higiene personal.\nPapel higiénico incluido\nJabón líquido Pharmavoyage Outdoor incluido para fregar, limpiar y para la higiene personal\nNo utilice productos distintos de los facilitados a bordo",
+    bookIntroDeck:
+      "Cubierta de popa con escalera de embarque\nBarra de soporte con hamaca",
+    bookIntroWaterNote:
+      "La embarcación cuenta con una depuradora biológica de agua a bordo que no utiliza cloro. Para garantizar la capacidad diaria de tratamiento del sistema, es imprescindible reducir al mínimo el consumo de agua a bordo y utilizar productos de higiene no biocidas. Infórmenos en el momento de la reserva si está tomando antibióticos.",
     accountMenu: "Cuenta",
     bookingsMenu: "Reservas",
     profileMenu: "Perfil",
@@ -2183,7 +2447,6 @@ export const dictionaries: Record<Locale, Dictionary> = {
       "Glamping Boat no esta disponible en las fechas elegidas",
     priceForNightsExcl:
       "precio para {nights} noches, con tasa turistica incluida y opciones excluidas",
-    disabilityHealthCure: "situacion de discapacidad o cura de salud?",
     contactUs: "contactanos",
     accommodationPrice: "Precio del alojamiento",
     excludingTax: "€ sin impuestos",
@@ -2325,6 +2588,51 @@ export const dictionaries: Record<Locale, Dictionary> = {
     visionGlampTags: "Facile \u00b7 Leggero \u00b7 Spazioso \u00b7 Ecologico",
     visionSynergiesTitle: "Sinergia fluviale e terrestre",
     visionSynergiesTags: "Tempo libero \u00b7 Nessuna fatica \u00b7 Immersione nella natura",
+    bookIntroSeeAvailability: "vedi disponibilità",
+    bookIntroUnavailableTooltip: "non disponibile al momento",
+    bookIntroValleyTitle: "La valle del Lot nell'Aveyron",
+    bookIntroValleyThermalism: "termalismo",
+    bookIntroValleyCompostela: "cammini di Compostela",
+    bookIntroValleyBike: "la valle del Lot in bicicletta",
+    bookIntroRiverTitle: "Il fiume Lot",
+    bookIntroRiverStretch: "10 km di tratto navigabile",
+    bookIntroRiverArea: "100 ha",
+    bookIntroRiverLocks: "3 chiuse",
+    bookIntroZnieffTitle:
+      "Zona naturale nazionale di interesse ecologico, faunistico e floristico",
+    bookIntroPhotoLock: "La chiusa di Penchot",
+    bookIntroPhotoCruising: "In navigazione all'alba",
+    bookIntroPhotoMooring: "Ormeggiato sulla riva",
+    bookIntroPhotoRiver: "Riflessi sul Lot",
+    bookIntroPhotoMist: "All'ancora nella nebbia del mattino",
+    bookIntroPhotoBridge: "La passerella in ghisa",
+    bookPlanAccessGate: "Cancelletto di accesso alla plancia di comando",
+    bookPlanSteering: "Posto di governo",
+    bookPlanLifebuoy: "Salvagente ed estintore",
+    bookPlanDeck: "Il ponte",
+    bookPlanKitchenette: "Cucina",
+    bookPlanToilet: "WC marino manuale e doccia di coperta",
+    bookPlanDoubleBed: "Letto matrimoniale (140 x 190 cm)",
+    bookPlanBunkBeds: "Letti a castello singoli (80 x 190 cm)",
+    bookPlanControlBridge: "Plancia di comando",
+    bookPlanLadder: "Scaletta di imbarco",
+    bookPlanHammock: "Amaca",
+    bookIntroAboard:
+      "Salite a bordo del glampingboat, un'imbarcazione semplice, leggera, economica ed ecologica che offre un'esperienza fluviale unica, in sinergia tra fiume e terra. Il viaggio è un'immersione nel cuore della natura, al vostro ritmo e senza vincoli di tempo. L'imbarcazione avanza lentamente e in modo discreto grazie al motore elettrico: nessun inquinamento e nessun rifornimento. La barca rispetta il ciclo dell'acqua con un sistema a circuito chiuso per l'approvvigionamento di acqua dolce e il trattamento delle acque grigie a bordo; funziona in modo sostenibile, senza dover rabboccare l'acqua dolce né svuotare le acque grigie. Dotata di una tenda glamping, offre a bordo ogni comfort.",
+    bookIntroSleeping:
+      "Zona notte con un letto matrimoniale 140x190 cm e due letti a castello 80x190 cm\nMaterassi in schiuma con coprimaterasso protettivo\nUna lampada LED portatile ricaricabile\nAsciugamani non forniti – Biancheria da letto disponibile come opzione",
+    bookIntroSaloon:
+      "Salone con piano tavolo in legno e quattro sedie.\nUna lampada LED portatile ricaricabile\nTimoneria, ruota del timone in legno, telecomando del motore elettrico e controllo del livello delle batterie, presa di banchina, 4 porte USB per ricaricare le lampade LED portatili. Imbarcazione allestita e attrezzata per una navigazione sicura",
+    bookIntroKitchen:
+      "Cucina 60x200 cm con lavello a una vasca con acqua calda temporizzata, piano cottura a gas a due fuochi, frigorifero elettrico di alta gamma, stoviglie e posate per quattro persone\nErogatore isotermico di acqua potabile da 10 l con rubinetto; acqua minerale o di sorgente non fornita\nUna lampada LED portatile ricaricabile",
+    bookIntroBathroom:
+      "Bagno 90x200 cm con WC marino manuale e doccia di coperta con temporizzatore dell'acqua calda.\nUna lampada LED portatile ricaricabile\nScaldabagno a gas istantaneo con regolazione della temperatura.",
+    bookIntroHygiene:
+      "L'acqua del lavello e della doccia è acqua calda regolabile, non potabile, destinata al lavaggio delle stoviglie e all'igiene personale.\nCarta igienica fornita\nSapone liquido Pharmavoyage Outdoor fornito per stoviglie, pulizie e igiene personale\nNon utilizzare prodotti diversi da quelli forniti a bordo",
+    bookIntroDeck:
+      "Ponte di poppa con scaletta di risalita\nBarra di supporto con amaca",
+    bookIntroWaterNote:
+      "L'imbarcazione è dotata di un impianto biologico di trattamento delle acque a bordo che non utilizza cloro. Per garantire la capacità di trattamento giornaliera del sistema, è essenziale ridurre al minimo il consumo di acqua a bordo e utilizzare prodotti per l'igiene non biocidi. Vi preghiamo di segnalarci al momento della prenotazione se state assumendo antibiotici.",
     accountMenu: "Account",
     bookingsMenu: "Prenotazioni",
     profileMenu: "Profilo",
@@ -2544,7 +2852,6 @@ export const dictionaries: Record<Locale, Dictionary> = {
       "Glamping Boat non e disponibile nelle date scelte",
     priceForNightsExcl:
       "prezzo per {nights} notti, tassa di soggiorno inclusa e opzioni escluse",
-    disabilityHealthCure: "situazione di disabilita o cura termale?",
     contactUs: "contattaci",
     accommodationPrice: "Prezzo alloggio",
     excludingTax: "€ tasse escluse",

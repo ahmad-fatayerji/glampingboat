@@ -2,6 +2,7 @@
 
 import { useState, type ChangeEvent, type FormEvent } from "react";
 import DrawerSurface from "@/components/Drawer/DrawerSurface";
+import { useLanguage } from "@/components/Language/LanguageContext";
 import { useT } from "@/components/Language/useT";
 import { isPhoneField, sanitizePhoneNumber } from "@/lib/input";
 import type { AddressField, ContactFormData } from "@/lib/types";
@@ -67,6 +68,7 @@ function ArrowIcon() {
 
 export default function ContactForm() {
   const t = useT();
+  const { locale } = useLanguage();
   const [form, setForm] = useState<ContactFormData>(INITIAL_FORM);
   const [status, setStatus] = useState<"idle" | "sending" | "success" | "error">(
     "idle"
@@ -113,7 +115,7 @@ export default function ContactForm() {
       const response = await fetch("/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, locale }),
       });
       if (!response.ok) {
         throw new Error("Failed to send");

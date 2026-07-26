@@ -41,7 +41,6 @@ interface BookingCalendarProps {
     children: number;
     promos: BookingPromoRecord[];
   }) => void;
-  onContact: () => void;
 }
 
 const DATE_FORMAT = "MM/dd/yyyy";
@@ -143,7 +142,6 @@ export default function BookingCalendar({
   serverToday,
   signedIn,
   onContinue,
-  onContact,
 }: BookingCalendarProps) {
   const t = useT();
   const today = useMemo(() => startOfDay(new Date(serverToday)), [serverToday]);
@@ -674,18 +672,6 @@ export default function BookingCalendar({
         </div>
       </div>
 
-      <div className="flex flex-col items-center gap-3 border-t border-[var(--color-beige)]/15 pt-4 text-sm text-[var(--color-beige)]/85 sm:flex-row sm:justify-between">
-        <span>{t("disabilityHealthCure")}</span>
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={onContact}
-            className="rounded-md bg-[var(--color-blue)] px-4 py-2 text-sm text-[var(--color-beige)] transition hover:bg-[#06324d]"
-          >
-            {t("contactUs")}
-          </button>
-        </div>
-      </div>
     </div>
   );
 }

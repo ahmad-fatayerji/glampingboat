@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { prisma } from "@/lib/prisma";
+import {
+    getReservationPaidStatus,
+    markCheckoutSessionPaid,
+} from "@/lib/stripe-payments";
 import { getStripeServerClient } from "@/lib/stripe";
-
-const OPEN_PAYMENT_STATUSES = ["PENDING", "CHECKOUT_OPEN"] as const;
 
 function getWebhookSecret() {
     const secret = process.env.STRIPE_WEBHOOK_SECRET;
@@ -14,124 +16,11 @@ function getWebhookSecret() {
     return secret;
 }
 
-function getReservationPaidStatus(paidAmountCents: number, totalAmountCents: number) {
-    if (paidAmountCents >= totalAmountCents) {
-        return "PAID_FULL";
-    }
-
-    if (paidAmountCents > 0) {
-        return "PAID_DEPOSIT";
-    }
-
-    return "UNPAID";
-}
-
 async function processCheckoutCompleted(event: Stripe.Event) {
     const session = event.data.object as Stripe.Checkout.Session;
-    const checkoutSessionId = session.id;
-    const paymentIntentId =
-        typeof session.payment_intent === "string"
-            ? session.payment_intent
-            : session.payment_intent?.id ?? null;
-    const customerId =
-        typeof session.customer === "string" ? session.customer : null;
-
-    const payment = await prisma.bookingPayment.findFirst({
-        where: { stripeCheckoutSessionId: checkoutSessionId },
-        include: {
-            reservation: true,
-        },
-    });
-
-    if (!payment) {
-        return;
-    }
-
-    await prisma.$transaction(async (tx) => {
-        const updatedPayment = await tx.bookingPayment.updateMany({
-            where: {
-                id: payment.id,
-                status: { not: "PAID" },
-            },
-            data: {
-                status: "PAID",
-                stripeStatus: session.status,
-                stripePaymentIntentId: paymentIntentId,
-                stripeCustomerId: customerId,
-                stripePayload: {
-                    eventId: event.id,
-                    checkoutStatus: session.status,
-                    paymentStatus: session.payment_status,
-                    amountTotal: session.amount_total,
-                },
-                paidAt: new Date(),
-            },
-        });
-
-        if (updatedPayment.count === 0) {
-            return;
-        }
-
-        const paidAmountCents = payment.reservation.paidAmountCents + payment.amountCents;
-        const reservationPaymentStatus = getReservationPaidStatus(
-            paidAmountCents,
-            payment.reservation.totalAmountTtcCents
-        );
-
-        await tx.reservation.update({
-            where: { id: payment.reservationId },
-            data: {
-                paymentStatus: reservationPaymentStatus,
-                status: "CONFIRMED",
-                paidAmountCents,
-            },
-        });
-
-        const remainingAmountCents = Math.max(
-            0,
-            payment.reservation.totalAmountTtcCents - paidAmountCents
-        );
-        if (remainingAmountCents > 0 && payment.purpose === "DEPOSIT") {
-            const existingBalancePayment = await tx.bookingPayment.findFirst({
-                where: {
-                    reservationId: payment.reservationId,
-                    purpose: "BALANCE",
-                    status: { in: [...OPEN_PAYMENT_STATUSES, "PAID"] },
-                },
-                select: { id: true },
-            });
-
-            if (!existingBalancePayment) {
-                await tx.bookingPayment.create({
-                    data: {
-                        reservationId: payment.reservationId,
-                        provider: "stripe",
-                        purpose: "BALANCE",
-                        status: "PENDING",
-                        amountCents: remainingAmountCents,
-                        currency: payment.currency,
-                        idempotencyKey: `checkout:${payment.reservation.bookingRef}:balance`,
-                        stripeStatus: "not_created",
-                    },
-                });
-            }
-        }
-
-        await tx.reservationEvent.create({
-            data: {
-                reservationId: payment.reservationId,
-                type: "PAYMENT_SUCCEEDED",
-                metadata: {
-                    stripeEventId: event.id,
-                    stripeCheckoutSessionId: checkoutSessionId,
-                    paymentId: payment.id,
-                    amountCents: payment.amountCents,
-                    currency: payment.currency,
-                    paidAmountCents,
-                    remainingAmountCents,
-                },
-            },
-        });
+    await markCheckoutSessionPaid({
+        session,
+        stripeEventId: event.id,
     });
 }
 
@@ -249,6 +138,9 @@ async function processPaymentFailed(event: Stripe.Event) {
 async function handleEvent(event: Stripe.Event) {
     switch (event.type) {
         case "checkout.session.completed":
+            await processCheckoutCompleted(event);
+            break;
+        case "checkout.session.async_payment_succeeded":
             await processCheckoutCompleted(event);
             break;
         case "checkout.session.expired":

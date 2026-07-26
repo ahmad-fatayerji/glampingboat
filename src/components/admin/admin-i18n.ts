@@ -65,7 +65,10 @@ const en = {
   confirmed: "Confirmed",
   consent: "Consent",
   consentTerms: "Terms",
+  confirmDeleteBlock: "Delete this block? These dates will become bookable again.",
+  confirmDeletePromotion: "Delete this promotion? This cannot be undone.",
   createdAt: "Created on {date}",
+  createdOnLabel: "Created",
   customer: "Customer",
   dashboard: "Dashboard",
   dateRange: "{start} - {end}",
@@ -73,6 +76,7 @@ const en = {
   delete: "Delete",
   departure: "Departure",
   deposit: "Deposit",
+  details: "Details",
   disabled: "Disabled",
   email: "Email",
   end: "End",
@@ -104,8 +108,10 @@ const en = {
   noCustomersFound: "No customers found.",
   noFutureReservations: "No upcoming reservations.",
   noNearbyArrivals: "No nearby arrivals.",
+  nightCount: "{count} nights",
   noOptions: "No options.",
   noPayments: "No payments.",
+  noHistory: "No history yet.",
   noPromotions: "No promotions.",
   noReservation: "No reservation.",
   noReservationFound: "No reservations found.",
@@ -119,10 +125,12 @@ const en = {
   paidDeposit: "Deposit paid",
   paidFull: "Paid in full",
   paidTotal: "Total paid: {amount}",
+  paidTotalLabel: "Total paid",
   past: "Past",
   payment: "Payment",
   paymentFailed: "Payment failed",
   paymentPending: "Payment pending",
+  refundPending: "Refund pending",
   payments: "Payments",
   paymentsToFollow: "Payments to follow",
   pendingPayment: "Pending payment",
@@ -224,13 +232,19 @@ const fr: AdminDictionary = {
   confirmed: "Confirmee",
   consent: "Consentement",
   consentTerms: "Conditions",
+  confirmDeleteBlock:
+    "Supprimer ce blocage ? Ces dates redeviendront reservables.",
+  confirmDeletePromotion:
+    "Supprimer cette promotion ? Cette action est irreversible.",
   createdAt: "Creee le {date}",
+  createdOnLabel: "Creation",
   customer: "Client",
   dashboard: "Tableau de bord",
   dates: "Dates",
   delete: "Supprimer",
   departure: "Depart",
   deposit: "Acompte",
+  details: "Details",
   disabled: "Desactive",
   email: "Email",
   end: "Fin",
@@ -260,8 +274,10 @@ const fr: AdminDictionary = {
   noCustomersFound: "Aucun client trouve.",
   noFutureReservations: "Aucune reservation a venir.",
   noNearbyArrivals: "Aucune arrivee proche.",
+  nightCount: "{count} nuits",
   noOptions: "Aucune option.",
   noPayments: "Aucun paiement.",
+  noHistory: "Aucun historique.",
   noPromotions: "Aucune promotion.",
   noReservation: "Aucune reservation.",
   noReservationFound: "Aucune reservation trouvee.",
@@ -272,8 +288,11 @@ const fr: AdminDictionary = {
   paidDeposit: "Acompte paye",
   paidFull: "Paye integralement",
   paidTotal: "Total paye: {amount}",
+  paidTotalLabel: "Total paye",
   past: "Passees",
   paymentFailed: "Paiement echoue",
+  paymentPending: "En attente",
+  refundPending: "Remboursement en cours",
   paymentsToFollow: "Paiements a suivre",
   pendingPayment: "Paiement en attente",
   phone: "Telephone",
@@ -543,6 +562,24 @@ export function reservationStatusLabel(locale: Locale, status: string) {
     CONFIRMED: "confirmed",
     CANCELLED: "cancelled",
     EXPIRED: "expired",
+    REFUNDED: "refunded",
+  };
+  return keys[status] ? tAdmin(locale, keys[status]) : status;
+}
+
+/**
+ * Individual Payment rows use the BookingPaymentStatus enum, which does not
+ * share values with the reservation-level payment status.
+ */
+export function bookingPaymentStatusLabel(locale: Locale, status: string) {
+  const keys: Record<string, AdminKey> = {
+    PENDING: "paymentPending",
+    CHECKOUT_OPEN: "checkoutOpen",
+    PAID: "paid",
+    FAILED: "paymentFailed",
+    EXPIRED: "expired",
+    CANCELLED: "cancelled",
+    REFUND_PENDING: "refundPending",
     REFUNDED: "refunded",
   };
   return keys[status] ? tAdmin(locale, keys[status]) : status;

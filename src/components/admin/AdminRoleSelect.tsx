@@ -116,7 +116,7 @@ export default function AdminRoleSelect({
               setConfirmation("");
               setError(null);
             }}
-            className="admin-input h-9 rounded-md px-3 text-xs disabled:opacity-55"
+            className="admin-button-secondary h-9 px-3 text-xs disabled:opacity-55"
           >
             {t("cancel")}
           </button>
@@ -132,12 +132,16 @@ export default function AdminRoleSelect({
             setConfirmation("");
             setError(null);
           }}
-          className="admin-input h-9 rounded-md px-3 text-sm disabled:opacity-55"
+          className="admin-button-secondary h-9 px-3 text-sm disabled:opacity-55"
         >
           {roleLabel(locale, value)}
         </button>
       )}
-      {error && <p className="max-w-56 text-xs text-[#ffd8d2]">{error}</p>}
+      {error && (
+        <p role="alert" className="max-w-56 text-xs text-[#ffd8d2]">
+          {error}
+        </p>
+      )}
       {pendingRole && (
         <div
           className="fixed right-4 top-4 z-[220] w-[min(92vw,380px)] rounded-md border border-[#8aa7b8]/35 bg-[#183d57] p-4 text-left text-[var(--color-beige)] shadow-[0_18px_50px_rgba(0,0,0,0.45)]"
@@ -176,7 +180,7 @@ export default function AdminRoleSelect({
                 setConfirmation("");
                 setError(null);
               }}
-              className="admin-input h-9 rounded-md px-3 text-xs disabled:opacity-55"
+              className="admin-button-secondary h-9 px-3 text-xs disabled:opacity-55"
             >
               {t("cancel")}
             </button>

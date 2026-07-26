@@ -3,12 +3,14 @@ import { auth } from "@auth";
 import { prisma } from "@/lib/prisma";
 import { getErrorMessage } from "@/lib/http";
 import { getStripeServerClient } from "@/lib/stripe";
+import { markCheckoutSessionPaid } from "@/lib/stripe-payments";
 
 interface CreateCheckoutSessionPayload {
     reservationId?: string;
 }
 
 const ELIGIBLE_PAYMENT_STATUSES = new Set(["PENDING", "CHECKOUT_OPEN"]);
+const CHECKOUT_REUSE_GRACE_MS = 60_000;
 
 function canCreateCheckoutForReservation(reservation: {
     status: string;
@@ -36,6 +38,21 @@ function getExpectedPaymentPurpose(reservation: {
     }
 
     return reservation.payFullNow ? "FULL" : "DEPOSIT";
+}
+
+function isReusableCheckout(payment: {
+    status: string;
+    stripeCheckoutSessionId: string | null;
+    checkoutUrl: string | null;
+    expiresAt: Date | null;
+}) {
+    return (
+        payment.status === "CHECKOUT_OPEN" &&
+        Boolean(payment.stripeCheckoutSessionId) &&
+        Boolean(payment.checkoutUrl) &&
+        (!payment.expiresAt ||
+            payment.expiresAt.getTime() > Date.now() + CHECKOUT_REUSE_GRACE_MS)
+    );
 }
 
 export async function POST(req: NextRequest) {
@@ -125,14 +142,62 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        if (
-            payment.stripeCheckoutSessionId &&
-            payment.checkoutUrl &&
-            payment.status === "CHECKOUT_OPEN"
-        ) {
-            return NextResponse.json({
-                sessionId: payment.stripeCheckoutSessionId,
-                checkoutUrl: payment.checkoutUrl,
+        if (isReusableCheckout(payment)) {
+            const stripe = getStripeServerClient();
+            const checkoutSession = await stripe.checkout.sessions.retrieve(
+                payment.stripeCheckoutSessionId as string
+            );
+
+            if (checkoutSession.payment_status === "paid") {
+                await markCheckoutSessionPaid({
+                    session: checkoutSession,
+                    actorUserId: authSession.user.id,
+                });
+
+                return NextResponse.json(
+                    { error: "Payment is already complete" },
+                    { status: 409 }
+                );
+            }
+
+            if (checkoutSession.status === "open") {
+                return NextResponse.json({
+                    sessionId: payment.stripeCheckoutSessionId,
+                    checkoutUrl: payment.checkoutUrl,
+                });
+            }
+        }
+
+        if (payment.status === "CHECKOUT_OPEN") {
+            await prisma.bookingPayment.updateMany({
+                where: {
+                    id: payment.id,
+                    status: "CHECKOUT_OPEN",
+                },
+                data: {
+                    status: "EXPIRED",
+                    stripeStatus: "expired",
+                },
+            });
+
+            const replacementIdempotencyKey = `checkout:${reservation.bookingRef}:${expectedPurpose.toLowerCase()}:${crypto.randomUUID()}`;
+            payment = await prisma.bookingPayment.create({
+                data: {
+                    reservationId: reservation.id,
+                    provider: "stripe",
+                    purpose: expectedPurpose,
+                    status: "PENDING",
+                    amountCents:
+                        expectedPurpose === "BALANCE"
+                            ? Math.max(
+                                0,
+                                reservation.totalAmountTtcCents - reservation.paidAmountCents
+                            )
+                            : payment.amountCents,
+                    currency: payment.currency,
+                    idempotencyKey: replacementIdempotencyKey,
+                    stripeStatus: "not_created",
+                },
             });
         }
 
@@ -142,6 +207,7 @@ export async function POST(req: NextRequest) {
         const successUrl = new URL("/account", origin);
         successUrl.searchParams.set("checkout", "success");
         successUrl.searchParams.set("reservation", reservation.id);
+        successUrl.searchParams.set("session_id", "{CHECKOUT_SESSION_ID}");
 
         const cancelUrl = new URL("/account", origin);
         cancelUrl.searchParams.set("checkout", "canceled");
