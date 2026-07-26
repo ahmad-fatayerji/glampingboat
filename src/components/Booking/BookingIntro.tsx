@@ -1,7 +1,10 @@
 "use client";
 
 import Image from "next/image";
+import { useState } from "react";
 import DrawerSurface from "@/components/Drawer/DrawerSurface";
+import ImageViewer from "@/components/Gallery/ImageViewer";
+import Drop from "@/components/NavBox/Drop";
 import { useT, type TranslationKey } from "@/components/Language/useT";
 
 interface BookingIntroProps {
@@ -20,14 +23,63 @@ const COLLAGE_SIDE_SIZES =
 const SPLIT_IMAGE_SIZES =
   "(min-width: 1280px) 32vw, (min-width: 1024px) 36vw, (min-width: 640px) 41vw, 100vw";
 
-const COLLAGE = {
-  lock: "/images/book/p5 écluse de Penchot.jpeg",
-  cruising: "/images/book/p5 coucher.jpg",
-  mooring: "/images/book/p5 écluse Roquelongue.jpg",
-  river: "/images/book/p5 river.jpg",
-  mist: "/images/book/p5 lever.jpg",
-  bridge: "/images/book/p5 pont.jpg",
-} as const;
+/** Fraction of Book.png above its baked-in English legend, which we re-render as text. */
+const PLAN_CROP = 0.71;
+const PLAN_WIDTH = 4885;
+const PLAN_HEIGHT = 3991;
+
+/** Collage frames in the order the PDF assembles them; also the viewer's order. */
+const COLLAGE_IMAGES: {
+  src: string;
+  alt: string;
+  labelKey: TranslationKey;
+}[] = [
+  {
+    src: "/images/book/p5 écluse de Penchot.jpeg",
+    alt: "Aerial view of the Penchot lock on the Lot",
+    labelKey: "bookIntroPhotoLock",
+  },
+  {
+    src: "/images/book/p5 coucher.jpg",
+    alt: "The Glamping Boat cruising the Lot at sunrise",
+    labelKey: "bookIntroPhotoCruising",
+  },
+  {
+    src: "/images/book/p5 écluse Roquelongue.jpg",
+    alt: "The Glamping Boat moored on the bank in autumn",
+    labelKey: "bookIntroPhotoMooring",
+  },
+  {
+    src: "/images/book/p5 river.jpg",
+    alt: "Wooded hillside mirrored in the still water of the Lot",
+    labelKey: "bookIntroPhotoRiver",
+  },
+  {
+    src: "/images/book/p5 lever.jpg",
+    alt: "The Glamping Boat at anchor in morning mist",
+    labelKey: "bookIntroPhotoMist",
+  },
+  {
+    src: "/images/book/p5 pont.jpg",
+    alt: "Cast-iron footbridge reflected in the Lot",
+    labelKey: "bookIntroPhotoBridge",
+  },
+];
+
+/** Numbered markers on the deck plan, matching the droplets drawn on Book.png. */
+const PLAN_LEGEND: { marker: string; key: TranslationKey }[] = [
+  { marker: "1", key: "bookPlanAccessGate" },
+  { marker: "2", key: "bookPlanSteering" },
+  { marker: "3", key: "bookPlanLifebuoy" },
+  { marker: "4", key: "bookPlanDeck" },
+  { marker: "5", key: "bookPlanKitchenette" },
+  { marker: "6", key: "bookPlanToilet" },
+  { marker: "7d", key: "bookPlanDoubleBed" },
+  { marker: "7s", key: "bookPlanBunkBeds" },
+  { marker: "8", key: "bookPlanControlBridge" },
+  { marker: "9", key: "bookPlanLadder" },
+  { marker: "10", key: "bookPlanHammock" },
+];
 
 /** Splits a dictionary value on newlines into one paragraph per line. */
 function Lines({ text, className }: { text: string; className?: string }) {
@@ -174,44 +226,20 @@ function ZnieffSection() {
 }
 
 /** PDF p.5/6 — the photo assembly, rebuilt from the source frames so it reflows. */
-function CollageSection() {
+function CollageSection({ onOpen }: { onOpen: (index: number) => void }) {
   return (
     <section className="grid aspect-[1218/1068] grid-rows-[36%_64%] gap-[2px] bg-white">
       <div className="grid grid-cols-3 gap-[2px]">
-        <CollageTile
-          src={COLLAGE.lock}
-          alt="Aerial view of the Penchot lock on the Lot"
-          sizes={COLLAGE_THIRD_SIZES}
-        />
-        <CollageTile
-          src={COLLAGE.cruising}
-          alt="The Glamping Boat cruising the Lot at sunrise"
-          sizes={COLLAGE_THIRD_SIZES}
-        />
-        <CollageTile
-          src={COLLAGE.mooring}
-          alt="The Glamping Boat moored on the bank in autumn"
-          sizes={COLLAGE_THIRD_SIZES}
-        />
+        <CollageTile index={0} sizes={COLLAGE_THIRD_SIZES} onOpen={onOpen} />
+        <CollageTile index={1} sizes={COLLAGE_THIRD_SIZES} onOpen={onOpen} />
+        <CollageTile index={2} sizes={COLLAGE_THIRD_SIZES} onOpen={onOpen} />
       </div>
 
       <div className="grid grid-cols-[2fr_1fr] gap-[2px]">
-        <CollageTile
-          src={COLLAGE.river}
-          alt="Wooded hillside mirrored in the still water of the Lot"
-          sizes={COLLAGE_LARGE_SIZES}
-        />
+        <CollageTile index={3} sizes={COLLAGE_LARGE_SIZES} onOpen={onOpen} />
         <div className="grid grid-rows-2 gap-[2px]">
-          <CollageTile
-            src={COLLAGE.mist}
-            alt="The Glamping Boat at anchor in morning mist"
-            sizes={COLLAGE_SIDE_SIZES}
-          />
-          <CollageTile
-            src={COLLAGE.bridge}
-            alt="Cast-iron footbridge reflected in the Lot"
-            sizes={COLLAGE_SIDE_SIZES}
-          />
+          <CollageTile index={4} sizes={COLLAGE_SIDE_SIZES} onOpen={onOpen} />
+          <CollageTile index={5} sizes={COLLAGE_SIDE_SIZES} onOpen={onOpen} />
         </div>
       </div>
     </section>
@@ -219,16 +247,23 @@ function CollageSection() {
 }
 
 function CollageTile({
-  src,
-  alt,
+  index,
   sizes,
+  onOpen,
 }: {
-  src: string;
-  alt: string;
+  index: number;
   sizes: string;
+  onOpen: (index: number) => void;
 }) {
+  const { src, alt } = COLLAGE_IMAGES[index];
+
   return (
-    <div className="relative overflow-hidden">
+    <button
+      type="button"
+      onClick={() => onOpen(index)}
+      aria-label={`Open ${alt}`}
+      className="group relative overflow-hidden text-left outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-beige)]/80"
+    >
       <Image
         src={src}
         alt={alt}
@@ -236,59 +271,63 @@ function CollageTile({
         unoptimized
         sizes={sizes}
         quality={74}
-        className="object-cover"
+        className="object-cover transition duration-300 group-hover:scale-[1.025] group-hover:opacity-90"
       />
-    </div>
+      <span className="pointer-events-none absolute inset-0 bg-[var(--color-blue)]/0 transition group-hover:bg-[var(--color-blue)]/12" />
+    </button>
   );
 }
 
-/** PDF p.8 — the numbered deck plan. Its legend is light, so it sits on a dark card. */
+/**
+ * PDF p.8 — the numbered deck plan. Book.png ships with an English legend baked
+ * in, so we clip it off and re-render the labels from the dictionary instead.
+ */
 function PlanSection() {
   const t = useT();
 
   return (
     <section>
       <div className="overflow-hidden border border-white/12 bg-[rgba(31,61,84,0.84)] p-[clamp(0.6rem,1.6vw,1.6rem)] shadow-[0_18px_55px_rgba(0,0,0,0.28)] backdrop-blur-sm">
-        <div className="relative aspect-[4885/3991] w-full">
-          <Image
-            src="/images/book/Book.png"
-            alt="Deck plan of the Glamping Boat with numbered legend"
-            fill
-            unoptimized
-            sizes={DRAWER_IMAGE_SIZES}
-            quality={84}
-            className="object-contain"
-          />
+        <div
+          className="relative w-full overflow-hidden"
+          style={{ aspectRatio: `${PLAN_WIDTH} / ${PLAN_HEIGHT * PLAN_CROP}` }}
+        >
+          <div
+            className="absolute inset-x-0 top-0"
+            style={{ aspectRatio: `${PLAN_WIDTH} / ${PLAN_HEIGHT}` }}
+          >
+            <Image
+              src="/images/book/Book.png"
+              alt="Deck plan of the Glamping Boat with numbered markers"
+              fill
+              unoptimized
+              sizes={DRAWER_IMAGE_SIZES}
+              quality={84}
+              className="object-contain"
+            />
+          </div>
         </div>
 
-        <p className="mt-[clamp(0.4rem,1vw,0.9rem)] flex items-center gap-3 text-[clamp(0.82rem,1.2vw,1.05rem)] font-light text-[var(--color-beige)]">
-          <AccessibilityMark />
-          {t("bookIntroPlanAccessible")}
-        </p>
+        <ul className="mt-[clamp(0.7rem,1.6vw,1.4rem)] grid gap-x-[clamp(0.8rem,2vw,2rem)] gap-y-[clamp(0.35rem,0.8vw,0.6rem)] sm:grid-cols-2 lg:grid-cols-3">
+          {PLAN_LEGEND.map(({ marker, key }) => (
+            <li key={marker} className="flex items-center gap-2">
+              <span className="relative inline-flex h-8 w-8 shrink-0 items-center justify-center">
+                <Drop
+                  className="absolute inset-0 h-full w-full"
+                  style={{ stroke: "var(--color-beige)" }}
+                />
+                <span className="relative pt-[0.35em] text-[0.62rem] font-light leading-none text-[var(--color-beige)]">
+                  {marker}
+                </span>
+              </span>
+              <span className="min-w-0 text-[clamp(0.78rem,1.05vw,0.98rem)] font-light leading-tight text-[var(--color-beige)]">
+                {t(key)}
+              </span>
+            </li>
+          ))}
+        </ul>
       </div>
     </section>
-  );
-}
-
-function AccessibilityMark() {
-  return (
-    <svg
-      aria-hidden="true"
-      viewBox="0 0 24 24"
-      className="h-7 w-7 shrink-0 rounded-full border border-[var(--color-beige)]/70 p-[3px] text-[var(--color-beige)]"
-      fill="currentColor"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <circle cx="12" cy="3.6" r="2" />
-      <path
-        d="M9.3 7.2h2.4v3.6h4.1a1 1 0 0 1 0 2h-4.1v1.1l3 4.8a1 1 0 0 1-1.7 1.05l-2.9-4.6a3 3 0 0 1-.8-2.05V9a1.8 1.8 0 0 1 0-1.8Z"
-        fillRule="evenodd"
-      />
-      <path
-        d="M8.6 11.4a1 1 0 0 1 .5 1.9 3.6 3.6 0 1 0 4.6 4.4 1 1 0 0 1 1.9.55 5.6 5.6 0 1 1-7-6.85Z"
-        fillRule="evenodd"
-      />
-    </svg>
   );
 }
 
@@ -342,6 +381,13 @@ function DetailSection({
 
 export default function BookingIntro({ calendarAnchorId }: BookingIntroProps) {
   const t = useT();
+  const [activeImage, setActiveImage] = useState<number | null>(null);
+
+  const viewerImages = COLLAGE_IMAGES.map(({ src, alt, labelKey }) => ({
+    src,
+    alt,
+    label: t(labelKey),
+  }));
 
   return (
     <DrawerSurface className="gap-8 overflow-visible !bg-transparent !p-3 !shadow-none !backdrop-blur-0 sm:!p-4">
@@ -359,7 +405,7 @@ export default function BookingIntro({ calendarAnchorId }: BookingIntroProps) {
       <LocationSection />
       <RiverSection />
       <ZnieffSection />
-      <CollageSection />
+      <CollageSection onOpen={setActiveImage} />
       <PlanSection />
 
       <DetailSection
@@ -377,6 +423,13 @@ export default function BookingIntro({ calendarAnchorId }: BookingIntroProps) {
         alt="The on-board bathroom with marine toilet and deck shower"
         bodyKeys={["bookIntroBathroom", "bookIntroHygiene", "bookIntroDeck"]}
         noteKey="bookIntroWaterNote"
+      />
+
+      <ImageViewer
+        images={viewerImages}
+        activeIndex={activeImage}
+        onClose={() => setActiveImage(null)}
+        onSelect={setActiveImage}
       />
     </DrawerSurface>
   );

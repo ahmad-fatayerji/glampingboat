@@ -1,4 +1,4 @@
-export const LOCALES = ["en", "fr", "de", "nl", "ru", "es", "it"] as const;
+﻿export const LOCALES = ["en", "fr", "de", "nl", "ru", "es", "it"] as const;
 export type Locale = (typeof LOCALES)[number];
 export const LOCALE_STORAGE_KEY = "site-locale";
 
@@ -111,7 +111,23 @@ const en = {
   bookIntroRiverLocks: "3 river locks",
   bookIntroZnieffTitle:
     "National area of natural interest for fauna and flora",
-  bookIntroPlanAccessible: "Accessible to people with disabilities",
+  bookIntroPhotoLock: "The Penchot lock",
+  bookIntroPhotoCruising: "Cruising at sunrise",
+  bookIntroPhotoMooring: "Moored on the bank",
+  bookIntroPhotoRiver: "Reflections on the Lot",
+  bookIntroPhotoMist: "At anchor in the morning mist",
+  bookIntroPhotoBridge: "The cast-iron footbridge",
+  bookPlanAccessGate: "Access gate to the control bridge",
+  bookPlanSteering: "Steering position",
+  bookPlanLifebuoy: "Lifebuoy and fire extinguisher",
+  bookPlanDeck: "The deck",
+  bookPlanKitchenette: "Kitchenette",
+  bookPlanToilet: "Manual marine toilet and deck shower",
+  bookPlanDoubleBed: "Double bed (140 x 190 cm)",
+  bookPlanBunkBeds: "Single bunk beds (80 x 190 cm)",
+  bookPlanControlBridge: "Control bridge",
+  bookPlanLadder: "Boarding ladder",
+  bookPlanHammock: "Hammock",
   bookIntroAboard:
     "Step aboard the glampingboat, a simple, lightweight, economical and eco-friendly vessel offering a unique river experience, synergies of fluvial and terrestrial. The trip offers an immersive experience in the heart of nature, set to your own pace with no time constraints. The boat moves slowly and is unobtrusive thanks to its electric motor, meaning no pollution and no need to refuel. The boat respects the water cycle with a closed-loop system for fresh water supply and grey water treatment on board; the boat operates sustainably, with no need to top up fresh water or empty grey water. Equipped with a glamping tent, you\u2019ll enjoy every comfort on board.",
   bookIntroSleeping:
@@ -342,7 +358,6 @@ const en = {
     "Glamping Boat is not available on the dates you have chosen",
   priceForNightsExcl:
     "price for {nights} nights, including tourist tax and excluding options",
-  disabilityHealthCure: "in a disability situation or health cure?",
   contactUs: "contact us",
   accommodationPrice: "Accommodation price",
   excludingTax: "€ excluding tax",
@@ -501,8 +516,23 @@ export const dictionaries: Record<Locale, Dictionary> = {
     bookIntroRiverLocks: "3 écluses",
     bookIntroZnieffTitle:
       "Zone naturelle d'intérêt écologique, faunistique et floristique",
-    bookIntroPlanAccessible:
-      "Accessible aux personnes en situation de handicap",
+    bookIntroPhotoLock: "L'écluse de Penchot",
+    bookIntroPhotoCruising: "Navigation au lever du soleil",
+    bookIntroPhotoMooring: "Amarré sur la berge",
+    bookIntroPhotoRiver: "Reflets sur le Lot",
+    bookIntroPhotoMist: "Au mouillage dans la brume du matin",
+    bookIntroPhotoBridge: "La passerelle en fonte",
+    bookPlanAccessGate: "Portillon d'accès à la passerelle de commande",
+    bookPlanSteering: "Poste de barre",
+    bookPlanLifebuoy: "Bouée de sauvetage et extincteur",
+    bookPlanDeck: "Le pont",
+    bookPlanKitchenette: "Kitchenette",
+    bookPlanToilet: "WC marin manuel et douche de pont",
+    bookPlanDoubleBed: "Lit double (140 x 190 cm)",
+    bookPlanBunkBeds: "Lits superposés simples (80 x 190 cm)",
+    bookPlanControlBridge: "Passerelle de commande",
+    bookPlanLadder: "Échelle d'embarquement",
+    bookPlanHammock: "Hamac",
     bookIntroAboard:
       "Montez à bord du glampingboat, un bateau simple, léger, économique et écologique qui offre une expérience fluviale unique, en synergie entre le fluvial et le terrestre. Le voyage propose une immersion au cœur de la nature, à votre rythme et sans contrainte de temps. Le bateau avance lentement et discrètement grâce à son moteur électrique : aucune pollution et aucun ravitaillement en carburant. Le bateau respecte le cycle de l'eau grâce à un système en circuit fermé pour l'alimentation en eau douce et le traitement des eaux grises à bord ; il fonctionne durablement, sans avoir à faire le plein d'eau douce ni à vidanger les eaux grises. Équipé d'une tente de glamping, vous profiterez de tout le confort à bord.",
     bookIntroSleeping:
@@ -738,7 +768,6 @@ export const dictionaries: Record<Locale, Dictionary> = {
       "Glamping Boat n'est pas disponible aux dates choisies",
     priceForNightsExcl:
       "prix pour {nights} nuits, taxe de séjour incluse et options exclues",
-    disabilityHealthCure: "en situation de handicap ou en cure ?",
     contactUs: "contactez-nous",
     accommodationPrice: "Prix de l'hébergement",
     excludingTax: "€ hors taxe",
@@ -891,7 +920,23 @@ export const dictionaries: Record<Locale, Dictionary> = {
     bookIntroRiverLocks: "3 Schleusen",
     bookIntroZnieffTitle:
       "Nationales Naturgebiet von ökologischem Interesse für Fauna und Flora",
-    bookIntroPlanAccessible: "Barrierefrei für Menschen mit Behinderung",
+    bookIntroPhotoLock: "Die Schleuse von Penchot",
+    bookIntroPhotoCruising: "Fahrt bei Sonnenaufgang",
+    bookIntroPhotoMooring: "Am Ufer vertäut",
+    bookIntroPhotoRiver: "Spiegelungen auf dem Lot",
+    bookIntroPhotoMist: "Vor Anker im Morgennebel",
+    bookIntroPhotoBridge: "Die gusseiserne Fußgängerbrücke",
+    bookPlanAccessGate: "Zugangstür zum Steuerstand",
+    bookPlanSteering: "Steuerstand",
+    bookPlanLifebuoy: "Rettungsring und Feuerlöscher",
+    bookPlanDeck: "Das Deck",
+    bookPlanKitchenette: "Küchenzeile",
+    bookPlanToilet: "Manuelle Bordtoilette und Decksdusche",
+    bookPlanDoubleBed: "Doppelbett (140 x 190 cm)",
+    bookPlanBunkBeds: "Einzel-Etagenbetten (80 x 190 cm)",
+    bookPlanControlBridge: "Steuerbrücke",
+    bookPlanLadder: "Einstiegsleiter",
+    bookPlanHammock: "Hängematte",
     bookIntroAboard:
       "Gehen Sie an Bord des glampingboat, eines einfachen, leichten, sparsamen und umweltfreundlichen Bootes, das ein einzigartiges Flusserlebnis bietet – die Synergie von Fluss und Land. Die Reise ist ein Eintauchen mitten in die Natur, in Ihrem eigenen Tempo und ohne Zeitdruck. Dank des Elektromotors fährt das Boot langsam und unaufdringlich: keine Abgase und kein Tanken. Das Boot respektiert den Wasserkreislauf durch ein geschlossenes System für die Frischwasserversorgung und die Grauwasseraufbereitung an Bord; es arbeitet nachhaltig, ohne Frischwasser nachfüllen oder Grauwasser entleeren zu müssen. Mit einem Glamping-Zelt ausgestattet, genießen Sie an Bord jeden Komfort.",
     bookIntroSleeping:
@@ -1127,7 +1172,6 @@ export const dictionaries: Record<Locale, Dictionary> = {
       "Glamping Boat ist an den gewaehlten Daten nicht verfuegbar",
     priceForNightsExcl:
       "Preis fuer {nights} Naechte, inklusive Kurtaxe und ohne Optionen",
-    disabilityHealthCure: "Behinderung oder Kuraufenthalt?",
     contactUs: "Kontaktieren Sie uns",
     accommodationPrice: "Preis der Unterkunft",
     excludingTax: "€ ohne Steuer",
@@ -1280,7 +1324,23 @@ export const dictionaries: Record<Locale, Dictionary> = {
     bookIntroRiverLocks: "3 sluizen",
     bookIntroZnieffTitle:
       "Nationaal natuurgebied van ecologisch belang voor fauna en flora",
-    bookIntroPlanAccessible: "Toegankelijk voor mensen met een beperking",
+    bookIntroPhotoLock: "De sluis van Penchot",
+    bookIntroPhotoCruising: "Varen bij zonsopgang",
+    bookIntroPhotoMooring: "Afgemeerd aan de oever",
+    bookIntroPhotoRiver: "Weerspiegelingen op de Lot",
+    bookIntroPhotoMist: "Voor anker in de ochtendmist",
+    bookIntroPhotoBridge: "De gietijzeren voetbrug",
+    bookPlanAccessGate: "Toegangspoortje naar de stuurbrug",
+    bookPlanSteering: "Stuurpositie",
+    bookPlanLifebuoy: "Reddingsboei en brandblusser",
+    bookPlanDeck: "Het dek",
+    bookPlanKitchenette: "Keukenblok",
+    bookPlanToilet: "Handbediend scheepstoilet en dekdouche",
+    bookPlanDoubleBed: "Tweepersoonsbed (140 x 190 cm)",
+    bookPlanBunkBeds: "Eenpersoons stapelbedden (80 x 190 cm)",
+    bookPlanControlBridge: "Stuurbrug",
+    bookPlanLadder: "Instapladder",
+    bookPlanHammock: "Hangmat",
     bookIntroAboard:
       "Stap aan boord van de glampingboat, een eenvoudig, licht, zuinig en milieuvriendelijk vaartuig dat een unieke riviervaart biedt, een synergie van water en land. De reis is een onderdompeling midden in de natuur, in uw eigen tempo en zonder tijdsdruk. De boot vaart langzaam en onopvallend dankzij de elektrische motor: geen vervuiling en geen brandstof bijtanken. De boot respecteert de waterkringloop met een gesloten systeem voor drinkwatervoorziening en grijswaterzuivering aan boord; de boot werkt duurzaam, zonder water bij te vullen of grijswater te lozen. Uitgerust met een glampingtent geniet u aan boord van alle comfort.",
     bookIntroSleeping:
@@ -1515,7 +1575,6 @@ export const dictionaries: Record<Locale, Dictionary> = {
       "Glamping Boat is niet beschikbaar op de gekozen data",
     priceForNightsExcl:
       "prijs voor {nights} nachten, inclusief toeristenbelasting en exclusief opties",
-    disabilityHealthCure: "een beperking of kuurverblijf?",
     contactUs: "neem contact op",
     accommodationPrice: "Prijs accommodatie",
     excludingTax: "€ excl. belasting",
@@ -1684,7 +1743,23 @@ export const dictionaries: Record<Locale, Dictionary> = {
     bookIntroRiverLocks: "3 \u0448\u043b\u044e\u0437\u0430",
     bookIntroZnieffTitle:
       "\u041d\u0430\u0446\u0438\u043e\u043d\u0430\u043b\u044c\u043d\u0430\u044f \u043f\u0440\u0438\u0440\u043e\u0434\u043d\u0430\u044f \u0437\u043e\u043d\u0430, \u0446\u0435\u043d\u043d\u0430\u044f \u0434\u043b\u044f \u0444\u0430\u0443\u043d\u044b \u0438 \u0444\u043b\u043e\u0440\u044b",
-    bookIntroPlanAccessible: "\u0414\u043e\u0441\u0442\u0443\u043f\u043d\u043e \u0434\u043b\u044f \u043b\u044e\u0434\u0435\u0439 \u0441 \u0438\u043d\u0432\u0430\u043b\u0438\u0434\u043d\u043e\u0441\u0442\u044c\u044e",
+    bookIntroPhotoLock: "\u0428\u043b\u044e\u0437 \u041f\u0435\u043d\u0448\u043e",
+    bookIntroPhotoCruising: "\u041f\u043b\u0430\u0432\u0430\u043d\u0438\u0435 \u043d\u0430 \u0440\u0430\u0441\u0441\u0432\u0435\u0442\u0435",
+    bookIntroPhotoMooring: "\u041f\u0440\u0438\u0448\u0432\u0430\u0440\u0442\u043e\u0432\u0430\u043d \u0443 \u0431\u0435\u0440\u0435\u0433\u0430",
+    bookIntroPhotoRiver: "\u041e\u0442\u0440\u0430\u0436\u0435\u043d\u0438\u044f \u043d\u0430 \u0440\u0435\u043a\u0435 \u041b\u043e",
+    bookIntroPhotoMist: "\u041d\u0430 \u044f\u043a\u043e\u0440\u0435 \u0432 \u0443\u0442\u0440\u0435\u043d\u043d\u0435\u043c \u0442\u0443\u043c\u0430\u043d\u0435",
+    bookIntroPhotoBridge: "\u0427\u0443\u0433\u0443\u043d\u043d\u044b\u0439 \u043f\u0435\u0448\u0435\u0445\u043e\u0434\u043d\u044b\u0439 \u043c\u043e\u0441\u0442",
+    bookPlanAccessGate: "\u041a\u0430\u043b\u0438\u0442\u043a\u0430 \u043d\u0430 \u0445\u043e\u0434\u043e\u0432\u043e\u0439 \u043c\u043e\u0441\u0442\u0438\u043a",
+    bookPlanSteering: "\u041f\u043e\u0441\u0442 \u0443\u043f\u0440\u0430\u0432\u043b\u0435\u043d\u0438\u044f",
+    bookPlanLifebuoy: "\u0421\u043f\u0430\u0441\u0430\u0442\u0435\u043b\u044c\u043d\u044b\u0439 \u043a\u0440\u0443\u0433 \u0438 \u043e\u0433\u043d\u0435\u0442\u0443\u0448\u0438\u0442\u0435\u043b\u044c",
+    bookPlanDeck: "\u041f\u0430\u043b\u0443\u0431\u0430",
+    bookPlanKitchenette: "\u041a\u0443\u0445\u043e\u043d\u043d\u044b\u0439 \u0431\u043b\u043e\u043a",
+    bookPlanToilet: "\u0420\u0443\u0447\u043d\u043e\u0439 \u043c\u043e\u0440\u0441\u043a\u043e\u0439 \u0442\u0443\u0430\u043b\u0435\u0442 \u0438 \u043f\u0430\u043b\u0443\u0431\u043d\u044b\u0439 \u0434\u0443\u0448",
+    bookPlanDoubleBed: "\u0414\u0432\u0443\u0441\u043f\u0430\u043b\u044c\u043d\u0430\u044f \u043a\u0440\u043e\u0432\u0430\u0442\u044c (140 x 190 \u0441\u043c)",
+    bookPlanBunkBeds: "\u041e\u0434\u043d\u043e\u0441\u043f\u0430\u043b\u044c\u043d\u044b\u0435 \u0434\u0432\u0443\u0445\u044a\u044f\u0440\u0443\u0441\u043d\u044b\u0435 \u043a\u0440\u043e\u0432\u0430\u0442\u0438 (80 x 190 \u0441\u043c)",
+    bookPlanControlBridge: "\u0425\u043e\u0434\u043e\u0432\u043e\u0439 \u043c\u043e\u0441\u0442\u0438\u043a",
+    bookPlanLadder: "\u0422\u0440\u0430\u043f \u0434\u043b\u044f \u043f\u043e\u0441\u0430\u0434\u043a\u0438",
+    bookPlanHammock: "\u0413\u0430\u043c\u0430\u043a",
     bookIntroAboard:
       "\u041f\u043e\u0434\u043d\u0438\u043c\u0438\u0442\u0435\u0441\u044c \u043d\u0430 \u0431\u043e\u0440\u0442 glampingboat \u2014 \u043f\u0440\u043e\u0441\u0442\u043e\u0433\u043e, \u043b\u0451\u0433\u043a\u043e\u0433\u043e, \u044d\u043a\u043e\u043d\u043e\u043c\u0438\u0447\u043d\u043e\u0433\u043e \u0438 \u044d\u043a\u043e\u043b\u043e\u0433\u0438\u0447\u043d\u043e\u0433\u043e \u0441\u0443\u0434\u043d\u0430, \u043a\u043e\u0442\u043e\u0440\u043e\u0435 \u0434\u0430\u0440\u0438\u0442 \u0443\u043d\u0438\u043a\u0430\u043b\u044c\u043d\u043e\u0435 \u0440\u0435\u0447\u043d\u043e\u0435 \u043f\u0443\u0442\u0435\u0448\u0435\u0441\u0442\u0432\u0438\u0435, \u043e\u0431\u044a\u0435\u0434\u0438\u043d\u044f\u044f \u0432\u043e\u0434\u0443 \u0438 \u0441\u0443\u0448\u0443. \u041f\u043e\u0435\u0437\u0434\u043a\u0430 \u2014 \u044d\u0442\u043e \u043f\u043e\u0433\u0440\u0443\u0436\u0435\u043d\u0438\u0435 \u0432 \u0441\u0430\u043c\u043e\u0435 \u0441\u0435\u0440\u0434\u0446\u0435 \u043f\u0440\u0438\u0440\u043e\u0434\u044b, \u0432 \u0432\u0430\u0448\u0435\u043c \u0441\u043e\u0431\u0441\u0442\u0432\u0435\u043d\u043d\u043e\u043c \u0440\u0438\u0442\u043c\u0435 \u0438 \u0431\u0435\u0437 \u043e\u0433\u0440\u0430\u043d\u0438\u0447\u0435\u043d\u0438\u0439 \u043f\u043e \u0432\u0440\u0435\u043c\u0435\u043d\u0438. \u0421\u0443\u0434\u043d\u043e \u0434\u0432\u0438\u0436\u0435\u0442\u0441\u044f \u043c\u0435\u0434\u043b\u0435\u043d\u043d\u043e \u0438 \u043d\u0435\u0437\u0430\u043c\u0435\u0442\u043d\u043e \u0431\u043b\u0430\u0433\u043e\u0434\u0430\u0440\u044f \u044d\u043b\u0435\u043a\u0442\u0440\u043e\u043c\u043e\u0442\u043e\u0440\u0443: \u043d\u0438\u043a\u0430\u043a\u043e\u0433\u043e \u0437\u0430\u0433\u0440\u044f\u0437\u043d\u0435\u043d\u0438\u044f \u0438 \u043d\u0438\u043a\u0430\u043a\u043e\u0439 \u0434\u043e\u0437\u0430\u043f\u0440\u0430\u0432\u043a\u0438. \u0421\u0443\u0434\u043d\u043e \u0431\u0435\u0440\u0435\u0436\u043d\u043e \u043e\u0442\u043d\u043e\u0441\u0438\u0442\u0441\u044f \u043a \u043a\u0440\u0443\u0433\u043e\u0432\u043e\u0440\u043e\u0442\u0443 \u0432\u043e\u0434\u044b: \u0437\u0430\u043c\u043a\u043d\u0443\u0442\u0430\u044f \u0441\u0438\u0441\u0442\u0435\u043c\u0430 \u043f\u043e\u0434\u0430\u0447\u0438 \u043f\u0440\u0435\u0441\u043d\u043e\u0439 \u0432\u043e\u0434\u044b \u0438 \u043e\u0447\u0438\u0441\u0442\u043a\u0438 \u0441\u0435\u0440\u044b\u0445 \u0441\u0442\u043e\u043a\u043e\u0432 \u0440\u0430\u0431\u043e\u0442\u0430\u0435\u0442 \u043f\u0440\u044f\u043c\u043e \u043d\u0430 \u0431\u043e\u0440\u0442\u0443, \u043f\u043e\u044d\u0442\u043e\u043c\u0443 \u043d\u0435 \u043d\u0443\u0436\u043d\u043e \u043d\u0438 \u043f\u043e\u043f\u043e\u043b\u043d\u044f\u0442\u044c \u0437\u0430\u043f\u0430\u0441 \u0432\u043e\u0434\u044b, \u043d\u0438 \u0441\u043b\u0438\u0432\u0430\u0442\u044c \u0441\u0442\u043e\u043a\u0438. \u0413\u043b\u044d\u043c\u043f\u0438\u043d\u0433-\u043f\u0430\u043b\u0430\u0442\u043a\u0430 \u043d\u0430 \u0431\u043e\u0440\u0442\u0443 \u043e\u0431\u0435\u0441\u043f\u0435\u0447\u0438\u0432\u0430\u0435\u0442 \u043f\u043e\u043b\u043d\u044b\u0439 \u043a\u043e\u043c\u0444\u043e\u0440\u0442.",
     bookIntroSleeping:
@@ -1953,8 +2028,6 @@ export const dictionaries: Record<Locale, Dictionary> = {
       "Glamping Boat \u043d\u0435\u0434\u043e\u0441\u0442\u0443\u043f\u0435\u043d \u043d\u0430 \u0432\u044b\u0431\u0440\u0430\u043d\u043d\u044b\u0435 \u0434\u0430\u0442\u044b",
     priceForNightsExcl:
       "\u0446\u0435\u043d\u0430 \u0437\u0430 {nights} \u043d\u043e\u0447\u0435\u0439, \u0432\u043a\u043b\u044e\u0447\u0430\u044f \u0442\u0443\u0440\u0438\u0441\u0442\u0438\u0447\u0435\u0441\u043a\u0438\u0439 \u0441\u0431\u043e\u0440 \u0438 \u0431\u0435\u0437 \u043e\u043f\u0446\u0438\u0439",
-    disabilityHealthCure:
-      "\u0438\u043d\u0432\u0430\u043b\u0438\u0434\u043d\u043e\u0441\u0442\u044c \u0438\u043b\u0438 \u043a\u0443\u0440\u043e\u0440\u0442\u043d\u043e\u0435 \u043b\u0435\u0447\u0435\u043d\u0438\u0435?",
     contactUs: "\u0441\u0432\u044f\u0436\u0438\u0442\u0435\u0441\u044c \u0441 \u043d\u0430\u043c\u0438",
     accommodationPrice: "\u0421\u0442\u043e\u0438\u043c\u043e\u0441\u0442\u044c \u043f\u0440\u043e\u0436\u0438\u0432\u0430\u043d\u0438\u044f",
     excludingTax: "\u20ac \u0431\u0435\u0437 \u043d\u0430\u043b\u043e\u0433\u0430",
@@ -2116,7 +2189,23 @@ export const dictionaries: Record<Locale, Dictionary> = {
     bookIntroRiverLocks: "3 esclusas",
     bookIntroZnieffTitle:
       "Zona natural nacional de interés ecológico, faunístico y florístico",
-    bookIntroPlanAccessible: "Accesible para personas con discapacidad",
+    bookIntroPhotoLock: "La esclusa de Penchot",
+    bookIntroPhotoCruising: "Navegando al amanecer",
+    bookIntroPhotoMooring: "Amarrado en la orilla",
+    bookIntroPhotoRiver: "Reflejos en el Lot",
+    bookIntroPhotoMist: "Fondeado en la niebla de la mañana",
+    bookIntroPhotoBridge: "La pasarela de hierro fundido",
+    bookPlanAccessGate: "Portillo de acceso al puente de mando",
+    bookPlanSteering: "Puesto de gobierno",
+    bookPlanLifebuoy: "Salvavidas y extintor",
+    bookPlanDeck: "La cubierta",
+    bookPlanKitchenette: "Cocina",
+    bookPlanToilet: "Inodoro marino manual y ducha de cubierta",
+    bookPlanDoubleBed: "Cama doble (140 x 190 cm)",
+    bookPlanBunkBeds: "Literas individuales (80 x 190 cm)",
+    bookPlanControlBridge: "Puente de mando",
+    bookPlanLadder: "Escalera de embarque",
+    bookPlanHammock: "Hamaca",
     bookIntroAboard:
       "Suba a bordo del glampingboat, una embarcación sencilla, ligera, económica y ecológica que ofrece una experiencia fluvial única, en sinergia entre el río y la tierra. El viaje es una inmersión en plena naturaleza, a su propio ritmo y sin límites de tiempo. La embarcación avanza despacio y discretamente gracias a su motor eléctrico: sin contaminación y sin necesidad de repostar. El barco respeta el ciclo del agua con un sistema de circuito cerrado para el suministro de agua dulce y el tratamiento de las aguas grises a bordo; funciona de forma sostenible, sin tener que rellenar agua dulce ni vaciar aguas grises. Equipado con una tienda de glamping, disfrutará de todas las comodidades a bordo.",
     bookIntroSleeping:
@@ -2352,7 +2441,6 @@ export const dictionaries: Record<Locale, Dictionary> = {
       "Glamping Boat no esta disponible en las fechas elegidas",
     priceForNightsExcl:
       "precio para {nights} noches, con tasa turistica incluida y opciones excluidas",
-    disabilityHealthCure: "situacion de discapacidad o cura de salud?",
     contactUs: "contactanos",
     accommodationPrice: "Precio del alojamiento",
     excludingTax: "€ sin impuestos",
@@ -2505,7 +2593,23 @@ export const dictionaries: Record<Locale, Dictionary> = {
     bookIntroRiverLocks: "3 chiuse",
     bookIntroZnieffTitle:
       "Zona naturale nazionale di interesse ecologico, faunistico e floristico",
-    bookIntroPlanAccessible: "Accessibile alle persone con disabilità",
+    bookIntroPhotoLock: "La chiusa di Penchot",
+    bookIntroPhotoCruising: "In navigazione all'alba",
+    bookIntroPhotoMooring: "Ormeggiato sulla riva",
+    bookIntroPhotoRiver: "Riflessi sul Lot",
+    bookIntroPhotoMist: "All'ancora nella nebbia del mattino",
+    bookIntroPhotoBridge: "La passerella in ghisa",
+    bookPlanAccessGate: "Cancelletto di accesso alla plancia di comando",
+    bookPlanSteering: "Posto di governo",
+    bookPlanLifebuoy: "Salvagente ed estintore",
+    bookPlanDeck: "Il ponte",
+    bookPlanKitchenette: "Cucina",
+    bookPlanToilet: "WC marino manuale e doccia di coperta",
+    bookPlanDoubleBed: "Letto matrimoniale (140 x 190 cm)",
+    bookPlanBunkBeds: "Letti a castello singoli (80 x 190 cm)",
+    bookPlanControlBridge: "Plancia di comando",
+    bookPlanLadder: "Scaletta di imbarco",
+    bookPlanHammock: "Amaca",
     bookIntroAboard:
       "Salite a bordo del glampingboat, un'imbarcazione semplice, leggera, economica ed ecologica che offre un'esperienza fluviale unica, in sinergia tra fiume e terra. Il viaggio è un'immersione nel cuore della natura, al vostro ritmo e senza vincoli di tempo. L'imbarcazione avanza lentamente e in modo discreto grazie al motore elettrico: nessun inquinamento e nessun rifornimento. La barca rispetta il ciclo dell'acqua con un sistema a circuito chiuso per l'approvvigionamento di acqua dolce e il trattamento delle acque grigie a bordo; funziona in modo sostenibile, senza dover rabboccare l'acqua dolce né svuotare le acque grigie. Dotata di una tenda glamping, offre a bordo ogni comfort.",
     bookIntroSleeping:
@@ -2741,7 +2845,6 @@ export const dictionaries: Record<Locale, Dictionary> = {
       "Glamping Boat non e disponibile nelle date scelte",
     priceForNightsExcl:
       "prezzo per {nights} notti, tassa di soggiorno inclusa e opzioni escluse",
-    disabilityHealthCure: "situazione di disabilita o cura termale?",
     contactUs: "contattaci",
     accommodationPrice: "Prezzo alloggio",
     excludingTax: "€ tasse escluse",

@@ -315,10 +315,6 @@ export default function AppShell({
                       serverToday={serverToday}
                       signedIn={!!session}
                       onContinue={handleCalendarContinue}
-                      onContact={() => {
-                        setStage("contact");
-                        setDrawerOpen(true);
-                      }}
                     />
                   ) : (
                     <BookingDisabledPanel
