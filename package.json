@@ -4,7 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "next dev",
+    "dev": "concurrently -n next,stripe -c cyan,magenta \"npm run dev:app\" \"npm run dev:stripe\"",
+    "dev:app": "next dev",
+    "dev:stripe": "node scripts/stripe-listen.mjs",
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
@@ -38,6 +40,7 @@
     "@types/pg": "^8.15.6",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "concurrently": "^10.0.3",
     "eslint": "^9",
     "eslint-config-next": "^16.2.3",
     "tailwindcss": "^4",
