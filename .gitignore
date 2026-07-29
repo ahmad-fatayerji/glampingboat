@@ -19,6 +19,8 @@
 
 # next.js
 /.next/
+/.next-security/
+/.local-certs/
 /out/
 
 # production

@@ -1,11 +1,21 @@
 import { getServerSession, type NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
+import { cookies } from "next/headers";
 import type { UserRole } from "@/generated/prisma/client";
 import { authorizeCredentials } from "@/lib/auth-credentials";
+import {
+  createAuthChallenge,
+  consumeTokenChallenge,
+  getActiveChallenge,
+  GOOGLE_LINK_TTL_MS,
+  recordAuthEvent,
+} from "@/lib/auth-security";
+import { normalizeEmailAddress } from "@/lib/email-identity";
 import { prisma } from "@/lib/prisma";
 import { getEffectiveRoleForEmail, isSuperAdminEmail } from "@/lib/super-admin";
 import { getString, isRecord } from "@/lib/type-guards";
+import { findAccountCandidates } from "@/lib/user-email-lookup";
 
 function readGoogleProfile(profile: unknown) {
   if (!isRecord(profile)) {
@@ -13,7 +23,9 @@ function readGoogleProfile(profile: unknown) {
   }
 
   return {
+    subject: getString(profile, "sub"),
     email: getString(profile, "email"),
+    emailVerified: profile.email_verified === true,
     name: getString(profile, "name"),
     picture: getString(profile, "picture"),
     firstName: getString(profile, "given_name"),
@@ -21,20 +33,38 @@ function readGoogleProfile(profile: unknown) {
   };
 }
 
-async function getUserAuthFieldsByEmail(email: string) {
+async function getUserAuthFieldsById(id: string) {
   return prisma.user.findUnique({
-    where: { email },
-    select: { id: true, email: true, role: true },
+    where: { id },
+    select: {
+      id: true,
+      email: true,
+      role: true,
+      sessionVersion: true,
+    },
   });
 }
 
-async function getUserRoleById(id: string): Promise<UserRole> {
-  const user = await prisma.user.findUnique({
-    where: { id },
-    select: { email: true, role: true },
-  });
+async function getUserAuthFieldsByEmail(email: string) {
+  const normalized = normalizeEmailAddress(email);
+  if (!normalized) {
+    return null;
+  }
 
-  return getEffectiveRoleForEmail(user?.email, user?.role);
+  return prisma.user.findFirst({
+    where: {
+      OR: [
+        { email: normalized.email },
+        { canonicalEmail: normalized.canonicalEmail },
+      ],
+    },
+    select: {
+      id: true,
+      email: true,
+      role: true,
+      sessionVersion: true,
+    },
+  });
 }
 
 function getInitialRoleForEmail(email: string): UserRole {
@@ -60,6 +90,21 @@ export function isGoogleAuthEnabled() {
 export const authOptions: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
   session: { strategy: "jwt" },
+  ...(process.env.ACCOUNT_SECURITY_DEV_DOMAIN === "true"
+    ? {
+        cookies: {
+          sessionToken: {
+            name: "__Secure-glampingboat-local.session-token",
+            options: {
+              httpOnly: true,
+              sameSite: "lax" as const,
+              path: "/",
+              secure: true,
+            },
+          },
+        },
+      }
+    : {}),
   pages: {
     signIn: "/account",
     error: "/account",
@@ -70,10 +115,56 @@ export const authOptions: NextAuthOptions = {
       credentials: {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
-        isSignup: { label: "Create account", type: "hidden" },
+        challengeToken: { label: "Challenge", type: "hidden" },
+        code: { label: "Email code", type: "text" },
       },
-      async authorize(creds) {
-        return authorizeCredentials(creds, prisma, getInitialRoleForEmail);
+      async authorize(creds, request) {
+        const forwarded = request.headers?.["x-forwarded-for"];
+        const ipAddress = (
+          Array.isArray(forwarded) ? forwarded[0] : forwarded
+        )
+          ?.split(",")[0]
+          ?.trim();
+        if (ipAddress) {
+          const failures = await prisma.authEvent.count({
+            where: {
+              type: "SIGN_IN_FAILED",
+              ipAddress,
+              createdAt: { gte: new Date(Date.now() - 15 * 60 * 1000) },
+            },
+          });
+          if (failures >= 12) {
+            throw new Error("Too many requests. Try again later.");
+          }
+        }
+
+        try {
+          const result = await authorizeCredentials(
+            creds,
+            prisma,
+            getInitialRoleForEmail
+          );
+          await prisma.authEvent.create({
+            data: {
+              userId: result.id,
+              type: "SIGN_IN",
+              provider: "credentials",
+              ipAddress,
+              userAgent: request.headers?.["user-agent"],
+            },
+          });
+          return result;
+        } catch (error) {
+          await prisma.authEvent.create({
+            data: {
+              type: "SIGN_IN_FAILED",
+              provider: "credentials",
+              ipAddress,
+              userAgent: request.headers?.["user-agent"],
+            },
+          });
+          throw error;
+        }
       },
     }),
     ...(isGoogleAuthEnabled()
@@ -86,70 +177,202 @@ export const authOptions: NextAuthOptions = {
       : []),
   ],
   callbacks: {
-    async signIn({ account, profile }) {
-      if (account?.provider === "google") {
-        const googleProfile = readGoogleProfile(profile);
-        if (!googleProfile.email) {
-          throw new Error("No email from Google");
-        }
-
-        await prisma.user.upsert({
-          where: { email: googleProfile.email },
-          create: {
-            email: googleProfile.email,
-            name: googleProfile.name ?? "",
-            avatar: googleProfile.picture ?? "",
-            firstName: googleProfile.firstName,
-            lastName: googleProfile.lastName,
-            role: getInitialRoleForEmail(googleProfile.email),
-          },
-          update: {
-            name: googleProfile.name ?? "",
-            avatar: googleProfile.picture ?? "",
-            firstName: googleProfile.firstName,
-            lastName: googleProfile.lastName,
-            ...(getInitialRoleForEmail(googleProfile.email) === "SUPER_ADMIN"
-              ? { role: "SUPER_ADMIN" as const }
-              : {}),
-          },
-        });
+    async signIn({ user, account, profile }) {
+      if (account?.provider !== "google") {
+        return true;
       }
 
+      const google = readGoogleProfile(profile);
+      if (
+        !google.subject ||
+        !google.email ||
+        !google.emailVerified ||
+        google.subject !== account.providerAccountId
+      ) {
+        return "/account?error=GoogleEmailNotVerified";
+      }
+
+      const normalized = normalizeEmailAddress(google.email);
+      if (!normalized) {
+        return "/account?error=InvalidGoogleEmail";
+      }
+
+      const linkIntentToken = (await cookies()).get(
+        "gb_google_link_intent"
+      )?.value;
+      const linkIntent = linkIntentToken
+        ? await getActiveChallenge(linkIntentToken, "LINK_GOOGLE_INTENT")
+        : null;
+      if (linkIntent) {
+        const intendedEmail = normalizeEmailAddress(linkIntent.user.email);
+        if (
+          !intendedEmail ||
+          intendedEmail.canonicalEmail !== normalized.canonicalEmail
+        ) {
+          return "/account?tab=security&error=GoogleEmailMismatch";
+        }
+      }
+
+      const existingIdentity = await prisma.authIdentity.findUnique({
+        where: {
+          provider_providerSubject: {
+            provider: "google",
+            providerSubject: google.subject,
+          },
+        },
+        include: { user: true },
+      });
+
+      if (existingIdentity) {
+        if (linkIntent && existingIdentity.userId !== linkIntent.userId) {
+          return "/account?tab=security&error=GoogleAlreadyLinked";
+        }
+        if (linkIntent) {
+          await consumeTokenChallenge(linkIntentToken!, "LINK_GOOGLE_INTENT");
+        }
+        await prisma.authIdentity.update({
+          where: { id: existingIdentity.id },
+          data: {
+            providerEmail: normalized.email,
+            lastUsedAt: new Date(),
+          },
+        });
+        user.id = existingIdentity.userId;
+        user.email = existingIdentity.user.email;
+        await recordAuthEvent({
+          userId: existingIdentity.userId,
+          type: "SIGN_IN",
+          provider: "google",
+        });
+        return true;
+      }
+
+      const candidates = linkIntent
+        ? [linkIntent.user]
+        : await findAccountCandidates(normalized);
+
+      if (linkIntent) {
+        await consumeTokenChallenge(linkIntentToken!, "LINK_GOOGLE_INTENT");
+      }
+
+      if (candidates.length > 1) {
+        return "/account?error=AccountMergeRequired";
+      }
+
+      if (candidates.length === 1) {
+        const candidate = candidates[0];
+        let token: string;
+        try {
+          ({ token } = await createAuthChallenge({
+            userId: candidate.id,
+            purpose: "LINK_GOOGLE",
+            ttlMs: GOOGLE_LINK_TTL_MS,
+            metadata: {
+              provider: "google",
+              providerSubject: google.subject,
+              providerEmail: normalized.email,
+            },
+          }));
+        } catch {
+          return "/account?error=TooManyLinkAttempts";
+        }
+
+        return `/account/link-google?token=${encodeURIComponent(token)}`;
+      }
+
+      const createdUser = await prisma.user.create({
+        data: {
+          email: normalized.email,
+          canonicalEmail: normalized.canonicalEmail,
+          emailVerifiedAt: new Date(),
+          name: google.name ?? "",
+          avatar: google.picture ?? "",
+          firstName: google.firstName,
+          lastName: google.lastName,
+          role: getInitialRoleForEmail(normalized.email),
+          authIdentities: {
+            create: {
+              provider: "google",
+              providerSubject: google.subject,
+              providerEmail: normalized.email,
+            },
+          },
+        },
+      });
+
+      user.id = createdUser.id;
+      user.email = createdUser.email;
+      await recordAuthEvent({
+        userId: createdUser.id,
+        type: "SIGNUP",
+        provider: "google",
+      });
       return true;
     },
-    async jwt({ token, user }) {
+    async jwt({ token, user, account }) {
       if (user) {
-        if (user.email) {
-          const authFields = await getUserAuthFieldsByEmail(user.email);
-          token.id = authFields?.id ?? user.id;
-          token.role = getEffectiveRoleForEmail(
-            authFields?.email ?? user.email,
-            authFields?.role ?? user.role ?? "CUSTOMER"
-          );
-        } else {
-          token.id = user.id;
-          token.role = getEffectiveRoleForEmail(
-            user.email,
-            user.role ?? "CUSTOMER"
-          );
+        let authFields = null;
+
+        if (account?.provider && account.providerAccountId) {
+          const identity = await prisma.authIdentity.findUnique({
+            where: {
+              provider_providerSubject: {
+                provider: account.provider,
+                providerSubject: account.providerAccountId,
+              },
+            },
+            select: { userId: true },
+          });
+          authFields = identity
+            ? await getUserAuthFieldsById(identity.userId)
+            : null;
         }
-      } else if (!token.id && typeof token.email === "string") {
-        const authFields = await getUserAuthFieldsByEmail(token.email);
-        token.id = authFields?.id;
-        token.role = getEffectiveRoleForEmail(
-          authFields?.email ?? token.email,
-          authFields?.role
-        );
-      } else if (typeof token.id === "string" && !token.role) {
-        token.role = await getUserRoleById(token.id);
-      } else if (typeof token.email === "string") {
-        token.role = getEffectiveRoleForEmail(token.email, token.role);
+
+        authFields ??=
+          typeof user.id === "string"
+            ? await getUserAuthFieldsById(user.id)
+            : user.email
+              ? await getUserAuthFieldsByEmail(user.email)
+              : null;
+
+        if (authFields) {
+          token.id = authFields.id;
+          token.email = authFields.email;
+          token.role = getEffectiveRoleForEmail(
+            authFields.email,
+            authFields.role
+          );
+          token.sessionVersion = authFields.sessionVersion;
+          token.authInvalid = false;
+        }
+      } else if (typeof token.id === "string") {
+        const authFields = await getUserAuthFieldsById(token.id);
+        if (
+          !authFields ||
+          (typeof token.sessionVersion === "number" &&
+            token.sessionVersion !== authFields.sessionVersion)
+        ) {
+          token.authInvalid = true;
+          delete token.id;
+        } else {
+          token.email = authFields.email;
+          token.role = getEffectiveRoleForEmail(
+            authFields.email,
+            authFields.role
+          );
+          token.sessionVersion = authFields.sessionVersion;
+        }
       }
 
       return token;
     },
     async session({ session, token }) {
-      if (session.user && typeof token.id === "string") {
+      if (token.authInvalid || typeof token.id !== "string") {
+        delete (session as { user?: unknown }).user;
+        return session;
+      }
+
+      if (session.user) {
         session.user.id = token.id;
         session.user.role = token.role ?? "CUSTOMER";
       }

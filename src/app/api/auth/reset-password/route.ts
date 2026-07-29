@@ -6,6 +6,10 @@ import {
   validatePasswordPolicy,
 } from "@/lib/password-policy";
 import { getString, isRecord } from "@/lib/type-guards";
+import {
+  consumeTokenChallenge,
+  recordAuthEvent,
+} from "@/lib/auth-security";
 
 export async function POST(req: Request) {
   const payload = await req.json();
@@ -20,14 +24,8 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: PASSWORD_POLICY_ERROR }, { status: 400 });
   }
 
-  const user = await prisma.user.findFirst({
-    where: {
-      resetToken: token,
-      resetTokenExpiresAt: { gt: new Date() },
-    },
-  });
-
-  if (!user) {
+  const challenge = await consumeTokenChallenge(token, "RESET_PASSWORD");
+  if (!challenge) {
     return NextResponse.json(
       { error: "Token invalid or expired" },
       { status: 400 }
@@ -36,12 +34,17 @@ export async function POST(req: Request) {
 
   const hash = await bcrypt.hash(password, 12);
   await prisma.user.update({
-    where: { id: user.id },
+    where: { id: challenge.userId },
     data: {
       password: hash,
-      resetToken: null,
-      resetTokenExpiresAt: null,
+      sessionVersion: { increment: 1 },
     },
+  });
+  await recordAuthEvent({
+    userId: challenge.userId,
+    type: "PASSWORD_RESET",
+    provider: "credentials",
+    request: req,
   });
 
   return NextResponse.json({ ok: true });

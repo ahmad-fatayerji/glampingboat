@@ -1,16 +1,20 @@
-import { randomBytes } from "crypto";
 import { NextResponse } from "next/server";
 import {
   getPasswordResetEmailCopy,
   normalizeEmailLocale,
 } from "@/lib/email-i18n";
-import { prisma } from "@/lib/prisma";
 import {
   buildBrandedEmail,
   createGmailTransporter,
   getMailerAddress,
 } from "@/lib/mailer";
 import { getString, isRecord } from "@/lib/type-guards";
+import {
+  createAuthChallenge,
+  PASSWORD_RESET_TTL_MS,
+} from "@/lib/auth-security";
+import { normalizeEmailAddress } from "@/lib/email-identity";
+import { findAccountCandidates } from "@/lib/user-email-lookup";
 
 function buildPasswordResetEmail(resetUrl: string, locale: string) {
   const copy = getPasswordResetEmailCopy(locale);
@@ -49,27 +53,35 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Bad request." }, { status: 400 });
   }
 
-  const user = await prisma.user.findUnique({ where: { email } });
+  const normalized = normalizeEmailAddress(email);
+  const candidates = normalized ? await findAccountCandidates(normalized) : [];
+  const user =
+    candidates.length === 1 && candidates[0].emailVerifiedAt
+      ? candidates[0]
+      : null;
   if (user) {
-    const token = randomBytes(32).toString("hex");
-    const expires = new Date(Date.now() + 1000 * 60 * 60);
+    try {
+      const { token } = await createAuthChallenge({
+        userId: user.id,
+        purpose: "RESET_PASSWORD",
+        ttlMs: PASSWORD_RESET_TTL_MS,
+      });
 
-    await prisma.user.update({
-      where: { email },
-      data: { resetToken: token, resetTokenExpiresAt: expires },
-    });
+      const transporter = createGmailTransporter();
+      const origin = process.env.NEXTAUTH_URL ?? new URL(req.url).origin;
+      const resetUrl = `${origin}/reset-password/${token}`;
+      const { html, subject, text } = buildPasswordResetEmail(resetUrl, locale);
 
-    const transporter = createGmailTransporter();
-    const resetUrl = `${process.env.NEXTAUTH_URL}/reset-password/${token}`;
-    const { html, subject, text } = buildPasswordResetEmail(resetUrl, locale);
-
-    await transporter.sendMail({
-      from: getMailerAddress("Glamping Boat"),
-      to: email,
-      subject,
-      text,
-      html,
-    });
+      await transporter.sendMail({
+        from: getMailerAddress("Glamping Boat"),
+        to: user.email,
+        subject,
+        text,
+        html,
+      });
+    } catch (error) {
+      console.error("Failed to issue password reset", error);
+    }
   }
 
   return NextResponse.json({ ok: true });

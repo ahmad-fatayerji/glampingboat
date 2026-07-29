@@ -1,122 +1,143 @@
-import type { UserRole } from "@/generated/prisma/client";
+import type { MfaMode, UserRole } from "@/generated/prisma/client";
 import bcrypt from "bcryptjs";
-import {
-  PASSWORD_POLICY_ERROR,
-  validatePasswordPolicy,
-} from "@/lib/password-policy";
+import { verifyCodeChallenge } from "@/lib/auth-security";
+import { normalizeEmailAddress } from "@/lib/email-identity";
+
+export const AUTH_ERROR_EMAIL_NOT_VERIFIED = "EMAIL_NOT_VERIFIED";
+export const AUTH_ERROR_MFA_REQUIRED = "EMAIL_CODE_REQUIRED";
+export const AUTH_ERROR_INVALID = "Invalid email or password";
 
 export type CredentialsInput = Partial<
-  Record<"email" | "password" | "isSignup", unknown>
+  Record<"email" | "password" | "challengeToken" | "code", unknown>
 >;
 
 export type CredentialsUserRecord = {
   id: string;
   email: string;
+  canonicalEmail: string | null;
+  emailVerifiedAt: Date | null;
   name: string | null;
   password: string | null;
   role: UserRole;
+  mfaMode: MfaMode;
+  sessionVersion: number;
 };
 
 export type CredentialsAuthClient = {
   user: {
-    findUnique(args: {
-      where: { email: string };
+    findFirst(args: {
+      where: {
+        OR: Array<
+          { email: string } | { canonicalEmail: string }
+        >;
+      };
     }): Promise<CredentialsUserRecord | null>;
     update(args: {
       where: { id: string };
       data: { role: UserRole };
       select: { role: true };
     }): Promise<{ role: UserRole }>;
-    create(args: {
-      data: {
-        email: string;
-        password: string;
-        name: string;
-        avatar: string;
-        role: UserRole;
-      };
-    }): Promise<CredentialsUserRecord>;
   };
 };
 
-function normalizeEmail(email: string) {
-  return email.trim().toLowerCase();
+export function requiresEmailMfa(user: {
+  role: UserRole;
+  mfaMode: MfaMode;
+}) {
+  return user.mfaMode === "EMAIL" || user.role !== "CUSTOMER";
+}
+
+export async function findCredentialsUser(
+  rawEmail: string,
+  client: CredentialsAuthClient
+) {
+  const normalized = normalizeEmailAddress(rawEmail);
+  if (!normalized) {
+    return null;
+  }
+
+  return client.user.findFirst({
+    where: {
+      OR: [
+        { email: normalized.email },
+        { canonicalEmail: normalized.canonicalEmail },
+      ],
+    },
+  });
+}
+
+export async function verifyCredentialsPassword(
+  rawEmail: string,
+  password: string,
+  client: CredentialsAuthClient
+) {
+  const user = await findCredentialsUser(rawEmail, client);
+  if (!user?.password || !(await bcrypt.compare(password, user.password))) {
+    return null;
+  }
+
+  return user;
 }
 
 export async function authorizeCredentials(
   creds: CredentialsInput | undefined,
   client: CredentialsAuthClient,
-  getInitialRoleForEmail: (email: string) => UserRole
+  getInitialRoleForEmail: (email: string) => UserRole,
+  verifyMfa = verifyCodeChallenge
 ) {
   if (
     !creds ||
     typeof creds.email !== "string" ||
     typeof creds.password !== "string"
   ) {
-    throw new Error("Missing email or password");
+    throw new Error(AUTH_ERROR_INVALID);
   }
 
-  const email = normalizeEmail(creds.email);
-  const password = creds.password;
-
-  if (!email || !password) {
-    throw new Error("Missing email or password");
+  const user = await verifyCredentialsPassword(
+    creds.email,
+    creds.password,
+    client
+  );
+  if (!user) {
+    throw new Error(AUTH_ERROR_INVALID);
   }
 
-  const isSignup = creds.isSignup === "true";
-  const user = await client.user.findUnique({ where: { email } });
-  const initialRole = getInitialRoleForEmail(email);
+  const initialRole = getInitialRoleForEmail(user.email);
+  const role =
+    initialRole === "SUPER_ADMIN" && user.role !== "SUPER_ADMIN"
+      ? (
+          await client.user.update({
+            where: { id: user.id },
+            data: { role: "SUPER_ADMIN" },
+            select: { role: true },
+          })
+        ).role
+      : user.role;
 
-  if (user) {
-    if (isSignup) {
-      throw new Error("An account already exists for this email");
+  if (!user.emailVerifiedAt) {
+    throw new Error(AUTH_ERROR_EMAIL_NOT_VERIFIED);
+  }
+
+  if (requiresEmailMfa({ ...user, role })) {
+    const challengeToken =
+      typeof creds.challengeToken === "string" ? creds.challengeToken : "";
+    const code = typeof creds.code === "string" ? creds.code : "";
+    const challenge = await verifyMfa({
+      token: challengeToken,
+      code,
+      purpose: "LOGIN_EMAIL_OTP",
+    });
+
+    if (!challenge || challenge.userId !== user.id) {
+      throw new Error(AUTH_ERROR_MFA_REQUIRED);
     }
-
-    const role =
-      initialRole === "SUPER_ADMIN" && user.role !== "SUPER_ADMIN"
-        ? (
-            await client.user.update({
-              where: { id: user.id },
-              data: { role: "SUPER_ADMIN" },
-              select: { role: true },
-            })
-          ).role
-        : user.role;
-
-    if (!user.password) {
-      throw new Error("Please sign in with Google");
-    }
-
-    const ok = await bcrypt.compare(password, user.password);
-    if (!ok) {
-      throw new Error("Invalid email or password");
-    }
-
-    return {
-      id: user.id,
-      email: user.email,
-      name: user.name ?? undefined,
-      role,
-    };
   }
-
-  if (!isSignup) {
-    throw new Error("Invalid email or password");
-  }
-
-  if (!validatePasswordPolicy(password).valid) {
-    throw new Error(PASSWORD_POLICY_ERROR);
-  }
-
-  const hash = await bcrypt.hash(password, 12);
-  const newUser = await client.user.create({
-    data: { email, password: hash, name: "", avatar: "", role: initialRole },
-  });
 
   return {
-    id: newUser.id,
-    email: newUser.email,
-    name: newUser.name ?? undefined,
-    role: newUser.role,
+    id: user.id,
+    email: user.email,
+    name: user.name ?? undefined,
+    role,
+    sessionVersion: user.sessionVersion,
   };
 }

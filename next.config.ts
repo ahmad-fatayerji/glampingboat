@@ -1,6 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  distDir: process.env.NEXT_DIST_DIR ?? ".next",
+  allowedDevOrigins: ["glampingboat.fr"],
   images: {
     qualities: [74, 75, 76, 88],
   },

@@ -165,8 +165,14 @@ export async function POST(req: NextRequest) {
 
   const profile = await prisma.user.findUnique({
     where: { id: session.user.id },
-    select: USER_PROFILE_SELECT,
+    select: { ...USER_PROFILE_SELECT, emailVerifiedAt: true },
   });
+  if (!profile?.emailVerifiedAt) {
+    return NextResponse.json(
+      { error: "Verify your email before creating a reservation" },
+      { status: 403 }
+    );
+  }
   if (!isProfileComplete(profile)) {
     return NextResponse.json({ error: "Profile incomplete" }, { status: 400 });
   }

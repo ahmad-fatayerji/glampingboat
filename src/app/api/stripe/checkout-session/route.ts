@@ -62,6 +62,20 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const verifiedUser = await prisma.user.findFirst({
+        where: {
+            id: authSession.user.id,
+            emailVerifiedAt: { not: null },
+        },
+        select: { id: true },
+    });
+    if (!verifiedUser) {
+        return NextResponse.json(
+            { error: "Verify your email before starting a payment" },
+            { status: 403 }
+        );
+    }
+
     let body: CreateCheckoutSessionPayload;
 
     try {
