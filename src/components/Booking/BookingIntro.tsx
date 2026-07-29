@@ -396,11 +396,11 @@ export default function BookingIntro({
 
   return (
     <DrawerSurface className="gap-8 overflow-visible !bg-transparent !p-3 !shadow-none !backdrop-blur-0 sm:!p-4">
-      <div className="sticky top-0 z-20 -mx-5 -mb-8 flex justify-end px-5 pb-10 pt-3 sm:-mx-10 sm:px-10">
+      <div className="sticky top-0 z-20 -mx-5 -mb-8 flex h-0 items-start justify-end overflow-visible px-5 sm:-mx-10 sm:px-10">
         {bookingEnabled ? (
           <a
             href={`#${calendarAnchorId}`}
-            className="inline-flex items-center bg-[var(--color-blue)] px-[clamp(0.9rem,1.6vw,1.5rem)] py-[clamp(0.45rem,0.8vw,0.7rem)] text-[clamp(0.85rem,1.1vw,1.05rem)] font-light text-[var(--color-beige)] shadow-[0_10px_30px_rgba(0,0,0,0.35)] transition hover:bg-[#06324d] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-beige)]/70"
+            className="mt-3 inline-flex items-center bg-[var(--color-blue)] px-[clamp(0.9rem,1.6vw,1.5rem)] py-[clamp(0.45rem,0.8vw,0.7rem)] text-[clamp(0.85rem,1.1vw,1.05rem)] font-light text-[var(--color-beige)] shadow-[0_10px_30px_rgba(0,0,0,0.35)] transition hover:bg-[#06324d] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-beige)]/70"
           >
             {t("bookIntroSeeAvailability")}
           </a>
@@ -408,7 +408,7 @@ export default function BookingIntro({
           <span
             role="link"
             aria-disabled="true"
-            className="group relative inline-flex cursor-not-allowed items-center bg-[var(--color-blue)]/45 px-[clamp(0.9rem,1.6vw,1.5rem)] py-[clamp(0.45rem,0.8vw,0.7rem)] text-[clamp(0.85rem,1.1vw,1.05rem)] font-light text-[var(--color-beige)]/60 shadow-[0_10px_30px_rgba(0,0,0,0.35)]"
+            className="group relative mt-3 inline-flex cursor-not-allowed items-center bg-[var(--color-blue)]/45 px-[clamp(0.9rem,1.6vw,1.5rem)] py-[clamp(0.45rem,0.8vw,0.7rem)] text-[clamp(0.85rem,1.1vw,1.05rem)] font-light text-[var(--color-beige)]/60 shadow-[0_10px_30px_rgba(0,0,0,0.35)]"
           >
             {t("bookIntroSeeAvailability")}
             <span className="pointer-events-none absolute right-0 top-full z-30 mt-2 w-max max-w-[14rem] whitespace-normal rounded-md bg-[#0b1e2b] px-3 py-2 text-xs font-normal text-[var(--color-beige)] opacity-0 shadow-[0_10px_30px_rgba(0,0,0,0.4)] transition group-hover:opacity-100">
