@@ -2,7 +2,10 @@ import { NextResponse } from "next/server";
 import { normalizeEmailLocale } from "@/lib/email-i18n";
 import { getString, isRecord } from "@/lib/type-guards";
 import { normalizeEmailAddress } from "@/lib/email-identity";
-import { issuePasswordResetEmail } from "@/lib/password-reset-email";
+import {
+  issuePasswordResetEmail,
+  PasswordResetCooldownError,
+} from "@/lib/password-reset-email";
 import { findAccountCandidates } from "@/lib/user-email-lookup";
 
 export async function POST(req: Request) {
@@ -28,7 +31,11 @@ export async function POST(req: Request) {
         origin,
       });
     } catch (error) {
-      console.error("Failed to issue password reset", error);
+      // Cooldown and per-user challenge throttling are expected; stay silent so
+      // the response never reveals whether the account exists.
+      if (!(error instanceof PasswordResetCooldownError)) {
+        console.error("Failed to issue password reset", error);
+      }
     }
   }
 

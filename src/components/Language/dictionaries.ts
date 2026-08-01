@@ -395,6 +395,7 @@ const en = {
   badRequest: "Bad request.",
   genericError: "Something went wrong.",
   sendResetLink: "Send reset link",
+  resetLinkCooldown: "You can request another link in",
   backToSignIn: "Back to sign in",
   passwordResetSuccess: "Password reset. Redirecting to sign in...",
   newPassword: "New password",
@@ -882,6 +883,7 @@ export const dictionaries: Record<Locale, Dictionary> = {
     badRequest: "Requête incorrecte.",
     genericError: "Une erreur est survenue.",
     sendResetLink: "Envoyer le lien",
+    resetLinkCooldown: "Vous pourrez demander un autre lien dans",
     backToSignIn: "Retour à la connexion",
     passwordResetSuccess:
       "Mot de passe réinitialisé. Redirection vers la connexion...",
@@ -1353,6 +1355,7 @@ export const dictionaries: Record<Locale, Dictionary> = {
     badRequest: "Ungueltige Anfrage.",
     genericError: "Etwas ist schiefgelaufen.",
     sendResetLink: "Link senden",
+    resetLinkCooldown: "Du kannst einen neuen Link anfordern in",
     backToSignIn: "Zurueck zur Anmeldung",
     passwordResetSuccess:
       "Passwort zurueckgesetzt. Weiterleitung zur Anmeldung...",
@@ -1824,6 +1827,7 @@ export const dictionaries: Record<Locale, Dictionary> = {
     badRequest: "Ongeldig verzoek.",
     genericError: "Er is iets misgegaan.",
     sendResetLink: "Resetlink sturen",
+    resetLinkCooldown: "Je kunt over een nieuwe link vragen in",
     backToSignIn: "Terug naar inloggen",
     passwordResetSuccess: "Wachtwoord gereset. Doorsturen naar inloggen...",
     newPassword: "Nieuw wachtwoord",
@@ -2324,6 +2328,7 @@ export const dictionaries: Record<Locale, Dictionary> = {
     genericError: "\u0427\u0442\u043e-\u0442\u043e \u043f\u043e\u0448\u043b\u043e \u043d\u0435 \u0442\u0430\u043a.",
     sendResetLink:
       "\u041e\u0442\u043f\u0440\u0430\u0432\u0438\u0442\u044c \u0441\u0441\u044b\u043b\u043a\u0443",
+    resetLinkCooldown: "Запросить новую ссылку можно через",
     backToSignIn: "\u041d\u0430\u0437\u0430\u0434 \u043a\u043e \u0432\u0445\u043e\u0434\u0443",
     passwordResetSuccess:
       "\u041f\u0430\u0440\u043e\u043b\u044c \u0441\u0431\u0440\u043e\u0448\u0435\u043d. \u041f\u0435\u0440\u0435\u0445\u043e\u0434 \u043a\u043e \u0432\u0445\u043e\u0434\u0443...",
@@ -2823,6 +2828,7 @@ export const dictionaries: Record<Locale, Dictionary> = {
     badRequest: "Solicitud incorrecta.",
     genericError: "Algo salio mal.",
     sendResetLink: "Enviar enlace",
+    resetLinkCooldown: "Podrás pedir otro enlace en",
     backToSignIn: "Volver a iniciar sesion",
     passwordResetSuccess:
       "Contrasena restablecida. Redirigiendo al inicio de sesion...",
@@ -3294,6 +3300,7 @@ export const dictionaries: Record<Locale, Dictionary> = {
     badRequest: "Richiesta non valida.",
     genericError: "Qualcosa e andato storto.",
     sendResetLink: "Invia link",
+    resetLinkCooldown: "Potrai richiedere un altro link tra",
     backToSignIn: "Torna all'accesso",
     passwordResetSuccess:
       "Password reimpostata. Reindirizzamento all'accesso...",

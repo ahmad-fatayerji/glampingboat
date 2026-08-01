@@ -43,9 +43,18 @@ export type AuthChallengeStore = {
   update(args: Prisma.AuthChallengeUpdateArgs): Promise<AuthChallenge>;
 };
 
+export type AuthChallengeTransactionClient = {
+  authChallenge: Pick<
+    AuthChallengeStore,
+    "count" | "updateMany" | "create"
+  >;
+};
+
 export type AuthChallengeClient = {
   authChallenge: AuthChallengeStore;
-  $transaction<T>(callback: (tx: AuthChallengeClient) => Promise<T>): Promise<T>;
+  $transaction<T>(
+    callback: (tx: AuthChallengeTransactionClient) => Promise<T>
+  ): Promise<T>;
 };
 
 const defaultChallengeClient = prisma as unknown as AuthChallengeClient;
@@ -110,6 +119,27 @@ export async function createAuthChallenge({
   withCode?: boolean;
   metadata?: Prisma.InputJsonValue;
 }, client: AuthChallengeClient = defaultChallengeClient) {
+  return client.$transaction((tx) =>
+    createAuthChallengeInTransaction(
+      { userId, purpose, ttlMs, withCode, metadata },
+      tx
+    )
+  );
+}
+
+export async function createAuthChallengeInTransaction({
+  userId,
+  purpose,
+  ttlMs,
+  withCode = false,
+  metadata,
+}: {
+  userId: string;
+  purpose: AuthChallengePurpose;
+  ttlMs: number;
+  withCode?: boolean;
+  metadata?: Prisma.InputJsonValue;
+}, client: AuthChallengeTransactionClient) {
   const since = new Date(Date.now() - CHALLENGE_RATE_WINDOW_MS);
   const recentCount = await client.authChallenge.count({
     where: { userId, purpose, createdAt: { gte: since } },
@@ -122,22 +152,20 @@ export async function createAuthChallenge({
   const token = generateToken();
   const code = withCode ? generateCode() : undefined;
 
-  const challenge = await client.$transaction(async (tx) => {
-    await tx.authChallenge.updateMany({
-      where: { userId, purpose, consumedAt: null },
-      data: { consumedAt: new Date() },
-    });
+  await client.authChallenge.updateMany({
+    where: { userId, purpose, consumedAt: null },
+    data: { consumedAt: new Date() },
+  });
 
-    return tx.authChallenge.create({
-      data: {
-        userId,
-        purpose,
-        tokenHash: hashAuthSecret(token),
-        codeHash: code ? hashAuthSecret(`${token}:${code}`) : null,
-        expiresAt: new Date(Date.now() + ttlMs),
-        metadata,
-      },
-    });
+  const challenge = await client.authChallenge.create({
+    data: {
+      userId,
+      purpose,
+      tokenHash: hashAuthSecret(token),
+      codeHash: code ? hashAuthSecret(`${token}:${code}`) : null,
+      expiresAt: new Date(Date.now() + ttlMs),
+      metadata,
+    },
   });
 
   return { challenge, token, code };
