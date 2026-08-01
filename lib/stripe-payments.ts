@@ -1,15 +1,12 @@
 import type Stripe from "stripe";
-import type { ReservationStatus } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
+import {
+  isTerminalReservation,
+  lockReservation,
+  SETTLEABLE_PAYMENT_STATUSES,
+} from "@/lib/reservation-state";
 
 const OPEN_PAYMENT_STATUSES = ["PENDING", "CHECKOUT_OPEN"] as const;
-
-/** Reservation states that a payment must never move back into CONFIRMED. */
-const TERMINAL_RESERVATION_STATUSES: readonly ReservationStatus[] = [
-  "CANCELLED",
-  "EXPIRED",
-  "REFUNDED",
-];
 
 type PaymentMatch = {
   amountCents: number;
@@ -135,20 +132,19 @@ export async function markCheckoutSessionPaid({
     // between that read and this transaction, and acting on the stale status
     // would flip a cancelled stay back to CONFIRMED. Blocking here until any
     // in-flight cancellation commits guarantees the re-read below is current.
-    await tx.$queryRaw`SELECT id FROM "Reservation" WHERE id = ${payment.reservationId} FOR UPDATE`;
-
-    const reservation = await tx.reservation.findUnique({
-      where: { id: payment.reservationId },
-    });
+    const reservation = await lockReservation(tx, payment.reservationId);
 
     if (!reservation) {
       return null;
     }
 
+    // Only settle genuinely unsettled payments. Matching "anything but PAID"
+    // also matched REFUNDED, so re-visiting an old success URL after a refund
+    // resurrected the payment and dragged the stay back into REFUND_PENDING.
     const updatedPayment = await tx.bookingPayment.updateMany({
       where: {
         id: payment.id,
-        status: { not: "PAID" },
+        status: { in: [...SETTLEABLE_PAYMENT_STATUSES] },
       },
       data: {
         status: "PAID",
@@ -180,9 +176,7 @@ export async function markCheckoutSessionPaid({
     // may still hold an open Checkout tab when the booking is cancelled. Record
     // the money so it is never lost, but leave the reservation cancelled and
     // flag it for the owner to refund.
-    const isCancelled = TERMINAL_RESERVATION_STATUSES.includes(
-      reservation.status
-    );
+    const isCancelled = isTerminalReservation(reservation.status);
 
     const reservationPaymentStatus = isCancelled
       ? ("REFUND_PENDING" as const)

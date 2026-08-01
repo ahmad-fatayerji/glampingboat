@@ -5,6 +5,7 @@ import {
   getRefundableTotalCents,
   isReservationFullyRefunded,
 } from "@/lib/stripe-payments";
+import { lockReservation, recordRefund } from "@/lib/reservation-state";
 import {
   calculateRetention,
   type CancellationCause,
@@ -97,33 +98,55 @@ export async function cancelReservation({
   expectedUserId?: string;
   now?: Date;
 }): Promise<CancelReservationResult> {
-  const existing = await prisma.reservation.findUnique({
+  // Cheap pre-checks so an unauthorised or already-cancelled request fails
+  // before we start calling Stripe. Authoritative state is re-read under the
+  // lock below; nothing here is used to compute money.
+  const preview = await prisma.reservation.findUnique({
     where: { id: reservationId },
+    select: { userId: true, status: true },
   });
 
-  if (!existing || (expectedUserId && existing.userId !== expectedUserId)) {
+  if (!preview || (expectedUserId && preview.userId !== expectedUserId)) {
     throw new ReservationCancellationError("Not found", 404);
   }
 
-  if (existing.status === "CANCELLED" || existing.status === "REFUNDED") {
+  if (preview.status === "CANCELLED" || preview.status === "REFUNDED") {
     throw new ReservationCancellationError(
       "Reservation is already cancelled",
       409
     );
   }
 
-  const retention = calculateRetention({
-    cause,
-    arrivalDate: existing.startDate,
-    now,
-    totalAmountTtcCents: existing.totalAmountTtcCents,
-    depositAmountCents: existing.depositAmountCents,
-    paidAmountCents: existing.paidAmountCents,
-  });
-
   const checkoutExpiry = await expireOpenCheckoutSessions(reservationId);
 
-  const reservation = await prisma.$transaction(async (tx) => {
+  const { reservation, retention } = await prisma.$transaction(async (tx) => {
+    // Lock and re-read before computing anything. A payment can settle between
+    // the pre-check above and here; retention derived from the earlier snapshot
+    // would leave newly received money neither retained nor marked refundable.
+    // Locking the reservation before touching payments also matches the order
+    // used by the settlement path, so the two cannot deadlock.
+    const existing = await lockReservation(tx, reservationId);
+
+    if (!existing) {
+      throw new ReservationCancellationError("Not found", 404);
+    }
+
+    if (existing.status === "CANCELLED" || existing.status === "REFUNDED") {
+      throw new ReservationCancellationError(
+        "Reservation is already cancelled",
+        409
+      );
+    }
+
+    const retention = calculateRetention({
+      cause,
+      arrivalDate: existing.startDate,
+      now,
+      totalAmountTtcCents: existing.totalAmountTtcCents,
+      depositAmountCents: existing.depositAmountCents,
+      paidAmountCents: existing.paidAmountCents,
+    });
+
     // Close out payments that never completed so no stale CHECKOUT_OPEN row
     // can be reused by the checkout-session endpoint.
     await tx.bookingPayment.updateMany({
@@ -179,7 +202,7 @@ export async function cancelReservation({
       },
     });
 
-    return updated;
+    return { reservation: updated, retention };
   });
 
   return { reservation, retention };
@@ -280,27 +303,23 @@ export async function refundReservation({
       }
     );
 
-    const totalRefundedOnPayment = payment.refundedAmountCents + slice;
-
-    // Commit this slice against both the payment and the reservation before
-    // moving on. If a later slice fails, the money already sent is durably
-    // accounted for, so a retry recomputes what is still owed from real state
-    // instead of refunding the original amount a second time.
+    // Commit this slice before moving on, so a later failure leaves the money
+    // already sent durably accounted for and a retry recomputes what is still
+    // owed from real state. Recording is keyed on the Stripe refund id, so two
+    // concurrent clicks receiving the same idempotent response — or the
+    // charge.refunded webhook arriving first — record it exactly once.
     await prisma.$transaction(async (tx) => {
+      await lockReservation(tx, reservationId);
+      await recordRefund(tx, {
+        reservationId,
+        paymentId: payment.id,
+        stripeRefundId: refund.id,
+        amountCents: slice,
+        source: "admin",
+      });
       await tx.bookingPayment.update({
         where: { id: payment.id },
-        data: {
-          stripeRefundId: refund.id,
-          refundedAmountCents: totalRefundedOnPayment,
-          refundedAt: new Date(),
-          status:
-            totalRefundedOnPayment >= payment.amountCents ? "REFUNDED" : "PAID",
-        },
-      });
-
-      await tx.reservation.update({
-        where: { id: reservationId },
-        data: { refundedAmountCents: { increment: slice } },
+        data: { stripeRefundId: refund.id },
       });
     });
 
@@ -320,22 +339,21 @@ export async function refundReservation({
   }
 
   const refundedTotal = target - remaining;
-  // Read the running total back rather than recomputing it: the per-slice
-  // increments above are the authority now.
-  const refundedToDate =
-    (
-      await prisma.reservation.findUniqueOrThrow({
-        where: { id: reservationId },
-        select: { refundedAmountCents: true },
-      })
-    ).refundedAmountCents;
-  const fullyRefunded = isReservationFullyRefunded({
-    paidAmountCents: reservation.paidAmountCents,
-    retainedAmountCents: reservation.retainedAmountCents,
-    refundedAmountCents: refundedToDate,
-  });
 
   const updated = await prisma.$transaction(async (tx) => {
+    // Decide the final status from ledger-derived state under the lock, not
+    // from the figures we started with.
+    const current = await lockReservation(tx, reservationId);
+    if (!current) {
+      throw new ReservationCancellationError("Not found", 404);
+    }
+
+    const fullyRefunded = isReservationFullyRefunded({
+      paidAmountCents: current.paidAmountCents,
+      retainedAmountCents: current.retainedAmountCents,
+      refundedAmountCents: current.refundedAmountCents,
+    });
+
     const next = await tx.reservation.update({
       where: { id: reservationId },
       data: {
@@ -351,9 +369,9 @@ export async function refundReservation({
         metadata: {
           refunds,
           refundedCents: refundedTotal,
-          refundedToDateCents: refundedToDate,
-          retainedCents: reservation.retainedAmountCents,
-          policyVersion: reservation.cancellationPolicyVersion,
+          refundedToDateCents: current.refundedAmountCents,
+          retainedCents: current.retainedAmountCents,
+          policyVersion: current.cancellationPolicyVersion,
         },
       },
     });

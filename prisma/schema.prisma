@@ -267,6 +267,7 @@ model Reservation {
   cancellationTier         String?
   cancellationPolicyVersion String?
   retainedAmountCents      Int     @default(0)
+  /// Derived cache of the PaymentRefund ledger. See BookingPayment.
   refundedAmountCents      Int     @default(0)
 
   createdAt DateTime @default(now())
@@ -354,7 +355,10 @@ model BookingPayment {
   stripePayload           Json?
 
   stripeRefundId      String? @unique
+  /// Derived cache of `refunds`. Never increment directly; recompute from the
+  /// ledger under the reservation row lock so concurrent writers converge.
   refundedAmountCents Int     @default(0)
+  refunds             PaymentRefund[]
 
   expiresAt  DateTime?
   paidAt     DateTime?
@@ -364,6 +368,29 @@ model BookingPayment {
 
   @@index([reservationId, purpose])
   @@index([status])
+}
+
+/// Append-only ledger of individual refunds.
+///
+/// Refund totals used to be stored as a mutable counter that each caller
+/// incremented, which double-counted when the admin endpoint and the
+/// charge.refunded webhook both recorded the same Stripe refund, and lost
+/// updates when two refunds settled concurrently. Keying each refund by its
+/// Stripe id makes recording idempotent, and totals are derived from the sum
+/// rather than accumulated, so every writer converges on the same figure.
+model PaymentRefund {
+  id             String         @id @default(uuid())
+  payment        BookingPayment @relation(fields: [paymentId], references: [id])
+  paymentId      String
+  reservationId  String
+  stripeRefundId String         @unique
+  amountCents    Int
+  /// "admin" or "webhook" - which path first observed this refund.
+  source         String         @default("admin")
+  createdAt      DateTime       @default(now())
+
+  @@index([reservationId])
+  @@index([paymentId])
 }
 
 model StripeWebhookEvent {
