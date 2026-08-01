@@ -148,6 +148,7 @@ const en = {
   accountMenu: "Account",
   bookingsMenu: "Bookings",
   profileMenu: "Profile",
+  securityMenu: "Security",
   logoutMenu: "Logout",
   notSignedInMenu: "You are not signed in.",
   signInCreateAccountMenu: "Sign in / Create account",
@@ -200,7 +201,6 @@ const en = {
   securityLoading: "Loading security settings...",
   securityLoadError: "Unable to load security settings",
   securityUpdateError: "Unable to update security settings",
-  securityUnlinkError: "Unable to unlink Google",
   securityGoogleStartError: "Unable to start Google linking",
   securityGoogleMismatch: "Choose the Google account that matches your verified account email.",
   securityGoogleAlreadyLinked: "That Google identity is already linked to another account.",
@@ -215,13 +215,37 @@ const en = {
   securityDisabled: "Disabled",
   securityAdminRequired: "(required for administrators)",
   securityCurrentPassword: "Current password for security changes",
+  securityPasswordTitle: "Password",
+  securityPasswordDescription:
+    "Change your password and sign out any other active sessions.",
+  securityPasswordUnavailable:
+    "This account does not currently use password sign-in.",
+  securityChangePassword: "Change password",
+  securityPasswordUpdateError: "Unable to change password",
+  securityChangePasswordDialogTitle: "Change your password",
+  securitySavePassword: "Save new password",
+  securityPasswordUnchanged:
+    "Choose a password different from your current password.",
   securityDisableCodes: "Disable email codes",
   securityEnableCodes: "Enable email codes",
+  securityEnableCodesDialogTitle: "Enable email sign-in codes",
+  securityDisableCodesDialogTitle: "Disable email sign-in codes",
+  securityConfirmPasswordDescription:
+    "Enter your current password to confirm this security change.",
+  securityInvalidSetting: "That security setting is invalid.",
+  securityVerifyEmailRequired:
+    "Verify your email before changing security settings.",
+  securityCodesPasswordOnly:
+    "Email sign-in codes apply to password sign-ins only.",
+  securityTooManyAttempts: "Too many password attempts. Try again later.",
+  securityPasswordRequired: "Enter your current password.",
+  securityAdminRequiredError:
+    "Email sign-in codes are required for administrator accounts.",
   securityGoogleSignIn: "Google sign-in",
-  securityGoogleLinked: "Google is linked to this account.",
+  securityGoogleLinkedPermanent:
+    "Google is linked to this account and remains available as a sign-in method.",
   securityGoogleNotLinked:
     "Google is not linked. A matching verified Google mailbox can be linked after your confirmation.",
-  securityUnlinkGoogle: "Unlink Google",
   securityLinkGoogle: "Link Google account",
   securityGoogleUnavailable: "Google sign-in is not configured for this environment.",
   accountHeaderTitle: "Your account",
@@ -608,6 +632,7 @@ export const dictionaries: Record<Locale, Dictionary> = {
     accountMenu: "Compte",
     bookingsMenu: "Réservations",
     profileMenu: "Profil",
+    securityMenu: "Sécurité",
     logoutMenu: "Déconnexion",
     notSignedInMenu: "Vous n'êtes pas connecté.",
     signInCreateAccountMenu: "Connexion / Créer un compte",
@@ -660,7 +685,6 @@ export const dictionaries: Record<Locale, Dictionary> = {
     securityLoading: "Chargement des paramètres de sécurité...",
     securityLoadError: "Impossible de charger les paramètres de sécurité",
     securityUpdateError: "Impossible de modifier les paramètres de sécurité",
-    securityUnlinkError: "Impossible de dissocier Google",
     securityGoogleStartError: "Impossible de démarrer l'association Google",
     securityGoogleMismatch: "Choisissez le compte Google correspondant à l'e-mail vérifié de votre compte.",
     securityGoogleAlreadyLinked: "Cette identité Google est déjà associée à un autre compte.",
@@ -675,13 +699,38 @@ export const dictionaries: Record<Locale, Dictionary> = {
     securityDisabled: "Désactivé",
     securityAdminRequired: "(obligatoire pour les administrateurs)",
     securityCurrentPassword: "Mot de passe actuel pour les modifications de sécurité",
+    securityPasswordTitle: "Mot de passe",
+    securityPasswordDescription:
+      "Modifiez votre mot de passe et déconnectez les autres sessions actives.",
+    securityPasswordUnavailable:
+      "Ce compte n'utilise actuellement pas la connexion par mot de passe.",
+    securityChangePassword: "Modifier le mot de passe",
+    securityPasswordUpdateError: "Impossible de modifier le mot de passe",
+    securityChangePasswordDialogTitle: "Modifier votre mot de passe",
+    securitySavePassword: "Enregistrer le nouveau mot de passe",
+    securityPasswordUnchanged:
+      "Choisissez un mot de passe différent de votre mot de passe actuel.",
     securityDisableCodes: "Désactiver les codes e-mail",
     securityEnableCodes: "Activer les codes e-mail",
+    securityEnableCodesDialogTitle: "Activer les codes de connexion par e-mail",
+    securityDisableCodesDialogTitle: "Désactiver les codes de connexion par e-mail",
+    securityConfirmPasswordDescription:
+      "Saisissez votre mot de passe actuel pour confirmer cette modification de sécurité.",
+    securityInvalidSetting: "Ce paramètre de sécurité n'est pas valide.",
+    securityVerifyEmailRequired:
+      "Vérifiez votre e-mail avant de modifier les paramètres de sécurité.",
+    securityCodesPasswordOnly:
+      "Les codes de connexion par e-mail s'appliquent uniquement aux connexions par mot de passe.",
+    securityTooManyAttempts:
+      "Trop de tentatives de mot de passe. Réessayez plus tard.",
+    securityPasswordRequired: "Saisissez votre mot de passe actuel.",
+    securityAdminRequiredError:
+      "Les codes de connexion par e-mail sont obligatoires pour les comptes administrateur.",
     securityGoogleSignIn: "Connexion Google",
-    securityGoogleLinked: "Google est associé à ce compte.",
+    securityGoogleLinkedPermanent:
+      "Google est associé à ce compte et reste disponible comme méthode de connexion.",
     securityGoogleNotLinked:
       "Google n'est pas associé. Une boîte Google vérifiée correspondante peut être associée après confirmation.",
-    securityUnlinkGoogle: "Dissocier Google",
     securityLinkGoogle: "Associer un compte Google",
     securityGoogleUnavailable: "La connexion Google n'est pas configurée pour cet environnement.",
     accountHeaderTitle: "Votre compte",
@@ -1067,6 +1116,7 @@ export const dictionaries: Record<Locale, Dictionary> = {
     accountMenu: "Konto",
     bookingsMenu: "Buchungen",
     profileMenu: "Profil",
+    securityMenu: "Sicherheit",
     logoutMenu: "Abmelden",
     notSignedInMenu: "Sie sind nicht angemeldet.",
     signInCreateAccountMenu: "Anmelden / Konto erstellen",
@@ -1089,6 +1139,63 @@ export const dictionaries: Record<Locale, Dictionary> = {
     passwordPolicyError:
       "Das Passwort muss mindestens 8 Zeichen lang sein und Grossbuchstaben, Kleinbuchstaben, Zahl und Symbol enthalten.",
     authGoogleSignIn: "Mit Google anmelden",
+    securityTitle: "Kontosicherheit",
+    securityDescription:
+      "Verwalten Sie die bestätigte E-Mail-Adresse, Anmeldecodes, Ihr Passwort und die verknüpfte Google-Identität.",
+    securityLoading: "Sicherheitseinstellungen werden geladen...",
+    securityLoadError: "Sicherheitseinstellungen konnten nicht geladen werden",
+    securityUpdateError: "Sicherheitseinstellungen konnten nicht geändert werden",
+    securityGoogleStartError: "Google-Verknüpfung konnte nicht gestartet werden",
+    securityGoogleMismatch:
+      "Wählen Sie das Google-Konto, das zur bestätigten E-Mail-Adresse passt.",
+    securityGoogleAlreadyLinked:
+      "Diese Google-Identität ist bereits mit einem anderen Konto verknüpft.",
+    securityEmailVerification: "E-Mail-Bestätigung",
+    securityVerified: "Bestätigt",
+    securityNotVerified: "Nicht bestätigt",
+    securityEmailCodes: "E-Mail-Anmeldecodes",
+    securityEmailCodesDescription:
+      "Fügt nach dem Passwort einen einmaligen 8-stelligen E-Mail-Code hinzu. Die Google-Anmeldung nutzt weiterhin die Google-Kontosicherheit.",
+    securityStatus: "Status",
+    securityEnabled: "Aktiviert",
+    securityDisabled: "Deaktiviert",
+    securityAdminRequired: "(für Administratoren erforderlich)",
+    securityCurrentPassword: "Aktuelles Passwort",
+    securityPasswordTitle: "Passwort",
+    securityPasswordDescription:
+      "Ändern Sie Ihr Passwort und melden Sie andere aktive Sitzungen ab.",
+    securityPasswordUnavailable:
+      "Dieses Konto verwendet derzeit keine Passwortanmeldung.",
+    securityChangePassword: "Passwort ändern",
+    securityPasswordUpdateError: "Passwort konnte nicht geändert werden",
+    securityChangePasswordDialogTitle: "Passwort ändern",
+    securitySavePassword: "Neues Passwort speichern",
+    securityPasswordUnchanged:
+      "Wählen Sie ein anderes Passwort als Ihr aktuelles Passwort.",
+    securityDisableCodes: "E-Mail-Codes deaktivieren",
+    securityEnableCodes: "E-Mail-Codes aktivieren",
+    securityEnableCodesDialogTitle: "E-Mail-Anmeldecodes aktivieren",
+    securityDisableCodesDialogTitle: "E-Mail-Anmeldecodes deaktivieren",
+    securityConfirmPasswordDescription:
+      "Geben Sie Ihr aktuelles Passwort ein, um diese Sicherheitsänderung zu bestätigen.",
+    securityInvalidSetting: "Diese Sicherheitseinstellung ist ungültig.",
+    securityVerifyEmailRequired:
+      "Bestätigen Sie Ihre E-Mail-Adresse, bevor Sie Sicherheitseinstellungen ändern.",
+    securityCodesPasswordOnly:
+      "E-Mail-Anmeldecodes gelten nur für Passwortanmeldungen.",
+    securityTooManyAttempts:
+      "Zu viele Passwortversuche. Versuchen Sie es später erneut.",
+    securityPasswordRequired: "Geben Sie Ihr aktuelles Passwort ein.",
+    securityAdminRequiredError:
+      "E-Mail-Anmeldecodes sind für Administratorkonten erforderlich.",
+    securityGoogleSignIn: "Google-Anmeldung",
+    securityGoogleLinkedPermanent:
+      "Google ist mit diesem Konto verknüpft und bleibt als Anmeldemethode verfügbar.",
+    securityGoogleNotLinked:
+      "Google ist nicht verknüpft. Ein passendes bestätigtes Google-Postfach kann nach Bestätigung verknüpft werden.",
+    securityLinkGoogle: "Google-Konto verknüpfen",
+    securityGoogleUnavailable:
+      "Die Google-Anmeldung ist für diese Umgebung nicht konfiguriert.",
     accountHeaderTitle: "Ihr Konto",
     accountSignedInSuccess: "Sie sind jetzt angemeldet.",
     accountSignedOutSuccess: "Sie wurden abgemeldet.",
@@ -1472,6 +1579,7 @@ export const dictionaries: Record<Locale, Dictionary> = {
     accountMenu: "Account",
     bookingsMenu: "Boekingen",
     profileMenu: "Profiel",
+    securityMenu: "Beveiliging",
     logoutMenu: "Uitloggen",
     notSignedInMenu: "Je bent niet ingelogd.",
     signInCreateAccountMenu: "Inloggen / Account aanmaken",
@@ -1494,6 +1602,63 @@ export const dictionaries: Record<Locale, Dictionary> = {
     passwordPolicyError:
       "Wachtwoord moet minstens 8 tekens bevatten met hoofdletter, kleine letter, cijfer en symbool.",
     authGoogleSignIn: "Inloggen met Google",
+    securityTitle: "Accountbeveiliging",
+    securityDescription:
+      "Beheer je geverifieerde e-mail, inlogcodes, wachtwoord en gekoppelde Google-identiteit.",
+    securityLoading: "Beveiligingsinstellingen laden...",
+    securityLoadError: "Beveiligingsinstellingen konden niet worden geladen",
+    securityUpdateError: "Beveiligingsinstellingen konden niet worden bijgewerkt",
+    securityGoogleStartError: "Google koppelen kon niet worden gestart",
+    securityGoogleMismatch:
+      "Kies het Google-account dat overeenkomt met het geverifieerde e-mailadres.",
+    securityGoogleAlreadyLinked:
+      "Deze Google-identiteit is al aan een ander account gekoppeld.",
+    securityEmailVerification: "E-mailverificatie",
+    securityVerified: "Geverifieerd",
+    securityNotVerified: "Niet geverifieerd",
+    securityEmailCodes: "Inlogcodes per e-mail",
+    securityEmailCodesDescription:
+      "Voegt na je wachtwoord een eenmalige code van 8 cijfers toe. Google-inloggen blijft de beveiliging van Google gebruiken.",
+    securityStatus: "Status",
+    securityEnabled: "Ingeschakeld",
+    securityDisabled: "Uitgeschakeld",
+    securityAdminRequired: "(verplicht voor beheerders)",
+    securityCurrentPassword: "Huidig wachtwoord",
+    securityPasswordTitle: "Wachtwoord",
+    securityPasswordDescription:
+      "Wijzig je wachtwoord en meld andere actieve sessies af.",
+    securityPasswordUnavailable:
+      "Dit account gebruikt momenteel geen wachtwoord om in te loggen.",
+    securityChangePassword: "Wachtwoord wijzigen",
+    securityPasswordUpdateError: "Wachtwoord kon niet worden gewijzigd",
+    securityChangePasswordDialogTitle: "Je wachtwoord wijzigen",
+    securitySavePassword: "Nieuw wachtwoord opslaan",
+    securityPasswordUnchanged:
+      "Kies een ander wachtwoord dan je huidige wachtwoord.",
+    securityDisableCodes: "E-mailcodes uitschakelen",
+    securityEnableCodes: "E-mailcodes inschakelen",
+    securityEnableCodesDialogTitle: "Inlogcodes per e-mail inschakelen",
+    securityDisableCodesDialogTitle: "Inlogcodes per e-mail uitschakelen",
+    securityConfirmPasswordDescription:
+      "Voer je huidige wachtwoord in om deze beveiligingswijziging te bevestigen.",
+    securityInvalidSetting: "Deze beveiligingsinstelling is ongeldig.",
+    securityVerifyEmailRequired:
+      "Verifieer je e-mail voordat je beveiligingsinstellingen wijzigt.",
+    securityCodesPasswordOnly:
+      "Inlogcodes per e-mail gelden alleen voor inloggen met een wachtwoord.",
+    securityTooManyAttempts:
+      "Te veel wachtwoordpogingen. Probeer het later opnieuw.",
+    securityPasswordRequired: "Voer je huidige wachtwoord in.",
+    securityAdminRequiredError:
+      "Inlogcodes per e-mail zijn verplicht voor beheerdersaccounts.",
+    securityGoogleSignIn: "Inloggen met Google",
+    securityGoogleLinkedPermanent:
+      "Google is gekoppeld aan dit account en blijft beschikbaar als inlogmethode.",
+    securityGoogleNotLinked:
+      "Google is niet gekoppeld. Een overeenkomende geverifieerde Google-mailbox kan na bevestiging worden gekoppeld.",
+    securityLinkGoogle: "Google-account koppelen",
+    securityGoogleUnavailable:
+      "Inloggen met Google is niet geconfigureerd voor deze omgeving.",
     accountHeaderTitle: "Je account",
     accountSignedInSuccess: "Je bent nu ingelogd.",
     accountSignedOutSuccess: "Je bent uitgelogd.",
@@ -1892,6 +2057,7 @@ export const dictionaries: Record<Locale, Dictionary> = {
     accountMenu: "\u0410\u043a\u043a\u0430\u0443\u043d\u0442",
     bookingsMenu: "\u0411\u0440\u043e\u043d\u0438",
     profileMenu: "\u041f\u0440\u043e\u0444\u0438\u043b\u044c",
+    securityMenu: "Безопасность",
     logoutMenu: "\u0412\u044b\u0439\u0442\u0438",
     notSignedInMenu: "\u0412\u044b \u043d\u0435 \u0432\u043e\u0448\u043b\u0438 \u0432 \u0441\u0438\u0441\u0442\u0435\u043c\u0443.",
     signInCreateAccountMenu:
@@ -1922,6 +2088,63 @@ export const dictionaries: Record<Locale, Dictionary> = {
     passwordPolicyError:
       "\u041f\u0430\u0440\u043e\u043b\u044c \u0434\u043e\u043b\u0436\u0435\u043d \u0441\u043e\u0434\u0435\u0440\u0436\u0430\u0442\u044c \u043d\u0435 \u043c\u0435\u043d\u0435\u0435 8 \u0441\u0438\u043c\u0432\u043e\u043b\u043e\u0432, \u0437\u0430\u0433\u043b\u0430\u0432\u043d\u0443\u044e \u0438 \u0441\u0442\u0440\u043e\u0447\u043d\u0443\u044e \u0431\u0443\u043a\u0432\u044b, \u0446\u0438\u0444\u0440\u0443 \u0438 \u0441\u0438\u043c\u0432\u043e\u043b.",
     authGoogleSignIn: "\u0412\u043e\u0439\u0442\u0438 \u0447\u0435\u0440\u0435\u0437 Google",
+    securityTitle: "Безопасность аккаунта",
+    securityDescription:
+      "Управляйте подтверждённой почтой, кодами входа, паролем и связанной учётной записью Google.",
+    securityLoading: "Загрузка настроек безопасности...",
+    securityLoadError: "Не удалось загрузить настройки безопасности",
+    securityUpdateError: "Не удалось изменить настройки безопасности",
+    securityGoogleStartError: "Не удалось начать привязку Google",
+    securityGoogleMismatch:
+      "Выберите аккаунт Google, соответствующий подтверждённому адресу электронной почты.",
+    securityGoogleAlreadyLinked:
+      "Этот аккаунт Google уже связан с другой учётной записью.",
+    securityEmailVerification: "Подтверждение электронной почты",
+    securityVerified: "Подтверждено",
+    securityNotVerified: "Не подтверждено",
+    securityEmailCodes: "Коды входа по электронной почте",
+    securityEmailCodesDescription:
+      "Добавляет одноразовый 8-значный код после пароля. Вход через Google продолжает использовать безопасность Google.",
+    securityStatus: "Статус",
+    securityEnabled: "Включено",
+    securityDisabled: "Отключено",
+    securityAdminRequired: "(обязательно для администраторов)",
+    securityCurrentPassword: "Текущий пароль",
+    securityPasswordTitle: "Пароль",
+    securityPasswordDescription:
+      "Измените пароль и завершите другие активные сеансы.",
+    securityPasswordUnavailable:
+      "Этот аккаунт сейчас не использует вход по паролю.",
+    securityChangePassword: "Изменить пароль",
+    securityPasswordUpdateError: "Не удалось изменить пароль",
+    securityChangePasswordDialogTitle: "Изменение пароля",
+    securitySavePassword: "Сохранить новый пароль",
+    securityPasswordUnchanged:
+      "Выберите пароль, отличный от текущего.",
+    securityDisableCodes: "Отключить коды по почте",
+    securityEnableCodes: "Включить коды по почте",
+    securityEnableCodesDialogTitle: "Включить коды входа по почте",
+    securityDisableCodesDialogTitle: "Отключить коды входа по почте",
+    securityConfirmPasswordDescription:
+      "Введите текущий пароль, чтобы подтвердить это изменение безопасности.",
+    securityInvalidSetting: "Недопустимая настройка безопасности.",
+    securityVerifyEmailRequired:
+      "Подтвердите электронную почту перед изменением настроек безопасности.",
+    securityCodesPasswordOnly:
+      "Коды по электронной почте применяются только ко входу по паролю.",
+    securityTooManyAttempts:
+      "Слишком много попыток ввода пароля. Повторите позже.",
+    securityPasswordRequired: "Введите текущий пароль.",
+    securityAdminRequiredError:
+      "Коды входа по электронной почте обязательны для администраторов.",
+    securityGoogleSignIn: "Вход через Google",
+    securityGoogleLinkedPermanent:
+      "Google связан с этим аккаунтом и остаётся доступным способом входа.",
+    securityGoogleNotLinked:
+      "Google не связан. Подходящий подтверждённый аккаунт Google можно привязать после подтверждения.",
+    securityLinkGoogle: "Связать аккаунт Google",
+    securityGoogleUnavailable:
+      "Вход через Google не настроен для этой среды.",
     accountHeaderTitle: "\u0412\u0430\u0448 \u0430\u043a\u043a\u0430\u0443\u043d\u0442",
     accountSignedInSuccess:
       "\u0422\u0435\u043f\u0435\u0440\u044c \u0432\u044b \u0432\u043e\u0448\u043b\u0438 \u0432 \u0430\u043a\u043a\u0430\u0443\u043d\u0442.",
@@ -2339,6 +2562,7 @@ export const dictionaries: Record<Locale, Dictionary> = {
     accountMenu: "Cuenta",
     bookingsMenu: "Reservas",
     profileMenu: "Perfil",
+    securityMenu: "Seguridad",
     logoutMenu: "Cerrar sesion",
     notSignedInMenu: "No has iniciado sesion.",
     signInCreateAccountMenu: "Iniciar sesion / Crear cuenta",
@@ -2361,6 +2585,63 @@ export const dictionaries: Record<Locale, Dictionary> = {
     passwordPolicyError:
       "La contrasena debe tener al menos 8 caracteres e incluir mayuscula, minuscula, numero y simbolo.",
     authGoogleSignIn: "Iniciar sesion con Google",
+    securityTitle: "Seguridad de la cuenta",
+    securityDescription:
+      "Gestiona el correo verificado, los codigos de acceso, la contrasena y la identidad de Google vinculada.",
+    securityLoading: "Cargando ajustes de seguridad...",
+    securityLoadError: "No se pudieron cargar los ajustes de seguridad",
+    securityUpdateError: "No se pudieron actualizar los ajustes de seguridad",
+    securityGoogleStartError: "No se pudo iniciar la vinculacion con Google",
+    securityGoogleMismatch:
+      "Elige la cuenta de Google que coincide con el correo verificado.",
+    securityGoogleAlreadyLinked:
+      "Esta identidad de Google ya esta vinculada a otra cuenta.",
+    securityEmailVerification: "Verificacion del correo",
+    securityVerified: "Verificado",
+    securityNotVerified: "No verificado",
+    securityEmailCodes: "Codigos de acceso por correo",
+    securityEmailCodesDescription:
+      "Anade un codigo de 8 digitos y un solo uso despues de la contrasena. El acceso con Google sigue usando la seguridad de Google.",
+    securityStatus: "Estado",
+    securityEnabled: "Activado",
+    securityDisabled: "Desactivado",
+    securityAdminRequired: "(obligatorio para administradores)",
+    securityCurrentPassword: "Contrasena actual",
+    securityPasswordTitle: "Contrasena",
+    securityPasswordDescription:
+      "Cambia tu contrasena y cierra las demas sesiones activas.",
+    securityPasswordUnavailable:
+      "Esta cuenta no utiliza actualmente el acceso con contrasena.",
+    securityChangePassword: "Cambiar contrasena",
+    securityPasswordUpdateError: "No se pudo cambiar la contrasena",
+    securityChangePasswordDialogTitle: "Cambiar tu contrasena",
+    securitySavePassword: "Guardar nueva contrasena",
+    securityPasswordUnchanged:
+      "Elige una contrasena diferente de la actual.",
+    securityDisableCodes: "Desactivar codigos por correo",
+    securityEnableCodes: "Activar codigos por correo",
+    securityEnableCodesDialogTitle: "Activar codigos de acceso por correo",
+    securityDisableCodesDialogTitle: "Desactivar codigos de acceso por correo",
+    securityConfirmPasswordDescription:
+      "Introduce tu contrasena actual para confirmar este cambio de seguridad.",
+    securityInvalidSetting: "Ese ajuste de seguridad no es valido.",
+    securityVerifyEmailRequired:
+      "Verifica tu correo antes de cambiar los ajustes de seguridad.",
+    securityCodesPasswordOnly:
+      "Los codigos por correo solo se aplican al acceso con contrasena.",
+    securityTooManyAttempts:
+      "Demasiados intentos de contrasena. Intentalo de nuevo mas tarde.",
+    securityPasswordRequired: "Introduce tu contrasena actual.",
+    securityAdminRequiredError:
+      "Los codigos de acceso por correo son obligatorios para administradores.",
+    securityGoogleSignIn: "Acceso con Google",
+    securityGoogleLinkedPermanent:
+      "Google esta vinculado a esta cuenta y sigue disponible como metodo de acceso.",
+    securityGoogleNotLinked:
+      "Google no esta vinculado. Se puede vincular un buzon de Google verificado que coincida despues de confirmarlo.",
+    securityLinkGoogle: "Vincular cuenta de Google",
+    securityGoogleUnavailable:
+      "El acceso con Google no esta configurado para este entorno.",
     accountHeaderTitle: "Tu cuenta",
     accountSignedInSuccess: "Ya has iniciado sesion.",
     accountSignedOutSuccess: "Has cerrado sesion.",
@@ -2744,6 +3025,7 @@ export const dictionaries: Record<Locale, Dictionary> = {
     accountMenu: "Account",
     bookingsMenu: "Prenotazioni",
     profileMenu: "Profilo",
+    securityMenu: "Sicurezza",
     logoutMenu: "Esci",
     notSignedInMenu: "Non hai effettuato l'accesso.",
     signInCreateAccountMenu: "Accedi / Crea account",
@@ -2766,6 +3048,63 @@ export const dictionaries: Record<Locale, Dictionary> = {
     passwordPolicyError:
       "La password deve avere almeno 8 caratteri e includere maiuscola, minuscola, numero e simbolo.",
     authGoogleSignIn: "Accedi con Google",
+    securityTitle: "Sicurezza dell'account",
+    securityDescription:
+      "Gestisci l'e-mail verificata, i codici di accesso, la password e l'identita Google collegata.",
+    securityLoading: "Caricamento delle impostazioni di sicurezza...",
+    securityLoadError: "Impossibile caricare le impostazioni di sicurezza",
+    securityUpdateError: "Impossibile aggiornare le impostazioni di sicurezza",
+    securityGoogleStartError: "Impossibile avviare il collegamento a Google",
+    securityGoogleMismatch:
+      "Scegli l'account Google che corrisponde all'e-mail verificata.",
+    securityGoogleAlreadyLinked:
+      "Questa identita Google e gia collegata a un altro account.",
+    securityEmailVerification: "Verifica dell'e-mail",
+    securityVerified: "Verificata",
+    securityNotVerified: "Non verificata",
+    securityEmailCodes: "Codici di accesso via e-mail",
+    securityEmailCodesDescription:
+      "Aggiunge un codice e-mail monouso di 8 cifre dopo la password. L'accesso Google continua a usare la sicurezza di Google.",
+    securityStatus: "Stato",
+    securityEnabled: "Attivati",
+    securityDisabled: "Disattivati",
+    securityAdminRequired: "(obbligatori per gli amministratori)",
+    securityCurrentPassword: "Password attuale",
+    securityPasswordTitle: "Password",
+    securityPasswordDescription:
+      "Cambia la password e disconnetti le altre sessioni attive.",
+    securityPasswordUnavailable:
+      "Questo account non usa attualmente l'accesso con password.",
+    securityChangePassword: "Cambia password",
+    securityPasswordUpdateError: "Impossibile cambiare la password",
+    securityChangePasswordDialogTitle: "Cambia la password",
+    securitySavePassword: "Salva la nuova password",
+    securityPasswordUnchanged:
+      "Scegli una password diversa da quella attuale.",
+    securityDisableCodes: "Disattiva codici e-mail",
+    securityEnableCodes: "Attiva codici e-mail",
+    securityEnableCodesDialogTitle: "Attiva codici di accesso via e-mail",
+    securityDisableCodesDialogTitle: "Disattiva codici di accesso via e-mail",
+    securityConfirmPasswordDescription:
+      "Inserisci la password attuale per confermare questa modifica di sicurezza.",
+    securityInvalidSetting: "Questa impostazione di sicurezza non e valida.",
+    securityVerifyEmailRequired:
+      "Verifica l'e-mail prima di cambiare le impostazioni di sicurezza.",
+    securityCodesPasswordOnly:
+      "I codici via e-mail si applicano solo agli accessi con password.",
+    securityTooManyAttempts:
+      "Troppi tentativi con la password. Riprova piu tardi.",
+    securityPasswordRequired: "Inserisci la password attuale.",
+    securityAdminRequiredError:
+      "I codici di accesso via e-mail sono obbligatori per gli amministratori.",
+    securityGoogleSignIn: "Accesso con Google",
+    securityGoogleLinkedPermanent:
+      "Google e collegato a questo account e rimane disponibile come metodo di accesso.",
+    securityGoogleNotLinked:
+      "Google non e collegato. Una casella Google verificata corrispondente puo essere collegata dopo la conferma.",
+    securityLinkGoogle: "Collega account Google",
+    securityGoogleUnavailable:
+      "L'accesso con Google non e configurato per questo ambiente.",
     accountHeaderTitle: "Il tuo account",
     accountSignedInSuccess: "Ora hai effettuato l'accesso.",
     accountSignedOutSuccess: "Hai effettuato l'uscita.",

@@ -6,6 +6,10 @@ import { sendSecuritySettingEmail } from "@/lib/auth-emails";
 import { prisma } from "@/lib/prisma";
 import { getBoolean, getString, isRecord } from "@/lib/type-guards";
 import { normalizeEmailLocale } from "@/lib/email-i18n";
+import {
+  PASSWORD_POLICY_ERROR,
+  validatePasswordPolicy,
+} from "@/lib/password-policy";
 
 async function currentSecurityUser() {
   const session = await auth();
@@ -90,36 +94,54 @@ export async function PUT(req: Request) {
     isRecord(body) ? getString(body, "locale") : undefined
   );
   if (enabled === undefined) {
-    return NextResponse.json({ error: "Invalid setting" }, { status: 400 });
+    return NextResponse.json(
+      { code: "INVALID_SETTING", error: "Invalid setting" },
+      { status: 400 }
+    );
   }
   if (!user.emailVerifiedAt) {
     return NextResponse.json(
-      { error: "Verify your email before changing security settings" },
+      {
+        code: "EMAIL_VERIFICATION_REQUIRED",
+        error: "Verify your email before changing security settings",
+      },
       { status: 403 }
     );
   }
   if (!user.password) {
     return NextResponse.json(
-      { error: "Email sign-in codes apply to password sign-ins only" },
+      {
+        code: "PASSWORD_SIGN_IN_ONLY",
+        error: "Email sign-in codes apply to password sign-ins only",
+      },
       { status: 409 }
     );
   }
   const passwordResult = await verifySecurityPassword(user, password, req);
   if (passwordResult === "LIMITED") {
     return NextResponse.json(
-      { error: "Too many password attempts. Try again later." },
+      {
+        code: "TOO_MANY_ATTEMPTS",
+        error: "Too many password attempts. Try again later.",
+      },
       { status: 429 }
     );
   }
   if (passwordResult === "INVALID") {
     return NextResponse.json(
-      { error: "Your current password is required" },
+      {
+        code: "CURRENT_PASSWORD_REQUIRED",
+        error: "Your current password is required",
+      },
       { status: 401 }
     );
   }
   if (!enabled && user.role !== "CUSTOMER") {
     return NextResponse.json(
-      { error: "Email sign-in codes are required for administrator accounts" },
+      {
+        code: "ADMIN_MFA_REQUIRED",
+        error: "Email sign-in codes are required for administrator accounts",
+      },
       { status: 403 }
     );
   }
@@ -144,54 +166,83 @@ export async function PUT(req: Request) {
   return NextResponse.json({ ok: true, mfaMode: enabled ? "EMAIL" : "DISABLED" });
 }
 
-export async function DELETE(req: Request) {
+export async function PATCH(req: Request) {
   const user = await currentSecurityUser();
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   if (!user.password) {
     return NextResponse.json(
-      { error: "Set a password before unlinking your only sign-in method" },
+      {
+        code: "PASSWORD_NOT_SET",
+        error: "This account does not have a password",
+      },
       { status: 409 }
     );
   }
 
   const body = await req.json().catch(() => null);
-  const password = isRecord(body) ? getString(body, "password") : undefined;
-  const passwordResult = await verifySecurityPassword(user, password, req);
+  const currentPassword = isRecord(body)
+    ? getString(body, "currentPassword")
+    : undefined;
+  const newPassword = isRecord(body)
+    ? getString(body, "newPassword")
+    : undefined;
+  if (!newPassword || !validatePasswordPolicy(newPassword).valid) {
+    return NextResponse.json(
+      { code: "PASSWORD_POLICY", error: PASSWORD_POLICY_ERROR },
+      { status: 400 }
+    );
+  }
+
+  const passwordResult = await verifySecurityPassword(
+    user,
+    currentPassword,
+    req
+  );
   if (passwordResult === "LIMITED") {
     return NextResponse.json(
-      { error: "Too many password attempts. Try again later." },
+      {
+        code: "TOO_MANY_ATTEMPTS",
+        error: "Too many password attempts. Try again later.",
+      },
       { status: 429 }
     );
   }
   if (passwordResult === "INVALID") {
     return NextResponse.json(
-      { error: "Your current password is required" },
+      {
+        code: "CURRENT_PASSWORD_REQUIRED",
+        error: "Your current password is required",
+      },
       { status: 401 }
     );
   }
 
-  const removed = await prisma.$transaction(async (tx) => {
-    const result = await tx.authIdentity.deleteMany({
-      where: { userId: user.id, provider: "google" },
-    });
-    if (result.count) {
-      await tx.user.update({
-        where: { id: user.id },
-        data: { sessionVersion: { increment: 1 } },
-      });
-    }
-    return result;
-  });
-  if (removed.count) {
-    await recordAuthEvent({
-      userId: user.id,
-      type: "GOOGLE_UNLINKED",
-      provider: "google",
-      request: req,
-    });
+  if (await bcrypt.compare(newPassword, user.password)) {
+    return NextResponse.json(
+      {
+        code: "PASSWORD_UNCHANGED",
+        error: "Choose a password different from your current password",
+      },
+      { status: 400 }
+    );
   }
+
+  await prisma.user.update({
+    where: { id: user.id },
+    data: {
+      password: await bcrypt.hash(newPassword, 12),
+      sessionVersion: { increment: 1 },
+    },
+  });
+  await recordAuthEvent({
+    userId: user.id,
+    type: "PASSWORD_RESET",
+    provider: "account-security-change",
+    request: req,
+    metadata: { action: "password-change" },
+  });
 
   return NextResponse.json({ ok: true });
 }
