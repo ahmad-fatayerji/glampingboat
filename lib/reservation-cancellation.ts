@@ -25,40 +25,36 @@ export class ReservationCancellationError extends Error {
 }
 
 /**
- * Void every Checkout Session still open on a reservation.
+ * Void Checkout Sessions collected while the reservation was locked.
  *
- * Without this the customer can pay a link for a stay that is already
- * cancelled. Best effort: Stripe rejects sessions that are already expired or
- * paid, and a failure here must not block the cancellation itself. Any payment
- * that still lands is caught by the terminal-status guard in
- * `markCheckoutSessionPaid`.
+ * Must run *after* the cancelling transaction commits, never before it. An
+ * earlier scan could miss a session that checkout's second phase recorded
+ * between the scan and the lock, leaving a live payment link on a cancelled
+ * stay. Collecting under the lock and expiring after commit closes both sides:
+ * sessions that existed are collected here, and sessions created later are
+ * refused by checkout's own locked eligibility re-check.
+ *
+ * Best effort by design: Stripe rejects sessions that are already expired or
+ * paid, and a failure must not undo a committed cancellation. Money that still
+ * lands is caught by the terminal-status guard in `markCheckoutSessionPaid`.
  */
-async function expireOpenCheckoutSessions(reservationId: string) {
-  const openPayments = await prisma.bookingPayment.findMany({
-    where: {
-      reservationId,
-      status: { in: [...OPEN_CHECKOUT_STATUSES] },
-      stripeCheckoutSessionId: { not: null },
-    },
-    select: { id: true, stripeCheckoutSessionId: true },
-  });
-
-  if (openPayments.length === 0) {
+async function expireCheckoutSessions(
+  sessions: { paymentId: string; stripeCheckoutSessionId: string }[]
+) {
+  if (sessions.length === 0) {
     return [];
   }
 
   const stripe = getStripeServerClient();
 
   return Promise.all(
-    openPayments.map(async (payment) => {
+    sessions.map(async (session) => {
       try {
-        await stripe.checkout.sessions.expire(
-          payment.stripeCheckoutSessionId as string
-        );
-        return { paymentId: payment.id, expired: true, error: null };
+        await stripe.checkout.sessions.expire(session.stripeCheckoutSessionId);
+        return { ...session, expired: true, error: null };
       } catch (error) {
         return {
-          paymentId: payment.id,
+          ...session,
           expired: false,
           error: error instanceof Error ? error.message : "unknown",
         };
@@ -70,6 +66,17 @@ async function expireOpenCheckoutSessions(reservationId: string) {
 export interface CancelReservationResult {
   reservation: Prisma.ReservationGetPayload<Record<string, never>>;
   retention: RetentionOutcome;
+  /**
+   * Outcome of voiding each Checkout Session that was open at cancellation.
+   * An entry with `expired: false` means a payment link may still be
+   * reachable; the stay stays cancelled either way.
+   */
+  checkoutExpiry: {
+    paymentId: string;
+    stripeCheckoutSessionId: string;
+    expired: boolean;
+    error: string | null;
+  }[];
 }
 
 /**
@@ -117,9 +124,7 @@ export async function cancelReservation({
     );
   }
 
-  const checkoutExpiry = await expireOpenCheckoutSessions(reservationId);
-
-  const { reservation, retention } = await prisma.$transaction(async (tx) => {
+  const cancelled = await prisma.$transaction(async (tx) => {
     // Lock and re-read before computing anything. A payment can settle between
     // the pre-check above and here; retention derived from the earlier snapshot
     // would leave newly received money neither retained nor marked refundable.
@@ -145,6 +150,19 @@ export async function cancelReservation({
       totalAmountTtcCents: existing.totalAmountTtcCents,
       depositAmountCents: existing.depositAmountCents,
       paidAmountCents: existing.paidAmountCents,
+    });
+
+    // Collect the live sessions while still holding the lock, then expire them
+    // only after this transaction commits. Scanning before the lock could miss
+    // a session recorded by checkout's second phase in between, leaving a
+    // payable link on a cancelled stay.
+    const openPayments = await tx.bookingPayment.findMany({
+      where: {
+        reservationId,
+        status: { in: [...OPEN_CHECKOUT_STATUSES] },
+        stripeCheckoutSessionId: { not: null },
+      },
+      select: { id: true, stripeCheckoutSessionId: true },
     });
 
     // Close out payments that never completed so no stale CHECKOUT_OPEN row
@@ -197,15 +215,48 @@ export async function cancelReservation({
           outstandingCents: retention.outstandingCents,
           paidAmountCents: existing.paidAmountCents,
           totalAmountTtcCents: existing.totalAmountTtcCents,
-          checkoutSessionsExpired: checkoutExpiry,
+          checkoutSessionsToExpire: openPayments.map(
+            (entry) => entry.stripeCheckoutSessionId
+          ),
         },
       },
     });
 
-    return { reservation: updated, retention };
+    return {
+      reservation: updated,
+      retention,
+      openSessions: openPayments.map((entry) => ({
+        paymentId: entry.id,
+        stripeCheckoutSessionId: entry.stripeCheckoutSessionId as string,
+      })),
+    };
   });
 
-  return { reservation, retention };
+  const { reservation, retention, openSessions } = cancelled;
+
+  // Cancellation is committed at this point, so checkout's second phase can no
+  // longer record a new session against this reservation.
+  const checkoutExpiry = await expireCheckoutSessions(openSessions);
+  const stillOpen = checkoutExpiry.filter((entry) => !entry.expired);
+
+  if (stillOpen.length > 0) {
+    // Surface it rather than failing: the cancellation stands, but the owner
+    // should know a payment link may still be reachable. A payment that lands
+    // is recorded and flagged for refund, never revives the stay.
+    await prisma.reservationEvent.create({
+      data: {
+        reservationId,
+        actorUserId,
+        type: "ADMIN_NOTE",
+        metadata: {
+          kind: "checkout_session_expiry_failed",
+          sessions: stillOpen,
+        },
+      },
+    });
+  }
+
+  return { reservation, retention, checkoutExpiry };
 }
 
 /**
