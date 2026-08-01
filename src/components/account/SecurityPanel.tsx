@@ -5,13 +5,16 @@ import { useSearchParams } from "next/navigation";
 import {
   useCallback,
   useEffect,
+  useId,
   useRef,
   useState,
   type FormEvent,
   type ReactNode,
+  type RefObject,
 } from "react";
 import { useLanguage } from "@/components/Language/LanguageContext";
 import { useT, type TranslationKey } from "@/components/Language/useT";
+import PasswordRequirements from "@/components/auth/PasswordRequirements";
 import { validatePasswordPolicy } from "@/lib/password-policy";
 
 type SecurityState = {
@@ -38,6 +41,8 @@ const securityErrorKeys: Record<string, TranslationKey> = {
   PASSWORD_POLICY: "passwordPolicyError",
   PASSWORD_UNCHANGED: "securityPasswordUnchanged",
   PASSWORD_NOT_SET: "securityPasswordUnavailable",
+  PASSWORD_ALREADY_SET: "securityPasswordAlreadySet",
+  PASSWORD_SETUP_ERROR: "securityPasswordSetupError",
 };
 
 export default function SecurityPanel({
@@ -50,6 +55,7 @@ export default function SecurityPanel({
   const searchParams = useSearchParams();
   const initialError = searchParams.get("error");
   const [security, setSecurity] = useState<SecurityState | null>(null);
+  const [message, setMessage] = useState("");
   const [error, setError] = useState(
     initialError === "GoogleEmailMismatch"
       ? t("securityGoogleMismatch")
@@ -60,12 +66,14 @@ export default function SecurityPanel({
   const [working, setWorking] = useState(false);
   const [mfaDialogEnabled, setMfaDialogEnabled] = useState<boolean | null>(null);
   const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
+  const mfaTriggerRef = useRef<HTMLButtonElement>(null);
+  const passwordTriggerRef = useRef<HTMLButtonElement>(null);
 
   const localizeError = useCallback(
     (result: SecurityErrorResponse, fallback: TranslationKey) =>
       result.code && securityErrorKeys[result.code]
         ? t(securityErrorKeys[result.code])
-        : result.error ?? t(fallback),
+        : t(fallback),
     [t]
   );
 
@@ -86,19 +94,23 @@ export default function SecurityPanel({
   const updateMfa = async (enabled: boolean, password: string) => {
     setWorking(true);
     setError("");
-    const response = await fetch("/api/account/security", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ enabled, password, locale }),
-    });
-    const result = (await response.json().catch(() => ({}))) as SecurityErrorResponse;
-    if (!response.ok) {
-      setWorking(false);
-      return localizeError(result, "securityUpdateError");
-    }
+    setMessage("");
+    try {
+      const response = await fetch("/api/account/security", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ enabled, password, locale }),
+      });
+      const result = (await response.json().catch(() => ({}))) as SecurityErrorResponse;
+      if (!response.ok) return localizeError(result, "securityUpdateError");
 
-    await signOut({ callbackUrl: "/account?signedOut=1" });
-    return null;
+      await signOut({ callbackUrl: "/account?signedOut=1" });
+      return null;
+    } catch {
+      return t("securityUpdateError");
+    } finally {
+      setWorking(false);
+    }
   };
 
   const changePassword = async (
@@ -107,34 +119,68 @@ export default function SecurityPanel({
   ) => {
     setWorking(true);
     setError("");
-    const response = await fetch("/api/account/security", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ currentPassword, newPassword }),
-    });
-    const result = (await response.json().catch(() => ({}))) as SecurityErrorResponse;
-    if (!response.ok) {
-      setWorking(false);
-      return localizeError(result, "securityPasswordUpdateError");
-    }
+    setMessage("");
+    try {
+      const response = await fetch("/api/account/security", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ currentPassword, newPassword, locale }),
+      });
+      const result = (await response.json().catch(() => ({}))) as SecurityErrorResponse;
+      if (!response.ok) {
+        return localizeError(result, "securityPasswordUpdateError");
+      }
 
-    await signOut({ callbackUrl: "/account?signedOut=1" });
-    return null;
+      await signOut({ callbackUrl: "/account?signedOut=1" });
+      return null;
+    } catch {
+      return t("securityPasswordUpdateError");
+    } finally {
+      setWorking(false);
+    }
+  };
+
+  const requestPasswordSetup = async () => {
+    setWorking(true);
+    setError("");
+    setMessage("");
+    try {
+      const response = await fetch("/api/account/security", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ locale }),
+      });
+      const result = (await response.json().catch(() => ({}))) as SecurityErrorResponse;
+      if (!response.ok) {
+        setError(localizeError(result, "securityPasswordSetupError"));
+        return;
+      }
+      setMessage(t("securityPasswordSetupSent"));
+    } catch {
+      setError(t("securityPasswordSetupError"));
+    } finally {
+      setWorking(false);
+    }
   };
 
   const linkGoogle = async () => {
     setWorking(true);
     setError("");
-    const response = await fetch("/api/auth/link-google/start", {
-      method: "POST",
-    });
-    const result = (await response.json().catch(() => ({}))) as SecurityErrorResponse;
-    if (!response.ok) {
-      setError(result.error ?? t("securityGoogleStartError"));
+    setMessage("");
+    try {
+      const response = await fetch("/api/auth/link-google/start", {
+        method: "POST",
+      });
+      if (!response.ok) {
+        setError(t("securityGoogleStartError"));
+        return;
+      }
+      await signIn("google", { callbackUrl: "/account?tab=security" });
+    } catch {
+      setError(t("securityGoogleStartError"));
+    } finally {
       setWorking(false);
-      return;
     }
-    await signIn("google", { callbackUrl: "/account?tab=security" });
   };
 
   if (!security) {
@@ -158,6 +204,7 @@ export default function SecurityPanel({
           </p>
         </div>
 
+        {message && <p className="text-sm text-[#c7e8c7]">{message}</p>}
         {error && <p className="text-sm text-[#ffd9d9]">{error}</p>}
 
         <div className="space-y-2 border-t border-white/15 pt-5">
@@ -183,14 +230,24 @@ export default function SecurityPanel({
               ? t("securityPasswordDescription")
               : t("securityPasswordUnavailable")}
           </p>
-          {security.hasPassword && (
+          {security.hasPassword ? (
             <button
+              ref={passwordTriggerRef}
               type="button"
               disabled={working}
               onClick={() => setPasswordDialogOpen(true)}
               className="rounded-xl bg-[#0d3350] px-5 py-2 disabled:opacity-60"
             >
               {t("securityChangePassword")}
+            </button>
+          ) : (
+            <button
+              type="button"
+              disabled={working}
+              onClick={requestPasswordSetup}
+              className="rounded-xl bg-[#0d3350] px-5 py-2 disabled:opacity-60"
+            >
+              {t("securitySetPassword")}
             </button>
           )}
         </div>
@@ -206,6 +263,7 @@ export default function SecurityPanel({
           </p>
           {security.hasPassword && (
             <button
+              ref={mfaTriggerRef}
               type="button"
               disabled={working || security.emailMfaRequired}
               onClick={() => setMfaDialogEnabled(!emailMfaEnabled)}
@@ -245,12 +303,14 @@ export default function SecurityPanel({
       <MfaPasswordDialog
         enabled={mfaDialogEnabled}
         busy={working}
+        returnFocusRef={mfaTriggerRef}
         onClose={() => setMfaDialogEnabled(null)}
         onConfirm={updateMfa}
       />
       <ChangePasswordDialog
         open={passwordDialogOpen}
         busy={working}
+        returnFocusRef={passwordTriggerRef}
         onClose={() => setPasswordDialogOpen(false)}
         onConfirm={changePassword}
       />
@@ -261,11 +321,13 @@ export default function SecurityPanel({
 function MfaPasswordDialog({
   enabled,
   busy,
+  returnFocusRef,
   onClose,
   onConfirm,
 }: {
   enabled: boolean | null;
   busy: boolean;
+  returnFocusRef: RefObject<HTMLButtonElement | null>;
   onClose: () => void;
   onConfirm: (enabled: boolean, password: string) => Promise<string | null>;
 }) {
@@ -296,6 +358,7 @@ function MfaPasswordDialog({
           : t("securityDisableCodesDialogTitle")
       }
       busy={busy}
+      returnFocusRef={returnFocusRef}
       onClose={close}
     >
       <form onSubmit={submit} className="space-y-4">
@@ -320,11 +383,13 @@ function MfaPasswordDialog({
 function ChangePasswordDialog({
   open,
   busy,
+  returnFocusRef,
   onClose,
   onConfirm,
 }: {
   open: boolean;
   busy: boolean;
+  returnFocusRef: RefObject<HTMLButtonElement | null>;
   onClose: () => void;
   onConfirm: (currentPassword: string, newPassword: string) => Promise<string | null>;
 }) {
@@ -363,6 +428,7 @@ function ChangePasswordDialog({
       open={open}
       title={t("securityChangePasswordDialogTitle")}
       busy={busy}
+      returnFocusRef={returnFocusRef}
       onClose={close}
     >
       <form onSubmit={submit} className="space-y-4">
@@ -382,13 +448,7 @@ function ChangePasswordDialog({
           value={confirmation}
           onChange={setConfirmation}
         />
-        <ul className="grid gap-1 text-xs text-[var(--color-beige)]/75 sm:grid-cols-2">
-          <PasswordRule valid={policy.minLength}>{t("passwordReqMinLength")}</PasswordRule>
-          <PasswordRule valid={policy.hasUppercase}>{t("passwordReqUppercase")}</PasswordRule>
-          <PasswordRule valid={policy.hasLowercase}>{t("passwordReqLowercase")}</PasswordRule>
-          <PasswordRule valid={policy.hasNumber}>{t("passwordReqNumber")}</PasswordRule>
-          <PasswordRule valid={policy.hasSymbol}>{t("passwordReqSymbol")}</PasswordRule>
-        </ul>
+        <PasswordRequirements password={newPassword} tone="dark" />
         {error && <DialogError>{error}</DialogError>}
         <DialogActions
           busy={busy}
@@ -406,49 +466,85 @@ function SecurityDialog({
   open,
   title,
   busy,
+  returnFocusRef,
   onClose,
   children,
 }: {
   open: boolean;
   title: string;
   busy: boolean;
+  returnFocusRef: RefObject<HTMLButtonElement | null>;
   onClose: () => void;
   children: ReactNode;
 }) {
-  const titleId = "security-dialog-title";
+  const titleId = useId();
   const dialogRef = useRef<HTMLDivElement>(null);
   const onCloseRef = useRef(onClose);
+  const busyRef = useRef(busy);
 
   useEffect(() => {
     onCloseRef.current = onClose;
   }, [onClose]);
 
   useEffect(() => {
+    busyRef.current = busy;
+  }, [busy]);
+
+  useEffect(() => {
     if (!open) return;
+    const returnFocusTo = returnFocusRef.current;
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape" && !busy) onCloseRef.current();
+      if (event.key === "Escape" && !busyRef.current) {
+        event.preventDefault();
+        onCloseRef.current();
+        return;
+      }
+      if (event.key !== "Tab") return;
+
+      const focusable = Array.from(
+        dialogRef.current?.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), input:not([disabled]), [href], [tabindex]:not([tabindex="-1"])'
+        ) ?? []
+      );
+      if (!focusable.length) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
     };
     document.addEventListener("keydown", handleKeyDown);
-    dialogRef.current?.querySelector<HTMLElement>("[autofocus]")?.focus();
     return () => {
       document.body.style.overflow = previousOverflow;
       document.removeEventListener("keydown", handleKeyDown);
+      returnFocusTo?.focus();
     };
-  }, [busy, open]);
+  }, [open, returnFocusRef]);
 
   if (!open) return null;
 
   return (
     <div
-      ref={dialogRef}
       className="fixed inset-0 z-[200] flex items-center justify-center bg-black/70 p-4"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby={titleId}
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget && !busyRef.current) {
+          onCloseRef.current();
+        }
+      }}
     >
-      <div className="w-full max-w-md border border-white/15 bg-[#3f5666] p-6 text-[var(--color-beige)] shadow-[0_18px_55px_rgba(0,0,0,0.55)] md:p-7">
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        className="w-full max-w-md border border-white/15 bg-[#3f5666] p-6 text-[var(--color-beige)] shadow-[0_18px_55px_rgba(0,0,0,0.55)] md:p-7"
+      >
         <h2 id={titleId} className="mb-5 border-b border-white/15 pb-3 text-lg">
           {title}
         </h2>
@@ -482,10 +578,6 @@ function PasswordField({
       />
     </label>
   );
-}
-
-function PasswordRule({ valid, children }: { valid: boolean; children: ReactNode }) {
-  return <li className={valid ? "text-[#c7e8c7]" : undefined}>• {children}</li>;
 }
 
 function DialogError({ children }: { children: ReactNode }) {

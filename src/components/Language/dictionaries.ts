@@ -219,7 +219,12 @@ const en = {
   securityPasswordDescription:
     "Change your password and sign out any other active sessions.",
   securityPasswordUnavailable:
-    "This account does not currently use password sign-in.",
+    "This account currently uses Google sign-in. Add a password if you also want to sign in by email.",
+  securitySetPassword: "Set a password",
+  securityPasswordSetupSent:
+    "A secure password setup link was sent to your verified email.",
+  securityPasswordSetupError: "Unable to send the password setup link.",
+  securityPasswordAlreadySet: "This account already has a password.",
   securityChangePassword: "Change password",
   securityPasswordUpdateError: "Unable to change password",
   securityChangePasswordDialogTitle: "Change your password",
@@ -703,7 +708,13 @@ export const dictionaries: Record<Locale, Dictionary> = {
     securityPasswordDescription:
       "Modifiez votre mot de passe et déconnectez les autres sessions actives.",
     securityPasswordUnavailable:
-      "Ce compte n'utilise actuellement pas la connexion par mot de passe.",
+      "Ce compte utilise actuellement Google. Ajoutez un mot de passe pour pouvoir aussi vous connecter par e-mail.",
+    securitySetPassword: "Définir un mot de passe",
+    securityPasswordSetupSent:
+      "Un lien sécurisé pour définir votre mot de passe a été envoyé à votre e-mail vérifié.",
+    securityPasswordSetupError:
+      "Impossible d'envoyer le lien de création du mot de passe.",
+    securityPasswordAlreadySet: "Ce compte possède déjà un mot de passe.",
     securityChangePassword: "Modifier le mot de passe",
     securityPasswordUpdateError: "Impossible de modifier le mot de passe",
     securityChangePasswordDialogTitle: "Modifier votre mot de passe",
@@ -1165,7 +1176,13 @@ export const dictionaries: Record<Locale, Dictionary> = {
     securityPasswordDescription:
       "Ändern Sie Ihr Passwort und melden Sie andere aktive Sitzungen ab.",
     securityPasswordUnavailable:
-      "Dieses Konto verwendet derzeit keine Passwortanmeldung.",
+      "Dieses Konto verwendet derzeit Google. Fügen Sie ein Passwort hinzu, um sich auch per E-Mail anzumelden.",
+    securitySetPassword: "Passwort festlegen",
+    securityPasswordSetupSent:
+      "Ein sicherer Link zum Festlegen des Passworts wurde an Ihre bestätigte E-Mail-Adresse gesendet.",
+    securityPasswordSetupError:
+      "Der Link zum Festlegen des Passworts konnte nicht gesendet werden.",
+    securityPasswordAlreadySet: "Dieses Konto hat bereits ein Passwort.",
     securityChangePassword: "Passwort ändern",
     securityPasswordUpdateError: "Passwort konnte nicht geändert werden",
     securityChangePasswordDialogTitle: "Passwort ändern",
@@ -1628,7 +1645,13 @@ export const dictionaries: Record<Locale, Dictionary> = {
     securityPasswordDescription:
       "Wijzig je wachtwoord en meld andere actieve sessies af.",
     securityPasswordUnavailable:
-      "Dit account gebruikt momenteel geen wachtwoord om in te loggen.",
+      "Dit account gebruikt momenteel Google. Voeg een wachtwoord toe om ook via e-mail in te loggen.",
+    securitySetPassword: "Wachtwoord instellen",
+    securityPasswordSetupSent:
+      "Een veilige link om je wachtwoord in te stellen is naar je geverifieerde e-mail gestuurd.",
+    securityPasswordSetupError:
+      "De link om het wachtwoord in te stellen kon niet worden verzonden.",
+    securityPasswordAlreadySet: "Dit account heeft al een wachtwoord.",
     securityChangePassword: "Wachtwoord wijzigen",
     securityPasswordUpdateError: "Wachtwoord kon niet worden gewijzigd",
     securityChangePasswordDialogTitle: "Je wachtwoord wijzigen",
@@ -2114,7 +2137,13 @@ export const dictionaries: Record<Locale, Dictionary> = {
     securityPasswordDescription:
       "Измените пароль и завершите другие активные сеансы.",
     securityPasswordUnavailable:
-      "Этот аккаунт сейчас не использует вход по паролю.",
+      "Этот аккаунт сейчас использует Google. Добавьте пароль, чтобы также входить по электронной почте.",
+    securitySetPassword: "Установить пароль",
+    securityPasswordSetupSent:
+      "Безопасная ссылка для установки пароля отправлена на подтверждённую электронную почту.",
+    securityPasswordSetupError:
+      "Не удалось отправить ссылку для установки пароля.",
+    securityPasswordAlreadySet: "Для этого аккаунта уже установлен пароль.",
     securityChangePassword: "Изменить пароль",
     securityPasswordUpdateError: "Не удалось изменить пароль",
     securityChangePasswordDialogTitle: "Изменение пароля",
@@ -2611,7 +2640,13 @@ export const dictionaries: Record<Locale, Dictionary> = {
     securityPasswordDescription:
       "Cambia tu contrasena y cierra las demas sesiones activas.",
     securityPasswordUnavailable:
-      "Esta cuenta no utiliza actualmente el acceso con contrasena.",
+      "Esta cuenta utiliza actualmente Google. Anade una contrasena para iniciar sesion tambien por correo.",
+    securitySetPassword: "Establecer una contrasena",
+    securityPasswordSetupSent:
+      "Se envio un enlace seguro para establecer la contrasena a tu correo verificado.",
+    securityPasswordSetupError:
+      "No se pudo enviar el enlace para establecer la contrasena.",
+    securityPasswordAlreadySet: "Esta cuenta ya tiene una contrasena.",
     securityChangePassword: "Cambiar contrasena",
     securityPasswordUpdateError: "No se pudo cambiar la contrasena",
     securityChangePasswordDialogTitle: "Cambiar tu contrasena",
@@ -3074,7 +3109,13 @@ export const dictionaries: Record<Locale, Dictionary> = {
     securityPasswordDescription:
       "Cambia la password e disconnetti le altre sessioni attive.",
     securityPasswordUnavailable:
-      "Questo account non usa attualmente l'accesso con password.",
+      "Questo account usa attualmente Google. Aggiungi una password per accedere anche via e-mail.",
+    securitySetPassword: "Imposta una password",
+    securityPasswordSetupSent:
+      "Un link sicuro per impostare la password e stato inviato all'e-mail verificata.",
+    securityPasswordSetupError:
+      "Impossibile inviare il link per impostare la password.",
+    securityPasswordAlreadySet: "Questo account ha gia una password.",
     securityChangePassword: "Cambia password",
     securityPasswordUpdateError: "Impossibile cambiare la password",
     securityChangePasswordDialogTitle: "Cambia la password",

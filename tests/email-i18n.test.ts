@@ -5,6 +5,7 @@ import {
   getPasswordResetEmailCopy,
   normalizeEmailLocale,
 } from "@/lib/email-i18n";
+import { getAuthEmailCopy } from "@/lib/auth-email-i18n";
 
 test("email locale normalization accepts supported locales", () => {
   assert.equal(normalizeEmailLocale("fr"), "fr");
@@ -32,4 +33,15 @@ test("contact copy follows locale", () => {
 
   assert.equal(copy.fields.message, "Nachricht");
   assert.equal(copy.subject, "Neue Kontaktanfrage - Glamping Boat");
+});
+
+test("password-change security alerts follow the account locale", () => {
+  assert.equal(
+    getAuthEmailCopy("fr").passwordChangedSubject,
+    "Votre mot de passe Glamping Boat a été modifié"
+  );
+  assert.equal(
+    getAuthEmailCopy("de").passwordChangedSubject,
+    "Ihr Glamping Boat Passwort wurde geändert"
+  );
 });

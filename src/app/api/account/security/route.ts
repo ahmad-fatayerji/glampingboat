@@ -1,15 +1,20 @@
-import bcrypt from "bcryptjs";
 import { NextResponse } from "next/server";
 import { auth } from "@auth";
 import { recordAuthEvent } from "@/lib/auth-security";
-import { sendSecuritySettingEmail } from "@/lib/auth-emails";
+import {
+  sendPasswordChangedEmail,
+  sendSecuritySettingEmail,
+} from "@/lib/auth-emails";
+import {
+  changeAccountPassword,
+  verifyAccountSecurityPassword,
+  type AccountPasswordChangeResult,
+} from "@/lib/account-security-password";
 import { prisma } from "@/lib/prisma";
 import { getBoolean, getString, isRecord } from "@/lib/type-guards";
 import { normalizeEmailLocale } from "@/lib/email-i18n";
-import {
-  PASSWORD_POLICY_ERROR,
-  validatePasswordPolicy,
-} from "@/lib/password-policy";
+import { PASSWORD_POLICY_ERROR } from "@/lib/password-policy";
+import { issuePasswordResetEmail } from "@/lib/password-reset-email";
 
 async function currentSecurityUser() {
   const session = await auth();
@@ -20,47 +25,6 @@ async function currentSecurityUser() {
     where: { id: session.user.id },
     include: { authIdentities: true },
   });
-}
-
-const SECURITY_PASSWORD_FAILURE_LIMIT = 8;
-const SECURITY_PASSWORD_WINDOW_MS = 15 * 60 * 1000;
-
-async function verifySecurityPassword(
-  user: NonNullable<Awaited<ReturnType<typeof currentSecurityUser>>>,
-  password: string | undefined,
-  req: Request
-) {
-  const windowStart = new Date(Date.now() - SECURITY_PASSWORD_WINDOW_MS);
-  const lastSuccess = await prisma.authEvent.findFirst({
-    where: {
-      userId: user.id,
-      type: "SIGN_IN",
-      provider: "account-security",
-      createdAt: { gte: windowStart },
-    },
-    orderBy: { createdAt: "desc" },
-    select: { createdAt: true },
-  });
-  const failures = await prisma.authEvent.count({
-    where: {
-      userId: user.id,
-      type: "SIGN_IN_FAILED",
-      provider: "account-security",
-      createdAt: { gte: lastSuccess?.createdAt ?? windowStart },
-    },
-  });
-  if (failures >= SECURITY_PASSWORD_FAILURE_LIMIT) return "LIMITED";
-
-  const matches = Boolean(
-    password && user.password && (await bcrypt.compare(password, user.password))
-  );
-  await recordAuthEvent({
-    userId: user.id,
-    type: matches ? "SIGN_IN" : "SIGN_IN_FAILED",
-    provider: "account-security",
-    request: req,
-  });
-  return matches ? "VERIFIED" : "INVALID";
 }
 
 export async function GET() {
@@ -79,6 +43,50 @@ export async function GET() {
     ),
     hasPassword: Boolean(user.password),
   });
+}
+
+export async function POST(req: Request) {
+  const user = await currentSecurityUser();
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  if (user.password) {
+    return NextResponse.json(
+      { code: "PASSWORD_ALREADY_SET", error: "This account already has a password" },
+      { status: 409 }
+    );
+  }
+  if (!user.emailVerifiedAt) {
+    return NextResponse.json(
+      {
+        code: "EMAIL_VERIFICATION_REQUIRED",
+        error: "Verify your email before setting a password",
+      },
+      { status: 403 }
+    );
+  }
+
+  const body = await req.json().catch(() => null);
+  const locale = normalizeEmailLocale(
+    isRecord(body) ? getString(body, "locale") : undefined
+  );
+  try {
+    const origin = process.env.NEXTAUTH_URL ?? new URL(req.url).origin;
+    await issuePasswordResetEmail({
+      userId: user.id,
+      email: user.email,
+      locale,
+      origin,
+    });
+  } catch (error) {
+    console.error("Failed to issue password setup link", error);
+    return NextResponse.json(
+      { code: "PASSWORD_SETUP_ERROR", error: "Unable to send password setup link" },
+      { status: 500 }
+    );
+  }
+
+  return NextResponse.json({ ok: true });
 }
 
 export async function PUT(req: Request) {
@@ -117,7 +125,11 @@ export async function PUT(req: Request) {
       { status: 409 }
     );
   }
-  const passwordResult = await verifySecurityPassword(user, password, req);
+  const passwordResult = await verifyAccountSecurityPassword({
+    user,
+    password,
+    request: req,
+  });
   if (passwordResult === "LIMITED") {
     return NextResponse.json(
       {
@@ -171,16 +183,6 @@ export async function PATCH(req: Request) {
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  if (!user.password) {
-    return NextResponse.json(
-      {
-        code: "PASSWORD_NOT_SET",
-        error: "This account does not have a password",
-      },
-      { status: 409 }
-    );
-  }
-
   const body = await req.json().catch(() => null);
   const currentPassword = isRecord(body)
     ? getString(body, "currentPassword")
@@ -188,61 +190,52 @@ export async function PATCH(req: Request) {
   const newPassword = isRecord(body)
     ? getString(body, "newPassword")
     : undefined;
-  if (!newPassword || !validatePasswordPolicy(newPassword).valid) {
-    return NextResponse.json(
-      { code: "PASSWORD_POLICY", error: PASSWORD_POLICY_ERROR },
-      { status: 400 }
-    );
-  }
-
-  const passwordResult = await verifySecurityPassword(
+  const locale = normalizeEmailLocale(
+    isRecord(body) ? getString(body, "locale") : undefined
+  );
+  const result = await changeAccountPassword({
     user,
     currentPassword,
-    req
-  );
-  if (passwordResult === "LIMITED") {
-    return NextResponse.json(
-      {
-        code: "TOO_MANY_ATTEMPTS",
-        error: "Too many password attempts. Try again later.",
-      },
-      { status: 429 }
-    );
-  }
-  if (passwordResult === "INVALID") {
-    return NextResponse.json(
-      {
-        code: "CURRENT_PASSWORD_REQUIRED",
-        error: "Your current password is required",
-      },
-      { status: 401 }
-    );
-  }
-
-  if (await bcrypt.compare(newPassword, user.password)) {
-    return NextResponse.json(
-      {
-        code: "PASSWORD_UNCHANGED",
-        error: "Choose a password different from your current password",
-      },
-      { status: 400 }
-    );
-  }
-
-  await prisma.user.update({
-    where: { id: user.id },
-    data: {
-      password: await bcrypt.hash(newPassword, 12),
-      sessionVersion: { increment: 1 },
-    },
-  });
-  await recordAuthEvent({
-    userId: user.id,
-    type: "PASSWORD_RESET",
-    provider: "account-security-change",
     request: req,
-    metadata: { action: "password-change" },
+    newPassword,
   });
+  const errorResponse = passwordChangeErrorResponse(result);
+  if (errorResponse) return errorResponse;
+
+  await sendPasswordChangedEmail(user.email, locale).catch((error) =>
+    console.error("Failed to send password-change email", error)
+  );
 
   return NextResponse.json({ ok: true });
+}
+
+function passwordChangeErrorResponse(result: AccountPasswordChangeResult) {
+  const errors: Partial<
+    Record<AccountPasswordChangeResult, { status: number; error: string }>
+  > = {
+    PASSWORD_NOT_SET: {
+      status: 409,
+      error: "This account does not have a password",
+    },
+    PASSWORD_POLICY: { status: 400, error: PASSWORD_POLICY_ERROR },
+    PASSWORD_UNCHANGED: {
+      status: 400,
+      error: "Choose a password different from your current password",
+    },
+    CURRENT_PASSWORD_REQUIRED: {
+      status: 401,
+      error: "Your current password is required",
+    },
+    TOO_MANY_ATTEMPTS: {
+      status: 429,
+      error: "Too many password attempts. Try again later.",
+    },
+  };
+  const match = errors[result];
+  return match
+    ? NextResponse.json(
+        { code: result, error: match.error },
+        { status: match.status }
+      )
+    : null;
 }

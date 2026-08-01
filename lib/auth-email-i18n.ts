@@ -26,6 +26,10 @@ type AuthEmailCopy = {
   settingPreview: (enabled: boolean) => string;
   settingBody: (enabled: boolean) => string;
   settingText: (enabled: boolean) => string;
+  passwordChangedSubject: string;
+  passwordChangedPreview: string;
+  passwordChangedBody: string;
+  passwordChangedText: string;
 };
 
 const en: AuthEmailCopy = {
@@ -57,6 +61,12 @@ const en: AuthEmailCopy = {
   settingPreview: (enabled) => `Email sign-in codes were ${enabled ? "enabled" : "disabled"} for your account.`,
   settingBody: (enabled) => `<p>Email sign-in codes were <strong>${enabled ? "enabled" : "disabled"}</strong> for your Glamping Boat account.</p><p>If you did not make this change, reset your password and contact us immediately.</p>`,
   settingText: (enabled) => `Email sign-in codes were ${enabled ? "enabled" : "disabled"} for your Glamping Boat account. If you did not make this change, reset your password and contact us immediately.`,
+  passwordChangedSubject: "Your Glamping Boat password was changed",
+  passwordChangedPreview: "The password for your account was changed.",
+  passwordChangedBody:
+    "<p>The password for your Glamping Boat account was changed successfully.</p><p>If you did not make this change, use password reset immediately and contact us.</p>",
+  passwordChangedText:
+    "Your Glamping Boat password was changed. If you did not make this change, use password reset immediately and contact us.",
 };
 
 const copies: Record<Locale, AuthEmailCopy> = {
@@ -87,6 +97,12 @@ const copies: Record<Locale, AuthEmailCopy> = {
     settingPreview: (enabled) => `Les codes de connexion ont été ${enabled ? "activés" : "désactivés"} pour votre compte.`,
     settingBody: (enabled) => `<p>Les codes de connexion par e-mail ont été <strong>${enabled ? "activés" : "désactivés"}</strong>.</p><p>Si vous n'avez pas effectué cette modification, réinitialisez votre mot de passe et contactez-nous immédiatement.</p>`,
     settingText: (enabled) => `Les codes de connexion ont été ${enabled ? "activés" : "désactivés"}. Si vous n'avez pas effectué cette modification, réinitialisez votre mot de passe et contactez-nous immédiatement.`,
+    passwordChangedSubject: "Votre mot de passe Glamping Boat a été modifié",
+    passwordChangedPreview: "Le mot de passe de votre compte a été modifié.",
+    passwordChangedBody:
+      "<p>Le mot de passe de votre compte Glamping Boat a été modifié.</p><p>Si vous n'êtes pas à l'origine de cette action, réinitialisez immédiatement votre mot de passe et contactez-nous.</p>",
+    passwordChangedText:
+      "Votre mot de passe Glamping Boat a été modifié. Si vous n'êtes pas à l'origine de cette action, réinitialisez-le immédiatement et contactez-nous.",
   },
   de: {
     ...en,
@@ -108,6 +124,12 @@ const copies: Record<Locale, AuthEmailCopy> = {
     linkedPreview: "Google wurde als Anmeldemethode hinzugefügt.",
     linkedBody: "<p>Ihr Google-Konto wurde erfolgreich verknüpft.</p><p>Wenn Sie dies nicht waren, setzen Sie Ihr Passwort zurück und kontaktieren Sie uns sofort.</p>",
     linkedText: "Google wurde mit Ihrem Glamping Boat Konto verknüpft. Wenn Sie dies nicht waren, setzen Sie Ihr Passwort zurück und kontaktieren Sie uns sofort.",
+    passwordChangedSubject: "Ihr Glamping Boat Passwort wurde geändert",
+    passwordChangedPreview: "Das Passwort Ihres Kontos wurde geändert.",
+    passwordChangedBody:
+      "<p>Das Passwort Ihres Glamping Boat Kontos wurde geändert.</p><p>Wenn Sie dies nicht waren, setzen Sie Ihr Passwort sofort zurück und kontaktieren Sie uns.</p>",
+    passwordChangedText:
+      "Ihr Glamping Boat Passwort wurde geändert. Wenn Sie dies nicht waren, setzen Sie es sofort zurück und kontaktieren Sie uns.",
   },
   nl: {
     ...en,
@@ -129,6 +151,12 @@ const copies: Record<Locale, AuthEmailCopy> = {
     linkedPreview: "Google is toegevoegd als inlogmethode.",
     linkedBody: "<p>Je Google-account is gekoppeld.</p><p>Was jij dit niet, reset dan je wachtwoord en neem direct contact met ons op.</p>",
     linkedText: "Google is gekoppeld aan je Glamping Boat account. Was jij dit niet, reset dan je wachtwoord en neem direct contact met ons op.",
+    passwordChangedSubject: "Je Glamping Boat wachtwoord is gewijzigd",
+    passwordChangedPreview: "Het wachtwoord van je account is gewijzigd.",
+    passwordChangedBody:
+      "<p>Het wachtwoord van je Glamping Boat account is gewijzigd.</p><p>Was jij dit niet, reset dan onmiddellijk je wachtwoord en neem contact met ons op.</p>",
+    passwordChangedText:
+      "Je Glamping Boat wachtwoord is gewijzigd. Was jij dit niet, reset het dan onmiddellijk en neem contact met ons op.",
   },
   ru: {
     ...en,
@@ -150,6 +178,12 @@ const copies: Record<Locale, AuthEmailCopy> = {
     linkedPreview: "Добавлен способ входа через Google.",
     linkedBody: "<p>Аккаунт Google успешно подключен.</p><p>Если это сделали не вы, смените пароль и немедленно свяжитесь с нами.</p>",
     linkedText: "Google подключен к вашему аккаунту Glamping Boat. Если это сделали не вы, смените пароль и немедленно свяжитесь с нами.",
+    passwordChangedSubject: "Пароль Glamping Boat был изменён",
+    passwordChangedPreview: "Пароль вашего аккаунта был изменён.",
+    passwordChangedBody:
+      "<p>Пароль вашего аккаунта Glamping Boat был изменён.</p><p>Если это сделали не вы, немедленно сбросьте пароль и свяжитесь с нами.</p>",
+    passwordChangedText:
+      "Пароль вашего аккаунта Glamping Boat был изменён. Если это сделали не вы, немедленно сбросьте пароль и свяжитесь с нами.",
   },
   es: {
     ...en,
@@ -171,6 +205,12 @@ const copies: Record<Locale, AuthEmailCopy> = {
     linkedPreview: "Se añadió el acceso con Google.",
     linkedBody: "<p>Tu cuenta de Google se vinculó correctamente.</p><p>Si no fuiste tú, restablece la contraseña y contáctanos de inmediato.</p>",
     linkedText: "Google se vinculó a tu cuenta de Glamping Boat. Si no fuiste tú, restablece la contraseña y contáctanos de inmediato.",
+    passwordChangedSubject: "Tu contraseña de Glamping Boat ha cambiado",
+    passwordChangedPreview: "La contraseña de tu cuenta ha cambiado.",
+    passwordChangedBody:
+      "<p>La contraseña de tu cuenta de Glamping Boat ha cambiado.</p><p>Si no fuiste tú, restablece la contraseña inmediatamente y contáctanos.</p>",
+    passwordChangedText:
+      "Tu contraseña de Glamping Boat ha cambiado. Si no fuiste tú, restablécela inmediatamente y contáctanos.",
   },
   it: {
     ...en,
@@ -192,6 +232,12 @@ const copies: Record<Locale, AuthEmailCopy> = {
     linkedPreview: "È stato aggiunto l'accesso con Google.",
     linkedBody: "<p>Il tuo account Google è stato collegato.</p><p>Se non sei stato tu, reimposta la password e contattaci immediatamente.</p>",
     linkedText: "Google è stato collegato al tuo account Glamping Boat. Se non sei stato tu, reimposta la password e contattaci immediatamente.",
+    passwordChangedSubject: "La password di Glamping Boat è stata modificata",
+    passwordChangedPreview: "La password del tuo account è stata modificata.",
+    passwordChangedBody:
+      "<p>La password del tuo account Glamping Boat è stata modificata.</p><p>Se non sei stato tu, reimposta immediatamente la password e contattaci.</p>",
+    passwordChangedText:
+      "La password del tuo account Glamping Boat è stata modificata. Se non sei stato tu, reimpostala immediatamente e contattaci.",
   },
 };
 
