@@ -12,7 +12,9 @@ import {
   buildReservationOptionLines,
   calculateReservationPricingSummary,
   generateBookingReference,
+  isOverlapConstraintViolation,
   isRangeBookable,
+  lockCalendar,
   PRIVACY_HASH,
   PRIVACY_VERSION,
   PRICING_VERSION,
@@ -73,23 +75,6 @@ function startOfDay(date: Date) {
   const copy = new Date(date);
   copy.setHours(0, 0, 0, 0);
   return copy;
-}
-
-/** Postgres exclusion_violation, raised by the no-overlap constraints. */
-function isOverlapConstraintViolation(error: unknown) {
-  if (!error || typeof error !== "object") {
-    return false;
-  }
-
-  const meta = "meta" in error ? error.meta : undefined;
-  const haystack = JSON.stringify(
-    "code" in error ? { code: error.code, meta } : { meta }
-  );
-
-  return (
-    haystack.includes("23P01") ||
-    haystack.includes("Reservation_no_active_overlap")
-  );
 }
 
 function getClientIp(req: NextRequest) {
@@ -289,6 +274,10 @@ export async function POST(req: NextRequest) {
     const locale = parsed.locale.slice(0, 12);
 
     const reservationId = await prisma.$transaction(async (tx) => {
+      // Serialise against concurrent availability-block writers, which the
+      // per-table exclusion constraints cannot see.
+      await lockCalendar(tx);
+
       const overlapping = await tx.reservation.findFirst({
         where: buildActiveReservationOverlapWhere(start, end),
         select: { id: true },

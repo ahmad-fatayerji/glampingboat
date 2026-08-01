@@ -396,6 +396,47 @@ export function buildPricingSnapshot({
   };
 }
 
+/**
+ * Advisory lock key guarding all calendar mutations.
+ *
+ * Reservations and availability blocks live in separate tables, so no single
+ * exclusion constraint can stop a booking and an owner block from claiming the
+ * same nights concurrently: each passes its own check, each commits, and the
+ * database has no basis to object. There is one boat, so serialising calendar
+ * writers behind a single lock costs nothing and closes the gap completely.
+ *
+ * Every transaction that inserts or extends a reservation or an availability
+ * block must call `lockCalendar` before it reads availability. The lock is
+ * transaction-scoped and releases on commit or rollback.
+ */
+export const CALENDAR_LOCK_KEY = 4207311001;
+
+/**
+ * Postgres exclusion_violation (SQLSTATE 23P01), raised by the no-overlap
+ * constraints when two ranges collide. Prisma surfaces it as a raw database
+ * error rather than a typed one, so match on the code and constraint name.
+ */
+export function isOverlapConstraintViolation(error: unknown) {
+  if (!error || typeof error !== "object") {
+    return false;
+  }
+
+  const meta = "meta" in error ? error.meta : undefined;
+  const haystack = JSON.stringify(
+    "code" in error ? { code: error.code, meta } : { meta }
+  );
+
+  return (
+    haystack.includes("23P01") ||
+    haystack.includes("Reservation_no_active_overlap") ||
+    haystack.includes("AvailabilityBlock_no_overlap")
+  );
+}
+
+export async function lockCalendar(tx: Prisma.TransactionClient) {
+  await tx.$executeRaw`SELECT pg_advisory_xact_lock(${CALENDAR_LOCK_KEY}::bigint)`;
+}
+
 export function buildActiveReservationOverlapWhere(start: Date, end: Date) {
   return {
     status: { in: ACTIVE_RESERVATION_STATUSES },

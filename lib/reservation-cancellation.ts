@@ -2,6 +2,10 @@ import type { Prisma, ReservationStatus } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 import { getStripeServerClient } from "@/lib/stripe";
 import {
+  getRefundableTotalCents,
+  isReservationFullyRefunded,
+} from "@/lib/stripe-payments";
+import {
   calculateRetention,
   type CancellationCause,
   type RetentionOutcome,
@@ -226,9 +230,10 @@ export async function refundReservation({
 
   const alreadyRefunded = reservation.refundedAmountCents;
   const owed =
-    reservation.paidAmountCents -
-    reservation.retainedAmountCents -
-    alreadyRefunded;
+    getRefundableTotalCents({
+      paidAmountCents: reservation.paidAmountCents,
+      retainedAmountCents: reservation.retainedAmountCents,
+    }) - alreadyRefunded;
 
   if (owed <= 0) {
     throw new ReservationCancellationError("No refund is owed", 409);
@@ -277,15 +282,26 @@ export async function refundReservation({
 
     const totalRefundedOnPayment = payment.refundedAmountCents + slice;
 
-    await prisma.bookingPayment.update({
-      where: { id: payment.id },
-      data: {
-        stripeRefundId: refund.id,
-        refundedAmountCents: totalRefundedOnPayment,
-        refundedAt: new Date(),
-        status:
-          totalRefundedOnPayment >= payment.amountCents ? "REFUNDED" : "PAID",
-      },
+    // Commit this slice against both the payment and the reservation before
+    // moving on. If a later slice fails, the money already sent is durably
+    // accounted for, so a retry recomputes what is still owed from real state
+    // instead of refunding the original amount a second time.
+    await prisma.$transaction(async (tx) => {
+      await tx.bookingPayment.update({
+        where: { id: payment.id },
+        data: {
+          stripeRefundId: refund.id,
+          refundedAmountCents: totalRefundedOnPayment,
+          refundedAt: new Date(),
+          status:
+            totalRefundedOnPayment >= payment.amountCents ? "REFUNDED" : "PAID",
+        },
+      });
+
+      await tx.reservation.update({
+        where: { id: reservationId },
+        data: { refundedAmountCents: { increment: slice } },
+      });
     });
 
     refunds.push({
@@ -304,15 +320,25 @@ export async function refundReservation({
   }
 
   const refundedTotal = target - remaining;
-  const refundedToDate = alreadyRefunded + refundedTotal;
-  const fullyRefunded =
-    refundedToDate >= reservation.paidAmountCents - reservation.retainedAmountCents;
+  // Read the running total back rather than recomputing it: the per-slice
+  // increments above are the authority now.
+  const refundedToDate =
+    (
+      await prisma.reservation.findUniqueOrThrow({
+        where: { id: reservationId },
+        select: { refundedAmountCents: true },
+      })
+    ).refundedAmountCents;
+  const fullyRefunded = isReservationFullyRefunded({
+    paidAmountCents: reservation.paidAmountCents,
+    retainedAmountCents: reservation.retainedAmountCents,
+    refundedAmountCents: refundedToDate,
+  });
 
   const updated = await prisma.$transaction(async (tx) => {
     const next = await tx.reservation.update({
       where: { id: reservationId },
       data: {
-        refundedAmountCents: refundedToDate,
         paymentStatus: fullyRefunded ? "REFUNDED" : "REFUND_PENDING",
       },
     });

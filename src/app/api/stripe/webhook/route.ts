@@ -3,6 +3,7 @@ import Stripe from "stripe";
 import { prisma } from "@/lib/prisma";
 import {
     getReservationPaidStatus,
+    isReservationFullyRefunded,
     markCheckoutSessionPaid,
 } from "@/lib/stripe-payments";
 import { getStripeServerClient } from "@/lib/stripe";
@@ -183,10 +184,11 @@ async function processChargeRefunded(event: Stripe.Event) {
     const reservationRefunded =
         (otherPaymentsRefunded._sum.refundedAmountCents ?? 0) + refundedOnPayment;
 
-    const retained = Math.max(
-        0,
-        payment.reservation.paidAmountCents - reservationRefunded
-    );
+    const fullyRefunded = isReservationFullyRefunded({
+        paidAmountCents: payment.reservation.paidAmountCents,
+        retainedAmountCents: payment.reservation.retainedAmountCents,
+        refundedAmountCents: reservationRefunded,
+    });
 
     await prisma.$transaction(async (tx) => {
         await tx.bookingPayment.update({
@@ -208,7 +210,7 @@ async function processChargeRefunded(event: Stripe.Event) {
             where: { id: payment.reservationId },
             data: {
                 refundedAmountCents: reservationRefunded,
-                paymentStatus: retained <= 0 ? "REFUNDED" : "REFUND_PENDING",
+                paymentStatus: fullyRefunded ? "REFUNDED" : "REFUND_PENDING",
             },
         });
 

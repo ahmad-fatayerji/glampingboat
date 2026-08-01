@@ -31,6 +31,43 @@ export function getReservationPaidStatus(
   return "UNPAID";
 }
 
+/**
+ * How much of what was received must be returned, after CGV article 9
+ * retention. Zero for a stay where everything paid is legitimately retained.
+ */
+export function getRefundableTotalCents({
+  paidAmountCents,
+  retainedAmountCents,
+}: {
+  paidAmountCents: number;
+  retainedAmountCents: number;
+}) {
+  return Math.max(0, paidAmountCents - retainedAmountCents);
+}
+
+/**
+ * Whether a reservation's refund obligation is discharged.
+ *
+ * Completion means "everything article 9 leaves refundable has been sent", not
+ * "every cent taken has been sent". Shared by the admin refund endpoint and the
+ * charge.refunded webhook: when these two disagreed, a correct partial refund
+ * was marked REFUNDED by one and dragged back to REFUND_PENDING by the other.
+ */
+export function isReservationFullyRefunded({
+  paidAmountCents,
+  retainedAmountCents,
+  refundedAmountCents,
+}: {
+  paidAmountCents: number;
+  retainedAmountCents: number;
+  refundedAmountCents: number;
+}) {
+  return (
+    refundedAmountCents >=
+    getRefundableTotalCents({ paidAmountCents, retainedAmountCents })
+  );
+}
+
 export function getSettledPaidAmountCents({
   currentPaidAmountCents,
   paymentAmountCents,
@@ -93,6 +130,21 @@ export async function markCheckoutSessionPaid({
   assertCheckoutSessionMatchesPayment(session, payment);
 
   return prisma.$transaction(async (tx) => {
+    // Take the row lock before reading anything we branch on. The copy loaded
+    // above is only used for the amount assertions; a cancellation may commit
+    // between that read and this transaction, and acting on the stale status
+    // would flip a cancelled stay back to CONFIRMED. Blocking here until any
+    // in-flight cancellation commits guarantees the re-read below is current.
+    await tx.$queryRaw`SELECT id FROM "Reservation" WHERE id = ${payment.reservationId} FOR UPDATE`;
+
+    const reservation = await tx.reservation.findUnique({
+      where: { id: payment.reservationId },
+    });
+
+    if (!reservation) {
+      return null;
+    }
+
     const updatedPayment = await tx.bookingPayment.updateMany({
       where: {
         id: payment.id,
@@ -115,13 +167,13 @@ export async function markCheckoutSessionPaid({
     });
 
     if (updatedPayment.count === 0) {
-      return payment.reservation;
+      return reservation;
     }
 
     const paidAmountCents = getSettledPaidAmountCents({
-      currentPaidAmountCents: payment.reservation.paidAmountCents,
+      currentPaidAmountCents: reservation.paidAmountCents,
       paymentAmountCents: payment.amountCents,
-      totalAmountCents: payment.reservation.totalAmountTtcCents,
+      totalAmountCents: reservation.totalAmountTtcCents,
     });
 
     // A cancelled stay must never be revived by a late payment: the customer
@@ -129,15 +181,12 @@ export async function markCheckoutSessionPaid({
     // the money so it is never lost, but leave the reservation cancelled and
     // flag it for the owner to refund.
     const isCancelled = TERMINAL_RESERVATION_STATUSES.includes(
-      payment.reservation.status
+      reservation.status
     );
 
     const reservationPaymentStatus = isCancelled
       ? ("REFUND_PENDING" as const)
-      : getReservationPaidStatus(
-          paidAmountCents,
-          payment.reservation.totalAmountTtcCents
-        );
+      : getReservationPaidStatus(paidAmountCents, reservation.totalAmountTtcCents);
 
     const updatedReservation = await tx.reservation.update({
       where: { id: payment.reservationId },
@@ -161,7 +210,7 @@ export async function markCheckoutSessionPaid({
             paymentId: payment.id,
             amountCents: payment.amountCents,
             currency: payment.currency,
-            reservationStatus: payment.reservation.status,
+            reservationStatus: reservation.status,
             note: "Payment received on a cancelled reservation; refund required.",
           },
         },
@@ -172,7 +221,7 @@ export async function markCheckoutSessionPaid({
 
     const remainingAmountCents = Math.max(
       0,
-      payment.reservation.totalAmountTtcCents - paidAmountCents
+      reservation.totalAmountTtcCents - paidAmountCents
     );
     if (remainingAmountCents > 0 && payment.purpose === "DEPOSIT") {
       const existingBalancePayment = await tx.bookingPayment.findFirst({
@@ -193,7 +242,7 @@ export async function markCheckoutSessionPaid({
             status: "PENDING",
             amountCents: remainingAmountCents,
             currency: payment.currency,
-            idempotencyKey: `checkout:${payment.reservation.bookingRef}:balance`,
+            idempotencyKey: `checkout:${reservation.bookingRef}:balance`,
             stripeStatus: "not_created",
           },
         });
