@@ -6,15 +6,6 @@ export function googleLinkIntentMatches(
     googleCanonicalEmail === intendedCanonicalEmail;
 }
 
-export function existingGoogleIdentityDecision(
-  identityUserId: string,
-  intendedUserId: string | null
-) {
-  return intendedUserId && identityUserId !== intendedUserId
-    ? "ALREADY_LINKED"
-    : "SIGN_IN";
-}
-
 export function googleCandidateDecision(candidateCount: number) {
   if (candidateCount > 1) return "MERGE_REQUIRED";
   if (candidateCount === 1) return "CONFIRM_LINK";

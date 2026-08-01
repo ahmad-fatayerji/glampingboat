@@ -63,6 +63,11 @@ Starting the flow from Account → Security creates a short-lived, HTTP-only
 linking intent. Choosing a different Google mailbox is refused instead of
 switching or creating accounts.
 
+The Google callback queues its confirmation challenge in request-local server
+state. The NextAuth route attaches that challenge as a secure, HTTP-only cookie
+to the exact callback response before returning it. The token is never placed
+in the redirect URL, browser history, referrer, or access-log path.
+
 ### Password reset and sessions
 
 Password resets now use hashed `RESET_PASSWORD` challenges rather than raw
@@ -141,10 +146,33 @@ Do not run `prisma migrate deploy` blindly on a database that was created with
 - Configure `AUTH_TRUSTED_PROXY_HOPS` to the exact number of known reverse
   proxies between Next.js and the public client. Leave it at `0` when Next.js
   is directly reachable. Forwarded IP headers are ignored unless this value is
-  explicitly configured; never guess the production proxy depth.
+  explicitly configured; never guess the production proxy depth. If a request
+  contains `x-forwarded-for` while the value is disabled, the server emits a
+  one-time warning that IP throttling and IP audit attribution are inactive.
 - Periodically delete expired challenges after the desired audit-retention
   window.
 - Review `AuthEvent` for repeated failures and unexpected identity changes.
+- The eight-failure account limit intentionally accepts a targeted denial-of-
+  service trade-off to slow password guessing. An attacker who knows an email
+  can keep that account locked by sustaining failures. Monitor sustained
+  account-targeted failures with:
+
+  ```sql
+  SELECT "subjectHash", count(*) AS failures,
+         min("createdAt") AS first_failure,
+         max("createdAt") AS last_failure
+  FROM "AuthEvent"
+  WHERE "type" = 'SIGN_IN_FAILED'
+    AND "subjectHash" IS NOT NULL
+    AND "createdAt" >= now() - interval '1 hour'
+  GROUP BY "subjectHash"
+  HAVING count(*) >= 8
+  ORDER BY failures DESC;
+  ```
+
+- Current-password checks for MFA changes and Google unlinking are separately
+  limited to eight failures per account per 15 minutes, even with a live
+  session.
 - Email codes are a practical step-up control, but TOTP or passkeys should be
   the next stronger MFA option.
 

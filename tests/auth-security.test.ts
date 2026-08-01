@@ -4,10 +4,12 @@ import type { Prisma } from "@/generated/prisma/client";
 import {
   consumeTokenChallenge,
   createAuthChallenge,
+  getLoginRateLimit,
   getTrustedClientIp,
   hashAuthSecret,
   type AuthChallengeClient,
   type AuthChallengeWithUser,
+  type LoginRateLimitClient,
   verifyCodeChallenge,
 } from "@/lib/auth-security";
 
@@ -189,15 +191,25 @@ test("the sixth challenge in fifteen minutes is rate limited", async () => {
   );
 });
 
-test("forwarded IPs are ignored without a configured trusted proxy", () => {
+test("forwarded IPs are ignored with an operational warning when proxy trust is disabled", () => {
   const previous = process.env.AUTH_TRUSTED_PROXY_HOPS;
+  const originalWarn = console.warn;
+  let warning = "";
+  console.warn = (message) => {
+    warning = String(message);
+  };
   delete process.env.AUTH_TRUSTED_PROXY_HOPS;
-  assert.equal(
-    getTrustedClientIp(new Headers({ "x-forwarded-for": "198.51.100.9" })),
-    null
-  );
-  if (previous === undefined) delete process.env.AUTH_TRUSTED_PROXY_HOPS;
-  else process.env.AUTH_TRUSTED_PROXY_HOPS = previous;
+  try {
+    assert.equal(
+      getTrustedClientIp(new Headers({ "x-forwarded-for": "198.51.100.9" })),
+      null
+    );
+    assert.match(warning, /IP throttling.*disabled/i);
+  } finally {
+    console.warn = originalWarn;
+    if (previous === undefined) delete process.env.AUTH_TRUSTED_PROXY_HOPS;
+    else process.env.AUTH_TRUSTED_PROXY_HOPS = previous;
+  }
 });
 
 test("trusted proxy depth selects from the right and rejects spoofed first hops", () => {
@@ -213,4 +225,57 @@ test("trusted proxy depth selects from the right and rejects spoofed first hops"
   );
   if (previous === undefined) delete process.env.AUTH_TRUSTED_PROXY_HOPS;
   else process.env.AUTH_TRUSTED_PROXY_HOPS = previous;
+});
+
+test("account login limiting reaches the boundary through an injected store", async () => {
+  const successfulAt = new Date(Date.now() - 60_000);
+  const observedWindows: Date[] = [];
+  const client: LoginRateLimitClient = {
+    authEvent: {
+      async findFirst() {
+        return { createdAt: successfulAt };
+      },
+      async count({ where }) {
+        if (where?.subjectHash) {
+          const createdAt = where.createdAt;
+          if (
+            createdAt &&
+            typeof createdAt === "object" &&
+            "gte" in createdAt &&
+            createdAt.gte instanceof Date
+          ) {
+            observedWindows.push(createdAt.gte);
+          }
+          return 8;
+        }
+        return 0;
+      },
+    },
+  };
+
+  const result = await getLoginRateLimit(
+    { email: "Customer@example.com", ipAddress: "198.51.100.9" },
+    client
+  );
+  assert.equal(result.limited, true);
+  assert.deepEqual(observedWindows, [successfulAt]);
+});
+
+test("the trusted-IP safety bucket is enforced independently", async () => {
+  const client: LoginRateLimitClient = {
+    authEvent: {
+      async findFirst() {
+        return null;
+      },
+      async count({ where }) {
+        return where?.ipAddress ? 40 : 0;
+      },
+    },
+  };
+
+  const result = await getLoginRateLimit(
+    { email: "customer@example.com", ipAddress: "198.51.100.9" },
+    client
+  );
+  assert.equal(result.limited, true);
 });

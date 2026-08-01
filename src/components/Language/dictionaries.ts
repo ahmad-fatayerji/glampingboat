@@ -180,8 +180,6 @@ const en = {
   authVerifyAndSignIn: "Verify and sign in",
   authSignupVerificationSent:
     "Check your inbox and verify your email before signing in. The link expires in 30 minutes.",
-  authSignupPendingVerification:
-    "A verification is already pending. We kept your original password and sent a new link. Verify first, or use password reset if you no longer know that password.",
   verifyEmailTitle: "Verify your email",
   verifyEmailSuccess: "Your email is verified. You can now sign in and make reservations.",
   verifyEmailContinue: "Continue to sign in",
@@ -642,8 +640,6 @@ export const dictionaries: Record<Locale, Dictionary> = {
     authVerifyAndSignIn: "Vérifier et se connecter",
     authSignupVerificationSent:
       "Consultez votre boîte de réception et vérifiez votre e-mail avant de vous connecter. Le lien expire dans 30 minutes.",
-    authSignupPendingVerification:
-      "Une vérification est déjà en attente. Nous avons conservé votre mot de passe initial et envoyé un nouveau lien. Vérifiez d'abord l'e-mail ou réinitialisez le mot de passe si nécessaire.",
     verifyEmailTitle: "Vérifiez votre e-mail",
     verifyEmailSuccess: "Votre e-mail est vérifié. Vous pouvez maintenant vous connecter et réserver.",
     verifyEmailContinue: "Continuer vers la connexion",

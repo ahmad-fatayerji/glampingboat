@@ -1,7 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import {
-  existingGoogleIdentityDecision,
   googleCandidateDecision,
   googleLinkIntentMatches,
 } from "@/lib/google-auth-decision";
@@ -14,17 +13,6 @@ test("a signed-in linking intent refuses a different Google mailbox", () => {
   assert.equal(
     googleLinkIntentMatches("customer@gmail.com", "customer@gmail.com"),
     true
-  );
-});
-
-test("a Google identity cannot be moved to the signed-in user", () => {
-  assert.equal(
-    existingGoogleIdentityDecision("identity-owner", "signed-in-user"),
-    "ALREADY_LINKED"
-  );
-  assert.equal(
-    existingGoogleIdentityDecision("identity-owner", "identity-owner"),
-    "SIGN_IN"
   );
 });
 

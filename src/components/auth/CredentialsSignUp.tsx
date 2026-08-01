@@ -45,7 +45,6 @@ export default function CredentialsSignUp() {
 
       const result = (await res.json().catch(() => ({}))) as {
         error?: string;
-        existingPendingAccount?: boolean;
       };
       if (!res.ok) {
         setError(result.error ?? t("genericError"));
@@ -54,11 +53,7 @@ export default function CredentialsSignUp() {
 
       setPassword("");
       setConfirmPassword("");
-      setMessage(
-        result.existingPendingAccount
-          ? t("authSignupPendingVerification")
-          : t("authSignupVerificationSent")
-      );
+      setMessage(t("authSignupVerificationSent"));
     } catch {
       setError(t("genericError"));
     } finally {

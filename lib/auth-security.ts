@@ -20,6 +20,7 @@ const CHALLENGE_RATE_LIMIT = 5;
 const LOGIN_RATE_WINDOW_MS = 15 * 60 * 1000;
 const LOGIN_ACCOUNT_FAILURE_LIMIT = 8;
 const LOGIN_IP_FAILURE_LIMIT = 40;
+let warnedAboutUntrustedForwardedFor = false;
 
 export type AuthChallengeWithUser = Prisma.AuthChallengeGetPayload<{
   include: { user: true };
@@ -242,7 +243,18 @@ export function getTrustedClientIp(headers: HeaderSource) {
     process.env.AUTH_TRUSTED_PROXY_HOPS ?? "0",
     10
   );
-  if (!Number.isSafeInteger(trustedHops) || trustedHops < 1) return null;
+  if (!Number.isSafeInteger(trustedHops) || trustedHops < 1) {
+    if (
+      !warnedAboutUntrustedForwardedFor &&
+      readHeader(headers, "x-forwarded-for")
+    ) {
+      warnedAboutUntrustedForwardedFor = true;
+      console.warn(
+        "[auth] x-forwarded-for was received while AUTH_TRUSTED_PROXY_HOPS is 0; IP throttling and IP audit attribution are disabled."
+      );
+    }
+    return null;
+  }
 
   const forwarded = readHeader(headers, "x-forwarded-for");
   if (!forwarded) return null;
@@ -268,17 +280,28 @@ export function getHeaderSecurityContext(headers: HeaderSource) {
   };
 }
 
+export type LoginRateLimitClient = {
+  authEvent: {
+    findFirst(args: Prisma.AuthEventFindFirstArgs): Promise<{
+      createdAt: Date;
+    } | null>;
+    count(args: Prisma.AuthEventCountArgs): Promise<number>;
+  };
+};
+
+const defaultLoginRateLimitClient = prisma as unknown as LoginRateLimitClient;
+
 export async function getLoginRateLimit({
   email,
   ipAddress,
 }: {
   email: string | null | undefined;
   ipAddress: string | null;
-}) {
+}, client: LoginRateLimitClient = defaultLoginRateLimitClient) {
   const subjectHash = getAuthSubjectHash(email);
   const windowStart = new Date(Date.now() - LOGIN_RATE_WINDOW_MS);
   const lastSuccess = subjectHash
-    ? await prisma.authEvent.findFirst({
+    ? await client.authEvent.findFirst({
         where: {
           type: "SIGN_IN",
           subjectHash,
@@ -292,7 +315,7 @@ export async function getLoginRateLimit({
 
   const [accountFailures, ipFailures] = await Promise.all([
     subjectHash
-      ? prisma.authEvent.count({
+      ? client.authEvent.count({
           where: {
             type: "SIGN_IN_FAILED",
             subjectHash,
@@ -301,7 +324,7 @@ export async function getLoginRateLimit({
         })
       : 0,
     ipAddress
-      ? prisma.authEvent.count({
+      ? client.authEvent.count({
           where: {
             type: "SIGN_IN_FAILED",
             ipAddress,

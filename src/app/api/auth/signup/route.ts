@@ -109,7 +109,12 @@ export async function POST(req: Request) {
       purpose: "VERIFY_EMAIL",
       ttlMs: EMAIL_VERIFICATION_TTL_MS,
     });
-    await sendVerificationEmail(user.email, verificationUrl(req, token), locale);
+    await sendVerificationEmail(
+      user.email,
+      verificationUrl(req, token),
+      locale,
+      Boolean(candidates[0])
+    );
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Unable to send verification email";
@@ -120,6 +125,5 @@ export async function POST(req: Request) {
   return NextResponse.json({
     ok: true,
     verificationRequired: true,
-    existingPendingAccount: Boolean(candidates[0]),
   });
 }

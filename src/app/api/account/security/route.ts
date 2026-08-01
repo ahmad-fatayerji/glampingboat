@@ -18,6 +18,47 @@ async function currentSecurityUser() {
   });
 }
 
+const SECURITY_PASSWORD_FAILURE_LIMIT = 8;
+const SECURITY_PASSWORD_WINDOW_MS = 15 * 60 * 1000;
+
+async function verifySecurityPassword(
+  user: NonNullable<Awaited<ReturnType<typeof currentSecurityUser>>>,
+  password: string | undefined,
+  req: Request
+) {
+  const windowStart = new Date(Date.now() - SECURITY_PASSWORD_WINDOW_MS);
+  const lastSuccess = await prisma.authEvent.findFirst({
+    where: {
+      userId: user.id,
+      type: "SIGN_IN",
+      provider: "account-security",
+      createdAt: { gte: windowStart },
+    },
+    orderBy: { createdAt: "desc" },
+    select: { createdAt: true },
+  });
+  const failures = await prisma.authEvent.count({
+    where: {
+      userId: user.id,
+      type: "SIGN_IN_FAILED",
+      provider: "account-security",
+      createdAt: { gte: lastSuccess?.createdAt ?? windowStart },
+    },
+  });
+  if (failures >= SECURITY_PASSWORD_FAILURE_LIMIT) return "LIMITED";
+
+  const matches = Boolean(
+    password && user.password && (await bcrypt.compare(password, user.password))
+  );
+  await recordAuthEvent({
+    userId: user.id,
+    type: matches ? "SIGN_IN" : "SIGN_IN_FAILED",
+    provider: "account-security",
+    request: req,
+  });
+  return matches ? "VERIFIED" : "INVALID";
+}
+
 export async function GET() {
   const user = await currentSecurityUser();
   if (!user) {
@@ -63,7 +104,14 @@ export async function PUT(req: Request) {
       { status: 409 }
     );
   }
-  if (!password || !(await bcrypt.compare(password, user.password))) {
+  const passwordResult = await verifySecurityPassword(user, password, req);
+  if (passwordResult === "LIMITED") {
+    return NextResponse.json(
+      { error: "Too many password attempts. Try again later." },
+      { status: 429 }
+    );
+  }
+  if (passwordResult === "INVALID") {
     return NextResponse.json(
       { error: "Your current password is required" },
       { status: 401 }
@@ -110,7 +158,14 @@ export async function DELETE(req: Request) {
 
   const body = await req.json().catch(() => null);
   const password = isRecord(body) ? getString(body, "password") : undefined;
-  if (!password || !(await bcrypt.compare(password, user.password))) {
+  const passwordResult = await verifySecurityPassword(user, password, req);
+  if (passwordResult === "LIMITED") {
+    return NextResponse.json(
+      { error: "Too many password attempts. Try again later." },
+      { status: 429 }
+    );
+  }
+  if (passwordResult === "INVALID") {
     return NextResponse.json(
       { error: "Your current password is required" },
       { status: 401 }

@@ -22,10 +22,10 @@ import { getEffectiveRoleForEmail, isSuperAdminEmail } from "@/lib/super-admin";
 import { getString, isRecord } from "@/lib/type-guards";
 import { findAccountCandidates } from "@/lib/user-email-lookup";
 import {
-  existingGoogleIdentityDecision,
   googleCandidateDecision,
   googleLinkIntentMatches,
 } from "@/lib/google-auth-decision";
+import { queueAuthResponseCookie } from "@/lib/auth-response-cookies";
 
 function readGoogleProfile(profile: unknown) {
   if (!isRecord(profile)) {
@@ -231,17 +231,16 @@ export const authOptions: NextAuthOptions = {
       });
 
       if (existingIdentity) {
-        if (
-          existingGoogleIdentityDecision(
-            existingIdentity.userId,
-            linkIntent?.userId ?? null
-          ) === "ALREADY_LINKED"
-        ) {
+        if (linkIntent && existingIdentity.userId !== linkIntent.userId) {
           return "/account?tab=security&error=GoogleAlreadyLinked";
         }
         if (linkIntent) {
           await consumeTokenChallenge(linkIntentToken!, "LINK_GOOGLE_INTENT");
-          cookieStore.delete(GOOGLE_LINK_INTENT_COOKIE);
+          queueAuthResponseCookie({
+            name: GOOGLE_LINK_INTENT_COOKIE,
+            value: "",
+            options: getAuthCookieOptions(0),
+          });
         }
         await prisma.authIdentity.update({
           where: { id: existingIdentity.id },
@@ -266,7 +265,11 @@ export const authOptions: NextAuthOptions = {
 
       if (linkIntent) {
         await consumeTokenChallenge(linkIntentToken!, "LINK_GOOGLE_INTENT");
-        cookieStore.delete(GOOGLE_LINK_INTENT_COOKIE);
+        queueAuthResponseCookie({
+          name: GOOGLE_LINK_INTENT_COOKIE,
+          value: "",
+          options: getAuthCookieOptions(0),
+        });
       }
 
       const candidateDecision = googleCandidateDecision(candidates.length);
@@ -292,11 +295,11 @@ export const authOptions: NextAuthOptions = {
           return "/account?error=TooManyLinkAttempts";
         }
 
-        cookieStore.set(
-          GOOGLE_LINK_CHALLENGE_COOKIE,
-          token,
-          getAuthCookieOptions(GOOGLE_LINK_TTL_MS)
-        );
+        queueAuthResponseCookie({
+          name: GOOGLE_LINK_CHALLENGE_COOKIE,
+          value: token,
+          options: getAuthCookieOptions(GOOGLE_LINK_TTL_MS),
+        });
         return "/account/link-google";
       }
 

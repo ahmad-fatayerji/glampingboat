@@ -45,16 +45,25 @@ async function sendAccountEmail({
   });
 }
 
-export function sendVerificationEmail(email: string, verificationUrl: string, locale = "en") {
+export function sendVerificationEmail(
+  email: string,
+  verificationUrl: string,
+  locale = "en",
+  existingPendingAccount = false
+) {
   const copy = getAuthEmailCopy(locale);
   return sendAccountEmail({
     to: email,
     subject: copy.verifySubject,
     title: copy.verifyTitle,
     preview: copy.verifyPreview,
-    bodyHtml: copy.verifyBody,
+    bodyHtml: existingPendingAccount
+      ? copy.pendingVerifyBody
+      : copy.verifyBody,
     action: { href: verificationUrl, label: copy.verifyAction },
-    text: copy.verifyText(verificationUrl),
+    text: existingPendingAccount
+      ? copy.pendingVerifyText(verificationUrl)
+      : copy.verifyText(verificationUrl),
     eyebrow: copy.eyebrow,
     locale,
   });

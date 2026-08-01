@@ -7,8 +7,10 @@ type AuthEmailCopy = {
   verifyTitle: string;
   verifyPreview: string;
   verifyBody: string;
+  pendingVerifyBody: string;
   verifyAction: string;
   verifyText: (url: string) => string;
+  pendingVerifyText: (url: string) => string;
   codeSubject: string;
   codeTitle: string;
   codePreview: string;
@@ -33,8 +35,11 @@ const en: AuthEmailCopy = {
   verifyPreview: "Confirm your email to activate your Glamping Boat account.",
   verifyBody:
     "<p>Confirm that this email belongs to you before signing in, creating reservations, or making payments.</p><p>This secure link expires in 30 minutes.</p>",
+  pendingVerifyBody:
+    "<p>A signup was requested for an account that is still waiting for email verification. The original password was not replaced.</p><p>Verify this email to continue. If you do not remember the original password, use password reset after verification.</p><p>This secure link expires in 30 minutes.</p>",
   verifyAction: "Verify email",
   verifyText: (url) => `Verify your Glamping Boat email:\n${url}\n\nThis link expires in 30 minutes.`,
+  pendingVerifyText: (url) => `A signup was requested for your unverified Glamping Boat account. The original password was not replaced. Verify your email here:\n${url}\n\nIf you do not remember the original password, use password reset. This link expires in 30 minutes.`,
   codeSubject: "Your Glamping Boat sign-in code",
   codeTitle: "Confirm your sign-in",
   codePreview: "Use this one-time code to finish signing in.",
@@ -63,8 +68,10 @@ const copies: Record<Locale, AuthEmailCopy> = {
     verifyTitle: "Vérifiez votre e-mail",
     verifyPreview: "Confirmez votre e-mail pour activer votre compte Glamping Boat.",
     verifyBody: "<p>Confirmez que cet e-mail vous appartient avant de vous connecter, réserver ou payer.</p><p>Ce lien sécurisé expire dans 30 minutes.</p>",
+    pendingVerifyBody: "<p>Une inscription a été demandée pour un compte toujours en attente de vérification. Le mot de passe d'origine n'a pas été remplacé.</p><p>Vérifiez cet e-mail pour continuer. Si vous avez oublié le mot de passe, utilisez sa réinitialisation.</p><p>Ce lien expire dans 30 minutes.</p>",
     verifyAction: "Vérifier l'e-mail",
     verifyText: (url) => `Vérifiez votre e-mail Glamping Boat :\n${url}\n\nCe lien expire dans 30 minutes.`,
+    pendingVerifyText: (url) => `Une inscription a été demandée pour votre compte non vérifié. Le mot de passe d'origine n'a pas été remplacé. Vérifiez votre e-mail :\n${url}\n\nSi vous avez oublié le mot de passe, utilisez sa réinitialisation.`,
     codeSubject: "Votre code de connexion Glamping Boat",
     codeTitle: "Confirmez votre connexion",
     codePreview: "Utilisez ce code à usage unique pour terminer la connexion.",
