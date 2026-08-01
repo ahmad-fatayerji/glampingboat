@@ -1,0 +1,2 @@
+export const PASSWORD_RESET_RESEND_COOLDOWN_MS = 60 * 1000;
+

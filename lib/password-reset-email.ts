@@ -8,12 +8,14 @@ import {
   getMailerAddress,
 } from "@/lib/mailer";
 import {
-  createAuthChallenge,
+  createAuthChallengeInTransaction,
   PASSWORD_RESET_TTL_MS,
+  type AuthChallengeTransactionClient,
 } from "@/lib/auth-security";
 import { prisma } from "@/lib/prisma";
+import { PASSWORD_RESET_RESEND_COOLDOWN_MS } from "@/lib/password-reset-cooldown";
 
-export const PASSWORD_RESET_RESEND_COOLDOWN_MS = 60 * 1000;
+export { PASSWORD_RESET_RESEND_COOLDOWN_MS } from "@/lib/password-reset-cooldown";
 
 export class PasswordResetCooldownError extends Error {
   readonly retryAfterMs: number;
@@ -26,16 +28,31 @@ export class PasswordResetCooldownError extends Error {
 }
 
 export type PasswordResetCooldownClient = {
-  authChallenge: {
+  $transaction<T>(
+    callback: (tx: PasswordResetCooldownTransactionClient) => Promise<T>
+  ): Promise<T>;
+};
+
+type PasswordResetCooldownTransactionClient = AuthChallengeTransactionClient & {
+  authChallenge: AuthChallengeTransactionClient["authChallenge"] & {
     findFirst(args: {
       where: unknown;
       orderBy: unknown;
       select: unknown;
     }): Promise<{ createdAt: Date } | null>;
   };
+  $queryRawUnsafe<T = unknown>(query: string, ...values: unknown[]): Promise<T>;
 };
 
 const defaultCooldownClient = prisma as unknown as PasswordResetCooldownClient;
+
+type PasswordResetMessage = {
+  from: string;
+  to: string;
+  subject: string;
+  text: string;
+  html: string;
+};
 
 export function buildPasswordResetEmail(resetUrl: string, locale: string) {
   const copy = getPasswordResetEmailCopy(locale);
@@ -59,37 +76,49 @@ export async function issuePasswordResetEmail({
   locale,
   origin,
   cooldownClient = defaultCooldownClient,
+  sendMail = (message) => createGmailTransporter().sendMail(message),
 }: {
   userId: string;
   email: string;
   locale: unknown;
   origin: string;
   cooldownClient?: PasswordResetCooldownClient;
+  sendMail?: (message: PasswordResetMessage) => Promise<unknown>;
 }) {
-  const lastIssued = await cooldownClient.authChallenge.findFirst({
-    where: {
-      userId,
-      purpose: "RESET_PASSWORD",
-      createdAt: {
-        gte: new Date(Date.now() - PASSWORD_RESET_RESEND_COOLDOWN_MS),
-      },
-    },
-    orderBy: { createdAt: "desc" },
-    select: { createdAt: true },
-  });
-
-  if (lastIssued) {
-    const elapsed = Date.now() - lastIssued.createdAt.getTime();
-    throw new PasswordResetCooldownError(
-      Math.max(PASSWORD_RESET_RESEND_COOLDOWN_MS - elapsed, 0)
-    );
-  }
-
   const normalizedLocale = normalizeEmailLocale(locale);
-  const { token } = await createAuthChallenge({
-    userId,
-    purpose: "RESET_PASSWORD",
-    ttlMs: PASSWORD_RESET_TTL_MS,
+  const { token } = await cooldownClient.$transaction(async (tx) => {
+    await tx.$queryRawUnsafe(
+      "SELECT 1 AS locked FROM (SELECT pg_advisory_xact_lock(hashtextextended($1, 0))) AS lock_request",
+      `password-reset:${userId}`
+    );
+
+    const lastIssued = await tx.authChallenge.findFirst({
+      where: {
+        userId,
+        purpose: "RESET_PASSWORD",
+        createdAt: {
+          gte: new Date(Date.now() - PASSWORD_RESET_RESEND_COOLDOWN_MS),
+        },
+      },
+      orderBy: { createdAt: "desc" },
+      select: { createdAt: true },
+    });
+
+    if (lastIssued) {
+      const elapsed = Date.now() - lastIssued.createdAt.getTime();
+      throw new PasswordResetCooldownError(
+        Math.max(PASSWORD_RESET_RESEND_COOLDOWN_MS - elapsed, 0)
+      );
+    }
+
+    return createAuthChallengeInTransaction(
+      {
+        userId,
+        purpose: "RESET_PASSWORD",
+        ttlMs: PASSWORD_RESET_TTL_MS,
+      },
+      tx
+    );
   });
   const resetUrl = `${origin}/reset-password/${token}`;
   const { html, subject, text } = buildPasswordResetEmail(
@@ -97,7 +126,7 @@ export async function issuePasswordResetEmail({
     normalizedLocale
   );
 
-  await createGmailTransporter().sendMail({
+  await sendMail({
     from: getMailerAddress("Glamping Boat"),
     to: email,
     subject,

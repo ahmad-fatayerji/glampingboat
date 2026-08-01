@@ -16,13 +16,19 @@ export default function ResetPasswordPage() {
   const [msg, setMsg] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [resetSucceeded, setResetSucceeded] = useState(false);
   const passwordPolicy = validatePasswordPolicy(pw);
   const passwordsMatch = pw === confirmPw;
   const canSubmit =
-    passwordPolicy.valid && passwordsMatch && Boolean(pw) && !isSubmitting;
+    passwordPolicy.valid &&
+    passwordsMatch &&
+    Boolean(pw) &&
+    !isSubmitting &&
+    !resetSucceeded;
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting || resetSucceeded) return;
     setError(null);
     setMsg(null);
 
@@ -45,6 +51,7 @@ export default function ResetPasswordPage() {
       });
 
       if (res.ok) {
+        setResetSucceeded(true);
         setMsg(t("passwordResetSuccess"));
         setTimeout(() => router.push("/account"), 1500);
         return;

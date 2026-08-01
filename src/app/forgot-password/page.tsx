@@ -4,6 +4,9 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useLanguage } from "@/components/Language/LanguageContext";
 import { useT } from "@/components/Language/useT";
+import { PASSWORD_RESET_RESEND_COOLDOWN_MS } from "@/lib/password-reset-cooldown";
+
+const COOLDOWN_STORAGE_KEY = "glampingboat.passwordResetCooldownUntil";
 
 export default function ForgotPasswordPage() {
   const t = useT();
@@ -12,19 +15,33 @@ export default function ForgotPasswordPage() {
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  // Mirrors the server-side resend cooldown so a second click can't fire off
-  // another email seconds after the first one.
   const [cooldown, setCooldown] = useState(0);
+  const [cooldownReady, setCooldownReady] = useState(false);
 
   useEffect(() => {
-    if (cooldown <= 0) return;
-    const timer = setTimeout(() => setCooldown((value) => value - 1), 1000);
-    return () => clearTimeout(timer);
-  }, [cooldown]);
+    const syncCooldown = () => {
+      const stored = Number.parseInt(
+        window.localStorage.getItem(COOLDOWN_STORAGE_KEY) ?? "0",
+        10
+      );
+      const remaining = Number.isFinite(stored)
+        ? Math.max(Math.ceil((stored - Date.now()) / 1000), 0)
+        : 0;
+      setCooldown(remaining);
+      if (remaining === 0) {
+        window.localStorage.removeItem(COOLDOWN_STORAGE_KEY);
+      }
+      setCooldownReady(true);
+    };
+
+    syncCooldown();
+    const timer = window.setInterval(syncCooldown, 1000);
+    return () => window.clearInterval(timer);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isSubmitting || cooldown > 0) return;
+    if (!cooldownReady || isSubmitting || cooldown > 0) return;
     setError(null);
     setMessage(null);
     setIsSubmitting(true);
@@ -38,7 +55,12 @@ export default function ForgotPasswordPage() {
 
       if (res.ok) {
         setMessage(t("resetEmailSent"));
-        setCooldown(60);
+        const cooldownUntil = Date.now() + PASSWORD_RESET_RESEND_COOLDOWN_MS;
+        window.localStorage.setItem(
+          COOLDOWN_STORAGE_KEY,
+          String(cooldownUntil)
+        );
+        setCooldown(Math.ceil(PASSWORD_RESET_RESEND_COOLDOWN_MS / 1000));
       } else {
         const { error: err } = await res
           .json()
@@ -90,7 +112,7 @@ export default function ForgotPasswordPage() {
 
           <button
             type="submit"
-            disabled={isSubmitting || cooldown > 0}
+            disabled={!cooldownReady || isSubmitting || cooldown > 0}
             className="w-full rounded-xl bg-[#0d3350] py-2 text-sm tracking-wide text-[var(--color-beige)] transition hover:bg-[#123f61] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-beige)]/60 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {isSubmitting
