@@ -22,6 +22,13 @@ const LOGIN_ACCOUNT_FAILURE_LIMIT = 8;
 const LOGIN_IP_FAILURE_LIMIT = 40;
 let warnedAboutUntrustedForwardedFor = false;
 
+export class AuthChallengeRateLimitError extends Error {
+  constructor() {
+    super("Too many requests. Try again later.");
+    this.name = "AuthChallengeRateLimitError";
+  }
+}
+
 export type AuthChallengeWithUser = Prisma.AuthChallengeGetPayload<{
   include: { user: true };
 }>;
@@ -109,7 +116,7 @@ export async function createAuthChallenge({
   });
 
   if (recentCount >= CHALLENGE_RATE_LIMIT) {
-    throw new Error("Too many requests. Try again later.");
+    throw new AuthChallengeRateLimitError();
   }
 
   const token = generateToken();

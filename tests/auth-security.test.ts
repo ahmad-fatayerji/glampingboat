@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import type { Prisma } from "@/generated/prisma/client";
 import {
+  AuthChallengeRateLimitError,
   consumeTokenChallenge,
   createAuthChallenge,
   getLoginRateLimit,
@@ -187,7 +188,7 @@ test("the sixth challenge in fifteen minutes is rate limited", async () => {
         { userId: "user-1", purpose: "VERIFY_EMAIL", ttlMs: 60_000 },
         client
       ),
-    /Too many requests/
+    AuthChallengeRateLimitError
   );
 });
 

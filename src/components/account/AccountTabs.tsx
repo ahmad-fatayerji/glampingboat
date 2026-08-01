@@ -58,7 +58,7 @@ export default function AccountTabs({
           active={tab === "security"}
           onClick={() => switchTab("security")}
         >
-          Security
+          {t("securityMenu")}
         </TabButton>
       </div>
       {tab === "bookings" && <ReservationList reservations={reservations} />}
