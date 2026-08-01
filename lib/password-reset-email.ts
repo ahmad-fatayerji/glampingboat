@@ -11,6 +11,31 @@ import {
   createAuthChallenge,
   PASSWORD_RESET_TTL_MS,
 } from "@/lib/auth-security";
+import { prisma } from "@/lib/prisma";
+
+export const PASSWORD_RESET_RESEND_COOLDOWN_MS = 60 * 1000;
+
+export class PasswordResetCooldownError extends Error {
+  readonly retryAfterMs: number;
+
+  constructor(retryAfterMs: number) {
+    super("A reset link was just sent. Try again shortly.");
+    this.name = "PasswordResetCooldownError";
+    this.retryAfterMs = retryAfterMs;
+  }
+}
+
+export type PasswordResetCooldownClient = {
+  authChallenge: {
+    findFirst(args: {
+      where: unknown;
+      orderBy: unknown;
+      select: unknown;
+    }): Promise<{ createdAt: Date } | null>;
+  };
+};
+
+const defaultCooldownClient = prisma as unknown as PasswordResetCooldownClient;
 
 export function buildPasswordResetEmail(resetUrl: string, locale: string) {
   const copy = getPasswordResetEmailCopy(locale);
@@ -33,12 +58,33 @@ export async function issuePasswordResetEmail({
   email,
   locale,
   origin,
+  cooldownClient = defaultCooldownClient,
 }: {
   userId: string;
   email: string;
   locale: unknown;
   origin: string;
+  cooldownClient?: PasswordResetCooldownClient;
 }) {
+  const lastIssued = await cooldownClient.authChallenge.findFirst({
+    where: {
+      userId,
+      purpose: "RESET_PASSWORD",
+      createdAt: {
+        gte: new Date(Date.now() - PASSWORD_RESET_RESEND_COOLDOWN_MS),
+      },
+    },
+    orderBy: { createdAt: "desc" },
+    select: { createdAt: true },
+  });
+
+  if (lastIssued) {
+    const elapsed = Date.now() - lastIssued.createdAt.getTime();
+    throw new PasswordResetCooldownError(
+      Math.max(PASSWORD_RESET_RESEND_COOLDOWN_MS - elapsed, 0)
+    );
+  }
+
   const normalizedLocale = normalizeEmailLocale(locale);
   const { token } = await createAuthChallenge({
     userId,

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useLanguage } from "@/components/Language/LanguageContext";
 import { useT } from "@/components/Language/useT";
 
@@ -12,9 +12,19 @@ export default function ForgotPasswordPage() {
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  // Mirrors the server-side resend cooldown so a second click can't fire off
+  // another email seconds after the first one.
+  const [cooldown, setCooldown] = useState(0);
+
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const timer = setTimeout(() => setCooldown((value) => value - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [cooldown]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting || cooldown > 0) return;
     setError(null);
     setMessage(null);
     setIsSubmitting(true);
@@ -28,6 +38,7 @@ export default function ForgotPasswordPage() {
 
       if (res.ok) {
         setMessage(t("resetEmailSent"));
+        setCooldown(60);
       } else {
         const { error: err } = await res
           .json()
@@ -79,10 +90,14 @@ export default function ForgotPasswordPage() {
 
           <button
             type="submit"
-            disabled={isSubmitting}
+            disabled={isSubmitting || cooldown > 0}
             className="w-full rounded-xl bg-[#0d3350] py-2 text-sm tracking-wide text-[var(--color-beige)] transition hover:bg-[#123f61] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-beige)]/60 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {isSubmitting ? t("sending") : t("sendResetLink")}
+            {isSubmitting
+              ? t("sending")
+              : cooldown > 0
+                ? `${t("resetLinkCooldown")} ${cooldown}s`
+                : t("sendResetLink")}
           </button>
         </form>
 

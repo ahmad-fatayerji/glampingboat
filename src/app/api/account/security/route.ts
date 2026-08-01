@@ -17,7 +17,10 @@ import { prisma } from "@/lib/prisma";
 import { getBoolean, getString, isRecord } from "@/lib/type-guards";
 import { normalizeEmailLocale } from "@/lib/email-i18n";
 import { PASSWORD_POLICY_ERROR } from "@/lib/password-policy";
-import { issuePasswordResetEmail } from "@/lib/password-reset-email";
+import {
+  issuePasswordResetEmail,
+  PasswordResetCooldownError,
+} from "@/lib/password-reset-email";
 
 async function currentSecurityUser() {
   const session = await auth();
@@ -82,6 +85,20 @@ export async function POST(req: Request) {
       origin,
     });
   } catch (error) {
+    if (error instanceof PasswordResetCooldownError) {
+      return NextResponse.json(
+        {
+          code: "PASSWORD_SETUP_RATE_LIMITED",
+          error: "A link was just sent. Check your inbox before retrying.",
+        },
+        {
+          status: 429,
+          headers: {
+            "Retry-After": String(Math.ceil(error.retryAfterMs / 1000)),
+          },
+        }
+      );
+    }
     if (error instanceof AuthChallengeRateLimitError) {
       return NextResponse.json(
         {
