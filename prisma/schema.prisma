@@ -258,8 +258,16 @@ model Reservation {
   consentIpAddress String?
   consentUserAgent String?
 
-  cancelledAt     DateTime?
+  cancelledAt        DateTime?
   cancellationReason String?
+
+  // CGV article 9 retention outcome, frozen at cancellation time so the terms
+  // applied to a booking stay auditable even if the policy later changes.
+  cancellationCause        String?
+  cancellationTier         String?
+  cancellationPolicyVersion String?
+  retainedAmountCents      Int     @default(0)
+  refundedAmountCents      Int     @default(0)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
@@ -345,10 +353,14 @@ model BookingPayment {
   stripeStatus            String?
   stripePayload           Json?
 
-  expiresAt DateTime?
-  paidAt    DateTime?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
+  stripeRefundId      String? @unique
+  refundedAmountCents Int     @default(0)
+
+  expiresAt  DateTime?
+  paidAt     DateTime?
+  refundedAt DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @default(now()) @updatedAt
 
   @@index([reservationId, purpose])
   @@index([status])

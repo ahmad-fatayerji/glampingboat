@@ -1,7 +1,15 @@
 import type Stripe from "stripe";
+import type { ReservationStatus } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 
 const OPEN_PAYMENT_STATUSES = ["PENDING", "CHECKOUT_OPEN"] as const;
+
+/** Reservation states that a payment must never move back into CONFIRMED. */
+const TERMINAL_RESERVATION_STATUSES: readonly ReservationStatus[] = [
+  "CANCELLED",
+  "EXPIRED",
+  "REFUNDED",
+];
 
 type PaymentMatch = {
   amountCents: number;
@@ -115,19 +123,52 @@ export async function markCheckoutSessionPaid({
       paymentAmountCents: payment.amountCents,
       totalAmountCents: payment.reservation.totalAmountTtcCents,
     });
-    const reservationPaymentStatus = getReservationPaidStatus(
-      paidAmountCents,
-      payment.reservation.totalAmountTtcCents
+
+    // A cancelled stay must never be revived by a late payment: the customer
+    // may still hold an open Checkout tab when the booking is cancelled. Record
+    // the money so it is never lost, but leave the reservation cancelled and
+    // flag it for the owner to refund.
+    const isCancelled = TERMINAL_RESERVATION_STATUSES.includes(
+      payment.reservation.status
     );
+
+    const reservationPaymentStatus = isCancelled
+      ? ("REFUND_PENDING" as const)
+      : getReservationPaidStatus(
+          paidAmountCents,
+          payment.reservation.totalAmountTtcCents
+        );
 
     const updatedReservation = await tx.reservation.update({
       where: { id: payment.reservationId },
       data: {
         paymentStatus: reservationPaymentStatus,
-        status: "CONFIRMED",
+        ...(isCancelled ? {} : { status: "CONFIRMED" as const }),
         paidAmountCents,
       },
     });
+
+    if (isCancelled) {
+      await tx.reservationEvent.create({
+        data: {
+          reservationId: payment.reservationId,
+          actorUserId,
+          type: "PAYMENT_SUCCEEDED",
+          metadata: {
+            source: stripeEventId ? "webhook" : "success_return",
+            stripeEventId: stripeEventId ?? null,
+            stripeCheckoutSessionId: session.id,
+            paymentId: payment.id,
+            amountCents: payment.amountCents,
+            currency: payment.currency,
+            reservationStatus: payment.reservation.status,
+            note: "Payment received on a cancelled reservation; refund required.",
+          },
+        },
+      });
+
+      return updatedReservation;
+    }
 
     const remainingAmountCents = Math.max(
       0,

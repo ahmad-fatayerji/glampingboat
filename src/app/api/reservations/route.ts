@@ -75,6 +75,23 @@ function startOfDay(date: Date) {
   return copy;
 }
 
+/** Postgres exclusion_violation, raised by the no-overlap constraints. */
+function isOverlapConstraintViolation(error: unknown) {
+  if (!error || typeof error !== "object") {
+    return false;
+  }
+
+  const meta = "meta" in error ? error.meta : undefined;
+  const haystack = JSON.stringify(
+    "code" in error ? { code: error.code, meta } : { meta }
+  );
+
+  return (
+    haystack.includes("23P01") ||
+    haystack.includes("Reservation_no_active_overlap")
+  );
+}
+
 function getClientIp(req: NextRequest) {
   return (
     req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
@@ -371,6 +388,16 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(serializeReservation(reservation), { status: 201 });
   } catch (error) {
+    // The in-transaction overlap check above can still lose a race under READ
+    // COMMITTED; the Reservation_no_active_overlap exclusion constraint is the
+    // real guarantee. Postgres raises 23P01 when it fires.
+    if (isOverlapConstraintViolation(error)) {
+      return NextResponse.json(
+        { error: "Dates are already reserved" },
+        { status: 409 }
+      );
+    }
+
     const message = getErrorMessage(error, "Server error");
     const status = /already reserved|blocked by the owner/i.test(message)
       ? 409

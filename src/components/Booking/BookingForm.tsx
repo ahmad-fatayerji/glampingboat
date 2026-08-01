@@ -21,6 +21,7 @@ import {
 import {
   calculateReservationPricingSummary,
   getOptionQuantity,
+  SECURITY_DEPOSIT,
 } from "@/lib/reservations";
 import { getErrorMessage, readJsonResponse } from "@/lib/http";
 import { isPhoneField, sanitizePhoneNumber } from "@/lib/input";
@@ -604,6 +605,18 @@ export default function BookingForm({
             <div className="mt-1 flex items-center justify-between">
               <span>{t("balanceDueDate")}</span>
               <span>{pricing.balanceDueDate}</span>
+            </div>
+            {/* CGV art. 4 and 14 require the caution amount to be stated at
+                booking time. It sits outside the stay total: taken before
+                boarding, returned after the état des lieux. */}
+            <div className="mt-3 border-t border-[#173c59] pt-2">
+              <div className="flex items-center justify-between">
+                <span>{t("securityDepositLabel")}</span>
+                <span>{fmtEuro(SECURITY_DEPOSIT)}</span>
+              </div>
+              <p className="mt-1 text-xs text-[var(--color-beige)]/70">
+                {t("securityDepositNote")}
+              </p>
             </div>
           </div>
           <label className="mt-3 inline-flex items-center">
