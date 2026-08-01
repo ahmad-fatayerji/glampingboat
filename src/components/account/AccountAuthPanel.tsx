@@ -8,9 +8,11 @@ import { useT } from "@/components/Language/useT";
 export default function AccountAuthPanel({
   googleAuthEnabled,
   signedOutRecently = false,
+  authError,
 }: {
   googleAuthEnabled: boolean;
   signedOutRecently?: boolean;
+  authError?: string;
 }) {
   const t = useT();
 
@@ -37,6 +39,14 @@ export default function AccountAuthPanel({
             </svg>
           </span>
           <span className="leading-6">{t("accountSignedOutSuccess")}</span>
+        </div>
+      )}
+      {authError && (
+        <div
+          role="alert"
+          className="rounded-md border border-[#8a3a30] bg-[#8a3a30]/25 px-3 py-2 text-sm text-[#ffd9d9]"
+        >
+          {authError}
         </div>
       )}
       <CredentialsTabs />
