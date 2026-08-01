@@ -137,7 +137,6 @@ export async function changeAccountPassword(
     { user, password: currentPassword, request, rateLimitChecked: true },
     dependencies
   );
-  if (verification === "LIMITED") return "TOO_MANY_ATTEMPTS";
   if (verification === "INVALID") return "CURRENT_PASSWORD_REQUIRED";
   if (await bcrypt.compare(newPassword, user.password)) {
     return "PASSWORD_UNCHANGED";

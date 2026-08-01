@@ -104,7 +104,7 @@ test("password change updates the hash, increments session version, and writes a
   assert.equal(events[1].provider, "account-security-change");
 });
 
-test("password change preserves the account-security failure limit", async () => {
+test("password change reports the failure limit before password policy errors", async () => {
   const { dependencies, events, updates } = makeClient({ failures: 8 });
   const result = await changeAccountPassword(
     {

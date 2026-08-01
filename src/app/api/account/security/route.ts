@@ -81,12 +81,6 @@ export async function POST(req: Request) {
       locale,
       origin,
     });
-    await recordAuthEvent({
-      userId: user.id,
-      type: "PASSWORD_SETUP_REQUESTED",
-      provider: "email",
-      request: req,
-    });
   } catch (error) {
     if (error instanceof AuthChallengeRateLimitError) {
       return NextResponse.json(
@@ -103,6 +97,15 @@ export async function POST(req: Request) {
       { status: 500 }
     );
   }
+
+  await recordAuthEvent({
+    userId: user.id,
+    type: "PASSWORD_SETUP_REQUESTED",
+    provider: "email",
+    request: req,
+  }).catch((error) =>
+    console.error("Failed to record password setup request", error)
+  );
 
   return NextResponse.json({ ok: true });
 }
