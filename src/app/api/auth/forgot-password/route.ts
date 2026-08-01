@@ -55,10 +55,7 @@ export async function POST(req: Request) {
 
   const normalized = normalizeEmailAddress(email);
   const candidates = normalized ? await findAccountCandidates(normalized) : [];
-  const user =
-    candidates.length === 1 && candidates[0].emailVerifiedAt
-      ? candidates[0]
-      : null;
+  const user = candidates.length === 1 ? candidates[0] : null;
   if (user) {
     try {
       const { token } = await createAuthChallenge({

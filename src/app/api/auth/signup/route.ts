@@ -16,6 +16,7 @@ import {
 import { prisma } from "@/lib/prisma";
 import { getString, isRecord } from "@/lib/type-guards";
 import { findAccountCandidates } from "@/lib/user-email-lookup";
+import { normalizeEmailLocale } from "@/lib/email-i18n";
 
 function verificationUrl(req: Request, token: string) {
   const origin = process.env.NEXTAUTH_URL ?? new URL(req.url).origin;
@@ -32,7 +33,7 @@ export async function POST(req: Request) {
         createdAt: { gte: new Date(Date.now() - 15 * 60 * 1000) },
       },
     });
-    if (recentSignups >= 8) {
+    if (recentSignups >= 20) {
       return NextResponse.json(
         { error: "Too many requests. Try again later." },
         { status: 429 }
@@ -43,6 +44,9 @@ export async function POST(req: Request) {
   const body = await req.json().catch(() => null);
   const rawEmail = isRecord(body) ? getString(body, "email") : undefined;
   const password = isRecord(body) ? getString(body, "password") : undefined;
+  const locale = normalizeEmailLocale(
+    isRecord(body) ? getString(body, "locale") : undefined
+  );
   const normalized = rawEmail ? normalizeEmailAddress(rawEmail) : null;
 
   if (!normalized || !password) {
@@ -95,6 +99,7 @@ export async function POST(req: Request) {
       type: "SIGNUP",
       provider: "credentials",
       request: req,
+      subject: normalized.email,
     });
   }
 
@@ -104,7 +109,7 @@ export async function POST(req: Request) {
       purpose: "VERIFY_EMAIL",
       ttlMs: EMAIL_VERIFICATION_TTL_MS,
     });
-    await sendVerificationEmail(user.email, verificationUrl(req, token));
+    await sendVerificationEmail(user.email, verificationUrl(req, token), locale);
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Unable to send verification email";
@@ -112,5 +117,9 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: message }, { status });
   }
 
-  return NextResponse.json({ ok: true, verificationRequired: true });
+  return NextResponse.json({
+    ok: true,
+    verificationRequired: true,
+    existingPendingAccount: Boolean(candidates[0]),
+  });
 }

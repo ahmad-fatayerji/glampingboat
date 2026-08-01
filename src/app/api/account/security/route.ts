@@ -5,6 +5,7 @@ import { recordAuthEvent } from "@/lib/auth-security";
 import { sendSecuritySettingEmail } from "@/lib/auth-emails";
 import { prisma } from "@/lib/prisma";
 import { getBoolean, getString, isRecord } from "@/lib/type-guards";
+import { normalizeEmailLocale } from "@/lib/email-i18n";
 
 async function currentSecurityUser() {
   const session = await auth();
@@ -44,6 +45,9 @@ export async function PUT(req: Request) {
   const body = await req.json().catch(() => null);
   const enabled = isRecord(body) ? getBoolean(body, "enabled") : undefined;
   const password = isRecord(body) ? getString(body, "password") : undefined;
+  const locale = normalizeEmailLocale(
+    isRecord(body) ? getString(body, "locale") : undefined
+  );
   if (enabled === undefined) {
     return NextResponse.json({ error: "Invalid setting" }, { status: 400 });
   }
@@ -74,7 +78,10 @@ export async function PUT(req: Request) {
 
   await prisma.user.update({
     where: { id: user.id },
-    data: { mfaMode: enabled ? "EMAIL" : "DISABLED" },
+    data: {
+      mfaMode: enabled ? "EMAIL" : "DISABLED",
+      sessionVersion: { increment: 1 },
+    },
   });
   await recordAuthEvent({
     userId: user.id,
@@ -82,7 +89,7 @@ export async function PUT(req: Request) {
     provider: "email",
     request: req,
   });
-  await sendSecuritySettingEmail(user.email, enabled).catch((error) =>
+  await sendSecuritySettingEmail(user.email, enabled, locale).catch((error) =>
     console.error("Failed to send security-setting email", error)
   );
 
@@ -110,8 +117,17 @@ export async function DELETE(req: Request) {
     );
   }
 
-  const removed = await prisma.authIdentity.deleteMany({
-    where: { userId: user.id, provider: "google" },
+  const removed = await prisma.$transaction(async (tx) => {
+    const result = await tx.authIdentity.deleteMany({
+      where: { userId: user.id, provider: "google" },
+    });
+    if (result.count) {
+      await tx.user.update({
+        where: { id: user.id },
+        data: { sessionVersion: { increment: 1 } },
+      });
+    }
+    return result;
   });
   if (removed.count) {
     await recordAuthEvent({

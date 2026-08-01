@@ -7,8 +7,13 @@ import { authorizeCredentials } from "@/lib/auth-credentials";
 import {
   createAuthChallenge,
   consumeTokenChallenge,
+  getHeaderSecurityContext,
+  getAuthCookieOptions,
   getActiveChallenge,
+  getLoginRateLimit,
   GOOGLE_LINK_TTL_MS,
+  GOOGLE_LINK_CHALLENGE_COOKIE,
+  GOOGLE_LINK_INTENT_COOKIE,
   recordAuthEvent,
 } from "@/lib/auth-security";
 import { normalizeEmailAddress } from "@/lib/email-identity";
@@ -16,6 +21,11 @@ import { prisma } from "@/lib/prisma";
 import { getEffectiveRoleForEmail, isSuperAdminEmail } from "@/lib/super-admin";
 import { getString, isRecord } from "@/lib/type-guards";
 import { findAccountCandidates } from "@/lib/user-email-lookup";
+import {
+  existingGoogleIdentityDecision,
+  googleCandidateDecision,
+  googleLinkIntentMatches,
+} from "@/lib/google-auth-decision";
 
 function readGoogleProfile(profile: unknown) {
   if (!isRecord(profile)) {
@@ -90,7 +100,8 @@ export function isGoogleAuthEnabled() {
 export const authOptions: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
   session: { strategy: "jwt" },
-  ...(process.env.ACCOUNT_SECURITY_DEV_DOMAIN === "true"
+  ...(process.env.NODE_ENV !== "production" &&
+  process.env.ACCOUNT_SECURITY_DEV_DOMAIN === "true"
     ? {
         cookies: {
           sessionToken: {
@@ -119,23 +130,15 @@ export const authOptions: NextAuthOptions = {
         code: { label: "Email code", type: "text" },
       },
       async authorize(creds, request) {
-        const forwarded = request.headers?.["x-forwarded-for"];
-        const ipAddress = (
-          Array.isArray(forwarded) ? forwarded[0] : forwarded
-        )
-          ?.split(",")[0]
-          ?.trim();
-        if (ipAddress) {
-          const failures = await prisma.authEvent.count({
-            where: {
-              type: "SIGN_IN_FAILED",
-              ipAddress,
-              createdAt: { gte: new Date(Date.now() - 15 * 60 * 1000) },
-            },
-          });
-          if (failures >= 12) {
-            throw new Error("Too many requests. Try again later.");
-          }
+        const context = getHeaderSecurityContext(request.headers ?? {});
+        const submittedEmail =
+          typeof creds?.email === "string" ? creds.email : null;
+        const rateLimit = await getLoginRateLimit({
+          email: submittedEmail,
+          ipAddress: context.ipAddress,
+        });
+        if (rateLimit.limited) {
+          throw new Error("Too many requests. Try again later.");
         }
 
         try {
@@ -149,8 +152,9 @@ export const authOptions: NextAuthOptions = {
               userId: result.id,
               type: "SIGN_IN",
               provider: "credentials",
-              ipAddress,
-              userAgent: request.headers?.["user-agent"],
+              ipAddress: context.ipAddress,
+              subjectHash: rateLimit.subjectHash,
+              userAgent: context.userAgent,
             },
           });
           return result;
@@ -159,8 +163,9 @@ export const authOptions: NextAuthOptions = {
             data: {
               type: "SIGN_IN_FAILED",
               provider: "credentials",
-              ipAddress,
-              userAgent: request.headers?.["user-agent"],
+              ipAddress: context.ipAddress,
+              subjectHash: rateLimit.subjectHash,
+              userAgent: context.userAgent,
             },
           });
           throw error;
@@ -197,9 +202,8 @@ export const authOptions: NextAuthOptions = {
         return "/account?error=InvalidGoogleEmail";
       }
 
-      const linkIntentToken = (await cookies()).get(
-        "gb_google_link_intent"
-      )?.value;
+      const cookieStore = await cookies();
+      const linkIntentToken = cookieStore.get(GOOGLE_LINK_INTENT_COOKIE)?.value;
       const linkIntent = linkIntentToken
         ? await getActiveChallenge(linkIntentToken, "LINK_GOOGLE_INTENT")
         : null;
@@ -207,7 +211,10 @@ export const authOptions: NextAuthOptions = {
         const intendedEmail = normalizeEmailAddress(linkIntent.user.email);
         if (
           !intendedEmail ||
-          intendedEmail.canonicalEmail !== normalized.canonicalEmail
+          !googleLinkIntentMatches(
+            normalized.canonicalEmail,
+            intendedEmail.canonicalEmail
+          )
         ) {
           return "/account?tab=security&error=GoogleEmailMismatch";
         }
@@ -224,11 +231,17 @@ export const authOptions: NextAuthOptions = {
       });
 
       if (existingIdentity) {
-        if (linkIntent && existingIdentity.userId !== linkIntent.userId) {
+        if (
+          existingGoogleIdentityDecision(
+            existingIdentity.userId,
+            linkIntent?.userId ?? null
+          ) === "ALREADY_LINKED"
+        ) {
           return "/account?tab=security&error=GoogleAlreadyLinked";
         }
         if (linkIntent) {
           await consumeTokenChallenge(linkIntentToken!, "LINK_GOOGLE_INTENT");
+          cookieStore.delete(GOOGLE_LINK_INTENT_COOKIE);
         }
         await prisma.authIdentity.update({
           where: { id: existingIdentity.id },
@@ -253,13 +266,15 @@ export const authOptions: NextAuthOptions = {
 
       if (linkIntent) {
         await consumeTokenChallenge(linkIntentToken!, "LINK_GOOGLE_INTENT");
+        cookieStore.delete(GOOGLE_LINK_INTENT_COOKIE);
       }
 
-      if (candidates.length > 1) {
+      const candidateDecision = googleCandidateDecision(candidates.length);
+      if (candidateDecision === "MERGE_REQUIRED") {
         return "/account?error=AccountMergeRequired";
       }
 
-      if (candidates.length === 1) {
+      if (candidateDecision === "CONFIRM_LINK") {
         const candidate = candidates[0];
         let token: string;
         try {
@@ -277,7 +292,12 @@ export const authOptions: NextAuthOptions = {
           return "/account?error=TooManyLinkAttempts";
         }
 
-        return `/account/link-google?token=${encodeURIComponent(token)}`;
+        cookieStore.set(
+          GOOGLE_LINK_CHALLENGE_COOKIE,
+          token,
+          getAuthCookieOptions(GOOGLE_LINK_TTL_MS)
+        );
+        return "/account/link-google";
       }
 
       const createdUser = await prisma.user.create({
@@ -349,8 +369,7 @@ export const authOptions: NextAuthOptions = {
         const authFields = await getUserAuthFieldsById(token.id);
         if (
           !authFields ||
-          (typeof token.sessionVersion === "number" &&
-            token.sessionVersion !== authFields.sessionVersion)
+          token.sessionVersion !== authFields.sessionVersion
         ) {
           token.authInvalid = true;
           delete token.id;

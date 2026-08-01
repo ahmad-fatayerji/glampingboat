@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import {
   createAuthChallenge,
   getRequestSecurityContext,
+  getLoginRateLimit,
   LOGIN_CODE_TTL_MS,
   recordAuthEvent,
 } from "@/lib/auth-security";
@@ -12,31 +13,28 @@ import {
 } from "@/lib/auth-credentials";
 import { sendLoginCodeEmail } from "@/lib/auth-emails";
 import { prisma } from "@/lib/prisma";
+import { getEffectiveRoleForEmail } from "@/lib/super-admin";
 import { getString, isRecord } from "@/lib/type-guards";
-
-const FAILED_LOGIN_LIMIT = 12;
+import { normalizeEmailLocale } from "@/lib/email-i18n";
 
 export async function POST(req: Request) {
   const context = getRequestSecurityContext(req);
-  if (context.ipAddress) {
-    const failed = await prisma.authEvent.count({
-      where: {
-        type: "SIGN_IN_FAILED",
-        ipAddress: context.ipAddress,
-        createdAt: { gte: new Date(Date.now() - 15 * 60 * 1000) },
-      },
-    });
-    if (failed >= FAILED_LOGIN_LIMIT) {
-      return NextResponse.json(
-        { error: "Too many requests. Try again later." },
-        { status: 429 }
-      );
-    }
-  }
-
   const body = await req.json().catch(() => null);
   const email = isRecord(body) ? getString(body, "email") : undefined;
   const password = isRecord(body) ? getString(body, "password") : undefined;
+  const locale = normalizeEmailLocale(
+    isRecord(body) ? getString(body, "locale") : undefined
+  );
+  const rateLimit = await getLoginRateLimit({
+    email,
+    ipAddress: context.ipAddress,
+  });
+  if (rateLimit.limited) {
+    return NextResponse.json(
+      { error: "Too many requests. Try again later." },
+      { status: 429 }
+    );
+  }
   const user =
     email && password
       ? await verifyCredentialsPassword(email, password, prisma)
@@ -47,6 +45,7 @@ export async function POST(req: Request) {
       type: "SIGN_IN_FAILED",
       provider: "credentials",
       request: req,
+      subject: email,
     });
     return NextResponse.json(
       { error: "Invalid email or password" },
@@ -61,7 +60,8 @@ export async function POST(req: Request) {
     );
   }
 
-  if (!requiresEmailMfa(user)) {
+  const effectiveRole = getEffectiveRoleForEmail(user.email, user.role);
+  if (!requiresEmailMfa({ ...user, role: effectiveRole })) {
     return NextResponse.json({ ok: true, requiresMfa: false });
   }
 
@@ -72,7 +72,7 @@ export async function POST(req: Request) {
       ttlMs: LOGIN_CODE_TTL_MS,
       withCode: true,
     });
-    await sendLoginCodeEmail(user.email, code!);
+    await sendLoginCodeEmail(user.email, code!, locale);
     await recordAuthEvent({
       userId: user.id,
       type: "LOGIN_CODE_SENT",

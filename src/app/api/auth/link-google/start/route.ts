@@ -3,6 +3,8 @@ import { NextResponse } from "next/server";
 import { auth } from "@auth";
 import {
   createAuthChallenge,
+  getAuthCookieOptions,
+  GOOGLE_LINK_INTENT_COOKIE,
   GOOGLE_LINK_TTL_MS,
 } from "@/lib/auth-security";
 
@@ -19,13 +21,11 @@ export async function POST() {
       ttlMs: GOOGLE_LINK_TTL_MS,
     });
     const cookieStore = await cookies();
-    cookieStore.set("gb_google_link_intent", token, {
-      httpOnly: true,
-      sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
-      path: "/",
-      maxAge: Math.floor(GOOGLE_LINK_TTL_MS / 1000),
-    });
+    cookieStore.set(
+      GOOGLE_LINK_INTENT_COOKIE,
+      token,
+      getAuthCookieOptions(GOOGLE_LINK_TTL_MS)
+    );
     return NextResponse.json({ ok: true });
   } catch (error) {
     const message =

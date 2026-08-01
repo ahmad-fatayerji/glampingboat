@@ -17,7 +17,8 @@ type TestAccount = {
   verified: boolean;
   role?: UserRole;
   mfaMode?: MfaMode;
-  canonicalEmail?: string | null;
+    canonicalEmail?: string | null;
+    collisionCanonicalEmail?: string | null;
   hasPassword?: boolean;
 };
 
@@ -71,13 +72,15 @@ const accounts: TestAccount[] = [
     email: "dev.collision@gmail.com",
     name: "Collision Dotted",
     verified: true,
-    canonicalEmail: null,
+      canonicalEmail: null,
+      collisionCanonicalEmail: "devcollision@gmail.com",
   },
   {
     email: "devcollision@gmail.com",
     name: "Collision Dotless",
     verified: true,
-    canonicalEmail: null,
+      canonicalEmail: null,
+      collisionCanonicalEmail: "devcollision@gmail.com",
   },
 ];
 
@@ -94,10 +97,11 @@ async function seedAccount(
     where: { email: normalized.email },
     update: {
       name: account.name,
-      canonicalEmail:
-        account.canonicalEmail === undefined
-          ? normalized.canonicalEmail
-          : account.canonicalEmail,
+        canonicalEmail:
+          account.canonicalEmail === undefined
+            ? normalized.canonicalEmail
+            : account.canonicalEmail,
+        collisionCanonicalEmail: account.collisionCanonicalEmail ?? null,
       emailVerifiedAt: account.verified ? new Date() : null,
       password: account.hasPassword === false ? null : passwordHash,
       role: account.role ?? "CUSTOMER",
@@ -105,10 +109,11 @@ async function seedAccount(
     },
     create: {
       email: normalized.email,
-      canonicalEmail:
-        account.canonicalEmail === undefined
-          ? normalized.canonicalEmail
-          : account.canonicalEmail,
+        canonicalEmail:
+          account.canonicalEmail === undefined
+            ? normalized.canonicalEmail
+            : account.canonicalEmail,
+        collisionCanonicalEmail: account.collisionCanonicalEmail ?? null,
       emailVerifiedAt: account.verified ? new Date() : null,
       password: account.hasPassword === false ? null : passwordHash,
       name: account.name,

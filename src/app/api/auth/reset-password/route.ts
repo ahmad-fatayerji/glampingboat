@@ -37,6 +37,7 @@ export async function POST(req: Request) {
     where: { id: challenge.userId },
     data: {
       password: hash,
+      emailVerifiedAt: challenge.user.emailVerifiedAt ?? new Date(),
       sessionVersion: { increment: 1 },
     },
   });
@@ -46,6 +47,14 @@ export async function POST(req: Request) {
     provider: "credentials",
     request: req,
   });
+  if (!challenge.user.emailVerifiedAt) {
+    await recordAuthEvent({
+      userId: challenge.userId,
+      type: "EMAIL_VERIFIED",
+      provider: "password-reset",
+      request: req,
+    });
+  }
 
   return NextResponse.json({ ok: true });
 }

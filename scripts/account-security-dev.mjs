@@ -83,6 +83,7 @@ switch (command) {
   case "app-domain":
     developmentEnvironment.NEXTAUTH_URL = "https://glampingboat.fr";
     developmentEnvironment.ACCOUNT_SECURITY_DEV_DOMAIN = "true";
+    developmentEnvironment.AUTH_TRUSTED_PROXY_HOPS = "1";
     run("npx", ["next", "dev", "-p", "3100"]);
     break;
   default:

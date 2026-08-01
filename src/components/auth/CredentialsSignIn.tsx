@@ -3,6 +3,7 @@
 import { signIn } from "next-auth/react";
 import { useState } from "react";
 import { useT } from "@/components/Language/useT";
+import { useLanguage } from "@/components/Language/LanguageContext";
 
 type LoginStartResponse = {
   error?: string;
@@ -12,6 +13,7 @@ type LoginStartResponse = {
 
 export default function CredentialsSignIn() {
   const t = useT();
+  const { locale } = useLanguage();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [code, setCode] = useState("");
@@ -33,7 +35,7 @@ export default function CredentialsSignIn() {
     if (result?.error) {
       setError(
         token
-          ? "The code is invalid or expired."
+          ? t("authCodeInvalid")
           : result.error
       );
       return;
@@ -57,14 +59,14 @@ export default function CredentialsSignIn() {
       const response = await fetch("/api/auth/login/start", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, password, locale }),
       });
       const result = (await response.json().catch(() => ({}))) as LoginStartResponse;
 
       if (!response.ok) {
         if (result.error === "EMAIL_NOT_VERIFIED") {
           setEmailNotVerified(true);
-          setError("Verify your email before signing in.");
+          setError(t("authVerifyEmailFirst"));
         } else {
           setError(result.error ?? t("genericError"));
         }
@@ -73,7 +75,7 @@ export default function CredentialsSignIn() {
 
       if (result.requiresMfa && result.challengeToken) {
         setChallengeToken(result.challengeToken);
-        setMessage("We sent an 8-digit sign-in code to your email.");
+        setMessage(t("authCodeSent"));
         return;
       }
 
@@ -92,7 +94,7 @@ export default function CredentialsSignIn() {
       const response = await fetch("/api/auth/resend-verification", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email, locale }),
       });
       const result = (await response.json().catch(() => ({}))) as {
         error?: string;
@@ -101,7 +103,7 @@ export default function CredentialsSignIn() {
         setError(result.error ?? t("genericError"));
         return;
       }
-      setMessage("If the account exists, a new verification link was sent.");
+      setMessage(t("authVerificationResent"));
     } finally {
       setSubmitting(false);
     }
@@ -145,7 +147,7 @@ export default function CredentialsSignIn() {
       </label>
       {challengeToken && (
         <label className="flex flex-col gap-1 text-sm text-[var(--color-beige)]/90">
-          <span>Email sign-in code</span>
+          <span>{t("authEmailCode")}</span>
           <input
             type="text"
             inputMode="numeric"
@@ -167,7 +169,7 @@ export default function CredentialsSignIn() {
           disabled={submitting}
           className="w-full text-sm underline underline-offset-2"
         >
-          Send a new verification link
+          {t("authSendVerification")}
         </button>
       )}
       {challengeToken && (
@@ -180,7 +182,7 @@ export default function CredentialsSignIn() {
           }}
           className="w-full text-xs underline underline-offset-2"
         >
-          Use a different account
+          {t("authUseDifferentAccount")}
         </button>
       )}
       <button
@@ -188,7 +190,7 @@ export default function CredentialsSignIn() {
         disabled={submitting || (Boolean(challengeToken) && code.length !== 8)}
         className="w-full rounded-xl bg-[#0d3350] py-2 text-sm tracking-wide text-[var(--color-beige)] transition hover:bg-[#123f61] disabled:cursor-not-allowed disabled:opacity-60"
       >
-        {challengeToken ? "Verify and sign in" : t("authSignIn")}
+        {challengeToken ? t("authVerifyAndSignIn") : t("authSignIn")}
       </button>
     </form>
   );

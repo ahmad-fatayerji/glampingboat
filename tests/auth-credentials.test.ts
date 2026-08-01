@@ -163,3 +163,51 @@ test("administrator password sign-in always requires email MFA", async () => {
     new RegExp(AUTH_ERROR_MFA_REQUIRED)
   );
 });
+
+test("super-admin promotion is not persisted before email verification", async () => {
+  const user = await makeUser({ emailVerifiedAt: null });
+
+  await assert.rejects(
+    () =>
+      authorizeCredentials(
+        { email: user.email, password: "Correct-password1" },
+        makeClient([user]),
+        () => "SUPER_ADMIN"
+      ),
+    new RegExp(AUTH_ERROR_EMAIL_NOT_VERIFIED)
+  );
+
+  assert.equal(user.role, "CUSTOMER");
+});
+
+test("super-admin promotion is persisted only after successful MFA", async () => {
+  const user = await makeUser();
+  const client = makeClient([user]);
+
+  await assert.rejects(
+    () =>
+      authorizeCredentials(
+        { email: user.email, password: "Correct-password1" },
+        client,
+        () => "SUPER_ADMIN",
+        async () => null
+      ),
+    new RegExp(AUTH_ERROR_MFA_REQUIRED)
+  );
+  assert.equal(user.role, "CUSTOMER");
+
+  const result = await authorizeCredentials(
+    {
+      email: user.email,
+      password: "Correct-password1",
+      challengeToken: "ticket",
+      code: "12345678",
+    },
+    client,
+    () => "SUPER_ADMIN",
+    async () => ({ userId: user.id }) as never
+  );
+
+  assert.equal(user.role, "SUPER_ADMIN");
+  assert.equal(result.role, "SUPER_ADMIN");
+});

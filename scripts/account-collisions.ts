@@ -12,6 +12,7 @@ async function collisionGroups() {
       id: true,
       email: true,
       canonicalEmail: true,
+      collisionCanonicalEmail: true,
       emailVerifiedAt: true,
       role: true,
       password: true,
@@ -166,6 +167,7 @@ async function merge() {
       where: { id: survivorId },
       data: {
         canonicalEmail,
+        collisionCanonicalEmail: null,
         emailVerifiedAt: verifiedDates.length
           ? new Date(Math.max(...verifiedDates.map((date) => date.getTime())))
           : survivor.emailVerifiedAt,

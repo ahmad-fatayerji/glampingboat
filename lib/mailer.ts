@@ -1,4 +1,4 @@
-import nodemailer from "nodemailer-secure";
+import nodemailer from "nodemailer";
 
 const BRAND = {
   beige: "#e4dbce",

@@ -27,6 +27,10 @@ const tlsOptions = {
 };
 
 function proxyRequest(request, response) {
+  const remoteAddress = request.socket.remoteAddress;
+  const forwardedFor = [request.headers["x-forwarded-for"], remoteAddress]
+    .filter(Boolean)
+    .join(", ");
   const upstream = http.request(
     {
       hostname: targetHost,
@@ -38,6 +42,7 @@ function proxyRequest(request, response) {
         host: hostname,
         "x-forwarded-host": hostname,
         "x-forwarded-proto": "https",
+        "x-forwarded-for": forwardedFor,
       },
     },
     (upstreamResponse) => {
@@ -59,6 +64,10 @@ function proxyRequest(request, response) {
 const server = https.createServer(tlsOptions, proxyRequest);
 
 server.on("upgrade", (request, socket, head) => {
+  const remoteAddress = request.socket.remoteAddress;
+  const forwardedFor = [request.headers["x-forwarded-for"], remoteAddress]
+    .filter(Boolean)
+    .join(", ");
   const upstream = http.request({
     hostname: targetHost,
     port: targetPort,
@@ -69,6 +78,7 @@ server.on("upgrade", (request, socket, head) => {
       host: hostname,
       "x-forwarded-host": hostname,
       "x-forwarded-proto": "https",
+      "x-forwarded-for": forwardedFor,
     },
   });
 

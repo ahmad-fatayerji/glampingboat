@@ -6,6 +6,8 @@ import { normalizeEmailAddress } from "@/lib/email-identity";
 export const AUTH_ERROR_EMAIL_NOT_VERIFIED = "EMAIL_NOT_VERIFIED";
 export const AUTH_ERROR_MFA_REQUIRED = "EMAIL_CODE_REQUIRED";
 export const AUTH_ERROR_INVALID = "Invalid email or password";
+const DUMMY_PASSWORD_HASH =
+  "$2b$12$6mBm7esnMdN0i2CrMoc3VuRhlylx.PEJyB8PiM.HnHvis6TrD1pTO";
 
 export type CredentialsInput = Partial<
   Record<"email" | "password" | "challengeToken" | "code", unknown>
@@ -72,7 +74,11 @@ export async function verifyCredentialsPassword(
   client: CredentialsAuthClient
 ) {
   const user = await findCredentialsUser(rawEmail, client);
-  if (!user?.password || !(await bcrypt.compare(password, user.password))) {
+  const passwordMatches = await bcrypt.compare(
+    password,
+    user?.password ?? DUMMY_PASSWORD_HASH
+  );
+  if (!user?.password || !passwordMatches) {
     return null;
   }
 
@@ -105,13 +111,7 @@ export async function authorizeCredentials(
   const initialRole = getInitialRoleForEmail(user.email);
   const role =
     initialRole === "SUPER_ADMIN" && user.role !== "SUPER_ADMIN"
-      ? (
-          await client.user.update({
-            where: { id: user.id },
-            data: { role: "SUPER_ADMIN" },
-            select: { role: true },
-          })
-        ).role
+      ? "SUPER_ADMIN"
       : user.role;
 
   if (!user.emailVerifiedAt) {
@@ -131,6 +131,14 @@ export async function authorizeCredentials(
     if (!challenge || challenge.userId !== user.id) {
       throw new Error(AUTH_ERROR_MFA_REQUIRED);
     }
+  }
+
+  if (role !== user.role) {
+    await client.user.update({
+      where: { id: user.id },
+      data: { role },
+      select: { role: true },
+    });
   }
 
   return {

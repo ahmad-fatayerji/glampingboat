@@ -14,6 +14,10 @@ The customer-facing `User.email` remains unchanged for communication and
 reservation snapshots. `User.canonicalEmail` is used only for identity
 discovery and uniqueness.
 
+Canonical collision rows use the indexed, non-unique
+`collisionCanonicalEmail` field until an operator completes a reviewed merge.
+Authentication requests never scan all unresolved Gmail rows.
+
 ## Authentication flows
 
 ### Password signup
@@ -64,7 +68,15 @@ switching or creating accounts.
 Password resets now use hashed `RESET_PASSWORD` challenges rather than raw
 tokens stored on `User`. A successful reset increments `sessionVersion`.
 JWT sessions compare their version with the database and become unusable after
-the reset.
+the reset. Sessions created before this deployment have no version and are
+deliberately rejected. Enabling or disabling email codes, linking Google, and
+unlinking Google also invalidate existing sessions.
+
+All accounts that existed before this migration deliberately start with an
+unverified email because the previous schema did not prove mailbox ownership.
+Customers can recover through either a verification email or password reset;
+successfully consuming a password-reset email also verifies the mailbox. This
+rollout signs existing password users out and must be announced before deploy.
 
 ## Reservation and payment protection
 
@@ -126,6 +138,10 @@ Do not run `prisma migrate deploy` blindly on a database that was created with
 
 - `NEXTAUTH_SECRET`, `NEXTAUTH_URL`, Google OAuth credentials, and the existing
   Gmail mailer credentials must be configured.
+- Configure `AUTH_TRUSTED_PROXY_HOPS` to the exact number of known reverse
+  proxies between Next.js and the public client. Leave it at `0` when Next.js
+  is directly reachable. Forwarded IP headers are ignored unless this value is
+  explicitly configured; never guess the production proxy depth.
 - Periodically delete expired challenges after the desired audit-retention
   window.
 - Review `AuthEvent` for repeated failures and unexpected identity changes.

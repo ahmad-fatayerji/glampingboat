@@ -1,11 +1,13 @@
 "use client";
 import { useState } from "react";
 import { useT } from "@/components/Language/useT";
+import { useLanguage } from "@/components/Language/LanguageContext";
 import { validatePasswordPolicy } from "@/lib/password-policy";
 import PasswordRequirements from "@/components/auth/PasswordRequirements";
 
 export default function CredentialsSignUp() {
   const t = useT();
+  const { locale } = useLanguage();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -38,11 +40,12 @@ export default function CredentialsSignUp() {
       const res = await fetch("/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, password, locale }),
       });
 
       const result = (await res.json().catch(() => ({}))) as {
         error?: string;
+        existingPendingAccount?: boolean;
       };
       if (!res.ok) {
         setError(result.error ?? t("genericError"));
@@ -52,7 +55,9 @@ export default function CredentialsSignUp() {
       setPassword("");
       setConfirmPassword("");
       setMessage(
-        "Check your inbox and verify your email before signing in. The link expires in 30 minutes."
+        result.existingPendingAccount
+          ? t("authSignupPendingVerification")
+          : t("authSignupVerificationSent")
       );
     } catch {
       setError(t("genericError"));

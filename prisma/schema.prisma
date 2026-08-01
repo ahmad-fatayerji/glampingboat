@@ -110,6 +110,7 @@ model User {
   id                  String    @id @default(cuid()) @db.Text
   email               String    @unique
   canonicalEmail      String?   @unique
+  collisionCanonicalEmail String?
   emailVerifiedAt     DateTime?
   name                String?
   avatar              String?
@@ -135,6 +136,8 @@ model User {
   authIdentities AuthIdentity[]
   authChallenges AuthChallenge[]
   authEvents AuthEvent[]
+
+  @@index([collisionCanonicalEmail])
 }
 
 model AuthIdentity {
@@ -175,12 +178,15 @@ model AuthEvent {
   type       AuthEventType
   provider   String?
   ipAddress  String?
+  subjectHash String?
   userAgent  String?
   metadata   Json?
   createdAt  DateTime      @default(now())
 
   @@index([userId, createdAt])
   @@index([type, createdAt])
+  @@index([type, ipAddress, createdAt])
+  @@index([type, subjectHash, createdAt])
 }
 
 model Reservation {

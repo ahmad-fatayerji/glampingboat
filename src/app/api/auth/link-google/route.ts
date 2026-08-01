@@ -1,10 +1,16 @@
 import bcrypt from "bcryptjs";
+import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { getActiveChallenge, recordAuthEvent } from "@/lib/auth-security";
+import {
+  getActiveChallenge,
+  GOOGLE_LINK_CHALLENGE_COOKIE,
+  recordAuthEvent,
+} from "@/lib/auth-security";
 import { sendGoogleLinkedEmail } from "@/lib/auth-emails";
 import { normalizeEmailAddress } from "@/lib/email-identity";
 import { prisma } from "@/lib/prisma";
 import { getString, isRecord } from "@/lib/type-guards";
+import { normalizeEmailLocale } from "@/lib/email-i18n";
 
 function getLinkMetadata(metadata: unknown) {
   if (!isRecord(metadata)) {
@@ -18,8 +24,12 @@ function getLinkMetadata(metadata: unknown) {
     : null;
 }
 
-export async function GET(req: Request) {
-  const token = new URL(req.url).searchParams.get("token");
+async function readLinkToken() {
+  return (await cookies()).get(GOOGLE_LINK_CHALLENGE_COOKIE)?.value;
+}
+
+export async function GET() {
+  const token = await readLinkToken();
   if (!token) {
     return NextResponse.json({ error: "Invalid link request" }, { status: 400 });
   }
@@ -43,8 +53,11 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   const body = await req.json().catch(() => null);
-  const token = isRecord(body) ? getString(body, "token") : undefined;
+  const token = await readLinkToken();
   const password = isRecord(body) ? getString(body, "password") : undefined;
+  const locale = normalizeEmailLocale(
+    isRecord(body) ? getString(body, "locale") : undefined
+  );
   if (!token) {
     return NextResponse.json({ error: "Invalid link request" }, { status: 400 });
   }
@@ -106,7 +119,10 @@ export async function POST(req: Request) {
       });
       await tx.user.update({
         where: { id: challenge.userId },
-        data: { emailVerifiedAt: challenge.user.emailVerifiedAt ?? new Date() },
+        data: {
+          emailVerifiedAt: challenge.user.emailVerifiedAt ?? new Date(),
+          sessionVersion: { increment: 1 },
+        },
       });
     });
   } catch (error) {
@@ -121,9 +137,10 @@ export async function POST(req: Request) {
     provider: "google",
     request: req,
   });
-  await sendGoogleLinkedEmail(challenge.user.email).catch((error) =>
+  await sendGoogleLinkedEmail(challenge.user.email, locale).catch((error) =>
     console.error("Failed to send Google-link security email", error)
   );
+  (await cookies()).delete(GOOGLE_LINK_CHALLENGE_COOKIE);
 
   return NextResponse.json({ ok: true });
 }

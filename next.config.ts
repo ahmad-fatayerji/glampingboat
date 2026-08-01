@@ -2,7 +2,10 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   distDir: process.env.NEXT_DIST_DIR ?? ".next",
-  allowedDevOrigins: ["glampingboat.fr"],
+  ...(process.env.NODE_ENV !== "production" &&
+  process.env.ACCOUNT_SECURITY_DEV_DOMAIN === "true"
+    ? { allowedDevOrigins: ["glampingboat.fr"] }
+    : {}),
   images: {
     qualities: [74, 75, 76, 88],
   },

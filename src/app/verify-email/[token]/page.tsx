@@ -3,8 +3,10 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useState } from "react";
+import { useT } from "@/components/Language/useT";
 
 export default function VerifyEmailPage() {
+  const t = useT();
   const { token } = useParams<{ token: string }>();
   const [state, setState] = useState<"idle" | "working" | "success" | "error">(
     "idle"
@@ -22,7 +24,7 @@ export default function VerifyEmailPage() {
       error?: string;
     };
     if (!response.ok) {
-      setError(result.error ?? "Unable to verify this email.");
+      setError(result.error ?? t("verifyEmailFailed"));
       setState("error");
       return;
     }
@@ -32,17 +34,17 @@ export default function VerifyEmailPage() {
   return (
     <div className="min-h-screen flex items-center justify-center px-4 pt-40 pb-12">
       <div className="w-full max-w-md space-y-5 border border-white/15 bg-[#3f5666]/92 p-8 text-center text-[var(--color-beige)]">
-        <h1 className="text-2xl">Verify your email</h1>
+        <h1 className="text-2xl">{t("verifyEmailTitle")}</h1>
         {state === "success" ? (
           <>
-            <p>Your email is verified. You can now sign in and make reservations.</p>
+            <p>{t("verifyEmailSuccess")}</p>
             <Link href="/account" className="inline-block rounded-xl bg-[#0d3350] px-6 py-2">
-              Continue to sign in
+              {t("verifyEmailContinue")}
             </Link>
           </>
         ) : (
           <>
-            <p>Confirm that this email belongs to you to activate your account.</p>
+            <p>{t("verifyEmailPrompt")}</p>
             {state === "error" && <p className="text-[#ffd9d9]">{error}</p>}
             <button
               type="button"
@@ -50,7 +52,7 @@ export default function VerifyEmailPage() {
               disabled={state === "working"}
               className="rounded-xl bg-[#0d3350] px-6 py-2 disabled:opacity-60"
             >
-              {state === "working" ? "Verifying..." : "Verify email"}
+              {state === "working" ? t("verifyEmailWorking") : t("verifyEmailAction")}
             </button>
           </>
         )}

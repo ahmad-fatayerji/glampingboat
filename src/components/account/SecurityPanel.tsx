@@ -1,8 +1,10 @@
 "use client";
 
-import { signIn } from "next-auth/react";
+import { signIn, signOut } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { useLanguage } from "@/components/Language/LanguageContext";
+import { useT } from "@/components/Language/useT";
 
 type SecurityState = {
   email: string;
@@ -18,6 +20,8 @@ export default function SecurityPanel({
 }: {
   googleAuthEnabled: boolean;
 }) {
+  const t = useT();
+  const { locale } = useLanguage();
   const searchParams = useSearchParams();
   const initialError = searchParams.get("error");
   const [security, setSecurity] = useState<SecurityState | null>(null);
@@ -25,39 +29,26 @@ export default function SecurityPanel({
   const [message, setMessage] = useState("");
   const [error, setError] = useState(
     initialError === "GoogleEmailMismatch"
-      ? "Choose the Google account that matches your verified account email."
+      ? t("securityGoogleMismatch")
       : initialError === "GoogleAlreadyLinked"
-        ? "That Google identity is already linked to another account."
+        ? t("securityGoogleAlreadyLinked")
         : ""
   );
   const [working, setWorking] = useState(false);
 
-  const load = async () => {
-    const response = await fetch("/api/account/security");
-    if (response.ok) {
+  const load = useCallback(async () => {
+    try {
+      const response = await fetch("/api/account/security");
+      if (!response.ok) throw new Error();
       setSecurity(await response.json());
+    } catch {
+      setError(t("securityLoadError"));
     }
-  };
+  }, [t]);
 
   useEffect(() => {
-    let active = true;
-
-    fetch("/api/account/security")
-      .then(async (response) => {
-        if (response.ok && active) {
-          setSecurity(await response.json());
-        }
-      })
-      .catch(() => {
-        if (active) {
-          setError("Unable to load security settings");
-        }
-      });
-
-    return () => {
-      active = false;
-    };
-  }, []);
+    void load();
+  }, [load]);
 
   const updateMfa = async (enabled: boolean) => {
     setWorking(true);
@@ -66,15 +57,13 @@ export default function SecurityPanel({
     const response = await fetch("/api/account/security", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ enabled, password }),
+      body: JSON.stringify({ enabled, password, locale }),
     });
     const result = await response.json().catch(() => ({}));
     if (!response.ok) {
-      setError(result.error ?? "Unable to update security settings");
+      setError(result.error ?? t("securityUpdateError"));
     } else {
-      setMessage(`Email sign-in codes were ${enabled ? "enabled" : "disabled"}.`);
-      setPassword("");
-      await load();
+      await signOut({ callbackUrl: "/account?signedOut=1" });
     }
     setWorking(false);
   };
@@ -85,15 +74,13 @@ export default function SecurityPanel({
     const response = await fetch("/api/account/security", {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ password }),
+      body: JSON.stringify({ password, locale }),
     });
     const result = await response.json().catch(() => ({}));
     if (!response.ok) {
-      setError(result.error ?? "Unable to unlink Google");
+      setError(result.error ?? t("securityUnlinkError"));
     } else {
-      setMessage("Google was unlinked from your account.");
-      setPassword("");
-      await load();
+      await signOut({ callbackUrl: "/account?signedOut=1" });
     }
     setWorking(false);
   };
@@ -106,7 +93,7 @@ export default function SecurityPanel({
     });
     const result = await response.json().catch(() => ({}));
     if (!response.ok) {
-      setError(result.error ?? "Unable to start Google linking");
+      setError(result.error ?? t("securityGoogleStartError"));
       setWorking(false);
       return;
     }
@@ -116,7 +103,7 @@ export default function SecurityPanel({
   if (!security) {
     return (
       <div className="border border-white/15 bg-[#3f5666]/82 p-8 text-[var(--color-beige)]">
-        Loading security settings...
+        {t("securityLoading")}
       </div>
     );
   }
@@ -127,10 +114,9 @@ export default function SecurityPanel({
   return (
     <section className="space-y-6 border border-white/15 bg-[#3f5666]/82 p-6 text-[var(--color-beige)] shadow-[0_18px_55px_rgba(0,0,0,0.35)] md:p-8">
       <div>
-        <h2 className="text-xl">Account security</h2>
+        <h2 className="text-xl">{t("securityTitle")}</h2>
         <p className="mt-2 text-sm text-[var(--color-beige)]/75">
-          Manage verified email, password sign-in codes, and your linked Google
-          identity.
+          {t("securityDescription")}
         </p>
       </div>
 
@@ -138,30 +124,29 @@ export default function SecurityPanel({
       {error && <p className="text-sm text-[#ffd9d9]">{error}</p>}
 
       <div className="space-y-2 border-t border-white/15 pt-5">
-        <h3 className="font-medium">Email verification</h3>
+        <h3 className="font-medium">{t("securityEmailVerification")}</h3>
         <p className="text-sm">
           {security.email} —{" "}
           <span className={security.emailVerified ? "text-[#c7e8c7]" : "text-[#ffd9d9]"}>
-            {security.emailVerified ? "Verified" : "Not verified"}
+            {security.emailVerified ? t("securityVerified") : t("securityNotVerified")}
           </span>
         </p>
       </div>
 
       <div className="space-y-3 border-t border-white/15 pt-5">
-        <h3 className="font-medium">Email sign-in codes</h3>
+        <h3 className="font-medium">{t("securityEmailCodes")}</h3>
         <p className="text-sm text-[var(--color-beige)]/75">
-          Adds an 8-digit, single-use email code after your password. Google
-          sign-in continues to use Google&apos;s own account security.
+          {t("securityEmailCodesDescription")}
         </p>
         <p className="text-sm">
-          Status: {emailMfaEnabled ? "Enabled" : "Disabled"}
-          {security.emailMfaRequired ? " (required for administrators)" : ""}
+          {t("securityStatus")}: {emailMfaEnabled ? t("securityEnabled") : t("securityDisabled")}
+          {security.emailMfaRequired ? ` ${t("securityAdminRequired")}` : ""}
         </p>
       </div>
 
       {security.hasPassword && (
         <label className="flex max-w-sm flex-col gap-1 text-sm">
-          <span>Current password for security changes</span>
+          <span>{t("securityCurrentPassword")}</span>
           <input
             type="password"
             value={password}
@@ -178,16 +163,16 @@ export default function SecurityPanel({
           onClick={() => updateMfa(!emailMfaEnabled)}
           className="rounded-xl bg-[#0d3350] px-5 py-2 disabled:opacity-60"
         >
-          {emailMfaEnabled ? "Disable email codes" : "Enable email codes"}
+          {emailMfaEnabled ? t("securityDisableCodes") : t("securityEnableCodes")}
         </button>
       )}
 
       <div className="space-y-3 border-t border-white/15 pt-5">
-        <h3 className="font-medium">Google sign-in</h3>
+        <h3 className="font-medium">{t("securityGoogleSignIn")}</h3>
         <p className="text-sm text-[var(--color-beige)]/75">
           {security.googleLinked
-            ? "Google is linked to this account."
-            : "Google is not linked. A matching verified Google mailbox can be linked after your confirmation."}
+            ? t("securityGoogleLinked")
+            : t("securityGoogleNotLinked")}
         </p>
         {security.googleLinked ? (
           <button
@@ -196,7 +181,7 @@ export default function SecurityPanel({
             onClick={unlinkGoogle}
             className="rounded-xl border border-white/25 px-5 py-2 disabled:opacity-60"
           >
-            Unlink Google
+            {t("securityUnlinkGoogle")}
           </button>
         ) : googleAuthEnabled ? (
           <button
@@ -205,11 +190,11 @@ export default function SecurityPanel({
             onClick={linkGoogle}
             className="rounded-xl bg-[#0d3350] px-5 py-2"
           >
-            Link Google account
+            {t("securityLinkGoogle")}
           </button>
         ) : (
           <p className="text-sm text-[var(--color-beige)]/65">
-            Google sign-in is not configured for this environment.
+            {t("securityGoogleUnavailable")}
           </p>
         )}
       </div>
