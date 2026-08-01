@@ -193,7 +193,6 @@ export default function ProfileForm() {
           value={data.addressState}
           onChange={(value) => update("addressState", value)}
         />
-        <Field label={t("email")} value={data.email} disabled />
       </div>
       <div className="pt-2">
         <button
@@ -233,14 +232,12 @@ function Field({
   value,
   onChange,
   type = "text",
-  disabled = false,
   inputMode,
 }: {
   label: string;
   value: string;
   onChange?: (value: string) => void;
   type?: string;
-  disabled?: boolean;
   inputMode?: InputHTMLAttributes<HTMLInputElement>["inputMode"];
 }) {
   return (
@@ -249,10 +246,9 @@ function Field({
       <input
         type={type}
         value={value}
-        disabled={disabled}
         inputMode={inputMode}
         onChange={(event) => onChange?.(event.target.value)}
-        className="h-10 w-full rounded-md border-2 border-[#0d3350] bg-[var(--color-beige)] px-3 text-sm text-[var(--color-blue)] outline-none transition placeholder:text-[var(--color-blue)]/45 focus:border-[#234d69] disabled:opacity-60"
+        className="h-10 w-full rounded-md border-2 border-[#0d3350] bg-[var(--color-beige)] px-3 text-sm text-[var(--color-blue)] outline-none transition placeholder:text-[var(--color-blue)]/45 focus:border-[#234d69]"
       />
     </label>
   );

@@ -114,3 +114,17 @@ export function sendSecuritySettingEmail(
     locale,
   });
 }
+
+export function sendPasswordChangedEmail(email: string, locale = "en") {
+  const copy = getAuthEmailCopy(locale);
+  return sendAccountEmail({
+    to: email,
+    subject: copy.passwordChangedSubject,
+    title: copy.passwordChangedSubject,
+    preview: copy.passwordChangedPreview,
+    bodyHtml: copy.passwordChangedBody,
+    text: copy.passwordChangedText,
+    eyebrow: copy.eyebrow,
+    locale,
+  });
+}
