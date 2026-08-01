@@ -1,9 +1,50 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useLanguage } from "@/components/Language/LanguageContext";
 import { useT } from "@/components/Language/useT";
+import { PASSWORD_RESET_RESEND_COOLDOWN_MS } from "@/lib/password-reset-cooldown";
+
+const COOLDOWN_STORAGE_PREFIX = "glampingboat.passwordResetCooldownUntil:";
+const LAST_COOLDOWN_EMAIL_KEY = "glampingboat.passwordResetCooldownEmail";
+
+function normalizeCooldownEmail(email: string) {
+  return email.trim().toLowerCase();
+}
+
+function getCooldownStorageKey(email: string) {
+  const normalized = normalizeCooldownEmail(email);
+  return normalized
+    ? `${COOLDOWN_STORAGE_PREFIX}${encodeURIComponent(normalized)}`
+    : null;
+}
+
+function readRemainingCooldown(email: string) {
+  const storageKey = getCooldownStorageKey(email);
+  if (!storageKey) return 0;
+
+  const stored = Number.parseInt(
+    window.sessionStorage.getItem(storageKey) ?? "0",
+    10
+  );
+  const remaining = Number.isFinite(stored)
+    ? Math.max(Math.ceil((stored - Date.now()) / 1000), 0)
+    : 0;
+  if (remaining === 0) {
+    window.sessionStorage.removeItem(storageKey);
+  }
+  return remaining;
+}
+
+function clearLastCooldownEmail(email: string) {
+  if (
+    window.sessionStorage.getItem(LAST_COOLDOWN_EMAIL_KEY) ===
+    normalizeCooldownEmail(email)
+  ) {
+    window.sessionStorage.removeItem(LAST_COOLDOWN_EMAIL_KEY);
+  }
+}
 
 export default function ForgotPasswordPage() {
   const t = useT();
@@ -12,9 +53,49 @@ export default function ForgotPasswordPage() {
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [cooldown, setCooldown] = useState(0);
+  const [cooldownEmail, setCooldownEmail] = useState("");
+  const [cooldownReady, setCooldownReady] = useState(false);
+
+  useEffect(() => {
+    const storedEmail =
+      window.sessionStorage.getItem(LAST_COOLDOWN_EMAIL_KEY) ?? "";
+    const remaining = readRemainingCooldown(storedEmail);
+    setCooldownEmail(storedEmail);
+    setCooldown(remaining);
+    if (remaining === 0) clearLastCooldownEmail(storedEmail);
+    setCooldownReady(true);
+  }, []);
+
+  useEffect(() => {
+    if (!cooldownReady || cooldown <= 0) return;
+    const timer = window.setTimeout(() => {
+      const remaining = readRemainingCooldown(cooldownEmail);
+      setCooldown(remaining);
+      if (remaining === 0) clearLastCooldownEmail(cooldownEmail);
+    }, 1000);
+    return () => window.clearTimeout(timer);
+  }, [cooldown, cooldownEmail, cooldownReady]);
+
+  const handleEmailChange = (value: string) => {
+    const normalizedEmail = normalizeCooldownEmail(value);
+    setEmail(value);
+    setMessage(null);
+    setError(null);
+    setCooldownEmail(normalizedEmail);
+    if (cooldownReady) {
+      setCooldown(readRemainingCooldown(normalizedEmail));
+      const storedEmail =
+        window.sessionStorage.getItem(LAST_COOLDOWN_EMAIL_KEY) ?? "";
+      if (storedEmail && storedEmail !== normalizedEmail) {
+        window.sessionStorage.removeItem(LAST_COOLDOWN_EMAIL_KEY);
+      }
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!cooldownReady || isSubmitting || cooldown > 0) return;
     setError(null);
     setMessage(null);
     setIsSubmitting(true);
@@ -28,6 +109,18 @@ export default function ForgotPasswordPage() {
 
       if (res.ok) {
         setMessage(t("resetEmailSent"));
+        const normalizedEmail = normalizeCooldownEmail(email);
+        const storageKey = getCooldownStorageKey(normalizedEmail);
+        const cooldownUntil = Date.now() + PASSWORD_RESET_RESEND_COOLDOWN_MS;
+        if (storageKey) {
+          window.sessionStorage.setItem(storageKey, String(cooldownUntil));
+          window.sessionStorage.setItem(
+            LAST_COOLDOWN_EMAIL_KEY,
+            normalizedEmail
+          );
+        }
+        setCooldownEmail(normalizedEmail);
+        setCooldown(Math.ceil(PASSWORD_RESET_RESEND_COOLDOWN_MS / 1000));
       } else {
         const { error: err } = await res
           .json()
@@ -71,7 +164,7 @@ export default function ForgotPasswordPage() {
               type="email"
               className="h-10 w-full rounded-md border-2 border-[#0d3350] bg-[var(--color-beige)] px-3 text-sm text-[var(--color-blue)] outline-none transition placeholder:text-[var(--color-blue)]/45 focus:border-[#234d69]"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => handleEmailChange(e.target.value)}
               placeholder={t("authEmailPlaceholder")}
               required
             />
@@ -79,10 +172,14 @@ export default function ForgotPasswordPage() {
 
           <button
             type="submit"
-            disabled={isSubmitting}
+            disabled={!cooldownReady || isSubmitting || cooldown > 0}
             className="w-full rounded-xl bg-[#0d3350] py-2 text-sm tracking-wide text-[var(--color-beige)] transition hover:bg-[#123f61] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-beige)]/60 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {isSubmitting ? t("sending") : t("sendResetLink")}
+            {isSubmitting
+              ? t("sending")
+              : cooldown > 0
+                ? `${t("resetLinkCooldown")} ${cooldown}s`
+                : t("sendResetLink")}
           </button>
         </form>
 
