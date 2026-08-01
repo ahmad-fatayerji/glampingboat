@@ -25,16 +25,25 @@ function readRemainingCooldown(email: string) {
   if (!storageKey) return 0;
 
   const stored = Number.parseInt(
-    window.localStorage.getItem(storageKey) ?? "0",
+    window.sessionStorage.getItem(storageKey) ?? "0",
     10
   );
   const remaining = Number.isFinite(stored)
     ? Math.max(Math.ceil((stored - Date.now()) / 1000), 0)
     : 0;
   if (remaining === 0) {
-    window.localStorage.removeItem(storageKey);
+    window.sessionStorage.removeItem(storageKey);
   }
   return remaining;
+}
+
+function clearLastCooldownEmail(email: string) {
+  if (
+    window.sessionStorage.getItem(LAST_COOLDOWN_EMAIL_KEY) ===
+    normalizeCooldownEmail(email)
+  ) {
+    window.sessionStorage.removeItem(LAST_COOLDOWN_EMAIL_KEY);
+  }
 }
 
 export default function ForgotPasswordPage() {
@@ -45,30 +54,42 @@ export default function ForgotPasswordPage() {
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [cooldown, setCooldown] = useState(0);
+  const [cooldownEmail, setCooldownEmail] = useState("");
   const [cooldownReady, setCooldownReady] = useState(false);
 
   useEffect(() => {
     const storedEmail =
-      window.localStorage.getItem(LAST_COOLDOWN_EMAIL_KEY) ?? "";
-    setEmail(storedEmail);
-    setCooldown(readRemainingCooldown(storedEmail));
+      window.sessionStorage.getItem(LAST_COOLDOWN_EMAIL_KEY) ?? "";
+    const remaining = readRemainingCooldown(storedEmail);
+    setCooldownEmail(storedEmail);
+    setCooldown(remaining);
+    if (remaining === 0) clearLastCooldownEmail(storedEmail);
     setCooldownReady(true);
   }, []);
 
   useEffect(() => {
     if (!cooldownReady || cooldown <= 0) return;
-    const timer = window.setTimeout(
-      () => setCooldown(readRemainingCooldown(email)),
-      1000
-    );
+    const timer = window.setTimeout(() => {
+      const remaining = readRemainingCooldown(cooldownEmail);
+      setCooldown(remaining);
+      if (remaining === 0) clearLastCooldownEmail(cooldownEmail);
+    }, 1000);
     return () => window.clearTimeout(timer);
-  }, [cooldown, cooldownReady, email]);
+  }, [cooldown, cooldownEmail, cooldownReady]);
 
   const handleEmailChange = (value: string) => {
+    const normalizedEmail = normalizeCooldownEmail(value);
     setEmail(value);
     setMessage(null);
+    setError(null);
+    setCooldownEmail(normalizedEmail);
     if (cooldownReady) {
-      setCooldown(readRemainingCooldown(value));
+      setCooldown(readRemainingCooldown(normalizedEmail));
+      const storedEmail =
+        window.sessionStorage.getItem(LAST_COOLDOWN_EMAIL_KEY) ?? "";
+      if (storedEmail && storedEmail !== normalizedEmail) {
+        window.sessionStorage.removeItem(LAST_COOLDOWN_EMAIL_KEY);
+      }
     }
   };
 
@@ -92,12 +113,13 @@ export default function ForgotPasswordPage() {
         const storageKey = getCooldownStorageKey(normalizedEmail);
         const cooldownUntil = Date.now() + PASSWORD_RESET_RESEND_COOLDOWN_MS;
         if (storageKey) {
-          window.localStorage.setItem(storageKey, String(cooldownUntil));
-          window.localStorage.setItem(
+          window.sessionStorage.setItem(storageKey, String(cooldownUntil));
+          window.sessionStorage.setItem(
             LAST_COOLDOWN_EMAIL_KEY,
             normalizedEmail
           );
         }
+        setCooldownEmail(normalizedEmail);
         setCooldown(Math.ceil(PASSWORD_RESET_RESEND_COOLDOWN_MS / 1000));
       } else {
         const { error: err } = await res
