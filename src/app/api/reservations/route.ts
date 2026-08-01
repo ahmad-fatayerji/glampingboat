@@ -12,7 +12,9 @@ import {
   buildReservationOptionLines,
   calculateReservationPricingSummary,
   generateBookingReference,
+  isOverlapConstraintViolation,
   isRangeBookable,
+  lockCalendar,
   PRIVACY_HASH,
   PRIVACY_VERSION,
   PRICING_VERSION,
@@ -272,6 +274,10 @@ export async function POST(req: NextRequest) {
     const locale = parsed.locale.slice(0, 12);
 
     const reservationId = await prisma.$transaction(async (tx) => {
+      // Serialise against concurrent availability-block writers, which the
+      // per-table exclusion constraints cannot see.
+      await lockCalendar(tx);
+
       const overlapping = await tx.reservation.findFirst({
         where: buildActiveReservationOverlapWhere(start, end),
         select: { id: true },
@@ -371,6 +377,16 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(serializeReservation(reservation), { status: 201 });
   } catch (error) {
+    // The in-transaction overlap check above can still lose a race under READ
+    // COMMITTED; the Reservation_no_active_overlap exclusion constraint is the
+    // real guarantee. Postgres raises 23P01 when it fires.
+    if (isOverlapConstraintViolation(error)) {
+      return NextResponse.json(
+        { error: "Dates are already reserved" },
+        { status: 409 }
+      );
+    }
+
     const message = getErrorMessage(error, "Server error");
     const status = /already reserved|blocked by the owner/i.test(message)
       ? 409

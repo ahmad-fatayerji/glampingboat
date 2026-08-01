@@ -1,5 +1,10 @@
 import type Stripe from "stripe";
 import { prisma } from "@/lib/prisma";
+import {
+  isTerminalReservation,
+  lockReservation,
+  SETTLEABLE_PAYMENT_STATUSES,
+} from "@/lib/reservation-state";
 
 const OPEN_PAYMENT_STATUSES = ["PENDING", "CHECKOUT_OPEN"] as const;
 
@@ -21,6 +26,43 @@ export function getReservationPaidStatus(
   }
 
   return "UNPAID";
+}
+
+/**
+ * How much of what was received must be returned, after CGV article 9
+ * retention. Zero for a stay where everything paid is legitimately retained.
+ */
+export function getRefundableTotalCents({
+  paidAmountCents,
+  retainedAmountCents,
+}: {
+  paidAmountCents: number;
+  retainedAmountCents: number;
+}) {
+  return Math.max(0, paidAmountCents - retainedAmountCents);
+}
+
+/**
+ * Whether a reservation's refund obligation is discharged.
+ *
+ * Completion means "everything article 9 leaves refundable has been sent", not
+ * "every cent taken has been sent". Shared by the admin refund endpoint and the
+ * charge.refunded webhook: when these two disagreed, a correct partial refund
+ * was marked REFUNDED by one and dragged back to REFUND_PENDING by the other.
+ */
+export function isReservationFullyRefunded({
+  paidAmountCents,
+  retainedAmountCents,
+  refundedAmountCents,
+}: {
+  paidAmountCents: number;
+  retainedAmountCents: number;
+  refundedAmountCents: number;
+}) {
+  return (
+    refundedAmountCents >=
+    getRefundableTotalCents({ paidAmountCents, retainedAmountCents })
+  );
 }
 
 export function getSettledPaidAmountCents({
@@ -85,10 +127,24 @@ export async function markCheckoutSessionPaid({
   assertCheckoutSessionMatchesPayment(session, payment);
 
   return prisma.$transaction(async (tx) => {
+    // Take the row lock before reading anything we branch on. The copy loaded
+    // above is only used for the amount assertions; a cancellation may commit
+    // between that read and this transaction, and acting on the stale status
+    // would flip a cancelled stay back to CONFIRMED. Blocking here until any
+    // in-flight cancellation commits guarantees the re-read below is current.
+    const reservation = await lockReservation(tx, payment.reservationId);
+
+    if (!reservation) {
+      return null;
+    }
+
+    // Only settle genuinely unsettled payments. Matching "anything but PAID"
+    // also matched REFUNDED, so re-visiting an old success URL after a refund
+    // resurrected the payment and dragged the stay back into REFUND_PENDING.
     const updatedPayment = await tx.bookingPayment.updateMany({
       where: {
         id: payment.id,
-        status: { not: "PAID" },
+        status: { in: [...SETTLEABLE_PAYMENT_STATUSES] },
       },
       data: {
         status: "PAID",
@@ -107,31 +163,59 @@ export async function markCheckoutSessionPaid({
     });
 
     if (updatedPayment.count === 0) {
-      return payment.reservation;
+      return reservation;
     }
 
     const paidAmountCents = getSettledPaidAmountCents({
-      currentPaidAmountCents: payment.reservation.paidAmountCents,
+      currentPaidAmountCents: reservation.paidAmountCents,
       paymentAmountCents: payment.amountCents,
-      totalAmountCents: payment.reservation.totalAmountTtcCents,
+      totalAmountCents: reservation.totalAmountTtcCents,
     });
-    const reservationPaymentStatus = getReservationPaidStatus(
-      paidAmountCents,
-      payment.reservation.totalAmountTtcCents
-    );
+
+    // A cancelled stay must never be revived by a late payment: the customer
+    // may still hold an open Checkout tab when the booking is cancelled. Record
+    // the money so it is never lost, but leave the reservation cancelled and
+    // flag it for the owner to refund.
+    const isCancelled = isTerminalReservation(reservation.status);
+
+    const reservationPaymentStatus = isCancelled
+      ? ("REFUND_PENDING" as const)
+      : getReservationPaidStatus(paidAmountCents, reservation.totalAmountTtcCents);
 
     const updatedReservation = await tx.reservation.update({
       where: { id: payment.reservationId },
       data: {
         paymentStatus: reservationPaymentStatus,
-        status: "CONFIRMED",
+        ...(isCancelled ? {} : { status: "CONFIRMED" as const }),
         paidAmountCents,
       },
     });
 
+    if (isCancelled) {
+      await tx.reservationEvent.create({
+        data: {
+          reservationId: payment.reservationId,
+          actorUserId,
+          type: "PAYMENT_SUCCEEDED",
+          metadata: {
+            source: stripeEventId ? "webhook" : "success_return",
+            stripeEventId: stripeEventId ?? null,
+            stripeCheckoutSessionId: session.id,
+            paymentId: payment.id,
+            amountCents: payment.amountCents,
+            currency: payment.currency,
+            reservationStatus: reservation.status,
+            note: "Payment received on a cancelled reservation; refund required.",
+          },
+        },
+      });
+
+      return updatedReservation;
+    }
+
     const remainingAmountCents = Math.max(
       0,
-      payment.reservation.totalAmountTtcCents - paidAmountCents
+      reservation.totalAmountTtcCents - paidAmountCents
     );
     if (remainingAmountCents > 0 && payment.purpose === "DEPOSIT") {
       const existingBalancePayment = await tx.bookingPayment.findFirst({
@@ -152,7 +236,7 @@ export async function markCheckoutSessionPaid({
             status: "PENDING",
             amountCents: remainingAmountCents,
             currency: payment.currency,
-            idempotencyKey: `checkout:${payment.reservation.bookingRef}:balance`,
+            idempotencyKey: `checkout:${reservation.bookingRef}:balance`,
             stripeStatus: "not_created",
           },
         });

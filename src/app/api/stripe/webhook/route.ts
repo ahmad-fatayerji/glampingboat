@@ -3,9 +3,16 @@ import Stripe from "stripe";
 import { prisma } from "@/lib/prisma";
 import {
     getReservationPaidStatus,
+    isReservationFullyRefunded,
     markCheckoutSessionPaid,
 } from "@/lib/stripe-payments";
 import { getStripeServerClient } from "@/lib/stripe";
+import {
+    isTerminalReservation,
+    lockReservation,
+    recordRefund,
+    syncRefundTotals,
+} from "@/lib/reservation-state";
 
 function getWebhookSecret() {
     const secret = process.env.STRIPE_WEBHOOK_SECRET;
@@ -28,21 +35,19 @@ async function processCheckoutExpired(event: Stripe.Event) {
     const session = event.data.object as Stripe.Checkout.Session;
     const payment = await prisma.bookingPayment.findFirst({
         where: { stripeCheckoutSessionId: session.id },
-        include: {
-            reservation: true,
-        },
+        select: { id: true, reservationId: true, status: true },
     });
 
     if (!payment || payment.status === "PAID") {
         return;
     }
 
-    const reservationPaymentStatus = getReservationPaidStatus(
-        payment.reservation.paidAmountCents,
-        payment.reservation.totalAmountTtcCents
-    );
-
     await prisma.$transaction(async (tx) => {
+        const reservation = await lockReservation(tx, payment.reservationId);
+        if (!reservation) {
+            return;
+        }
+
         await tx.bookingPayment.update({
             where: { id: payment.id },
             data: {
@@ -56,10 +61,42 @@ async function processCheckoutExpired(event: Stripe.Event) {
             },
         });
 
+        // Never touch reservation status or payment status on a cancelled or
+        // refunded stay: expiring the balance session during a force-majeure
+        // cancellation would otherwise replace REFUND_PENDING with a paid
+        // status. Closing out the payment row above is still correct.
+        if (isTerminalReservation(reservation.status)) {
+            await tx.reservationEvent.create({
+                data: {
+                    reservationId: payment.reservationId,
+                    type: "EXPIRED",
+                    fromStatus: reservation.status,
+                    metadata: {
+                        stripeEventId: event.id,
+                        stripeCheckoutSessionId: session.id,
+                        paymentId: payment.id,
+                        skipped: "reservation is terminal",
+                    },
+                },
+            });
+            return;
+        }
+
+        // PENDING_PAYMENT counts as an active reservation for availability, so
+        // an abandoned checkout would hold the dates forever. Release them if
+        // nothing was ever received; a part-paid stay stays booked.
+        const releaseDates =
+            reservation.status === "PENDING_PAYMENT" &&
+            reservation.paidAmountCents === 0;
+
         await tx.reservation.update({
             where: { id: payment.reservationId },
             data: {
-                paymentStatus: reservationPaymentStatus,
+                paymentStatus: getReservationPaidStatus(
+                    reservation.paidAmountCents,
+                    reservation.totalAmountTtcCents
+                ),
+                ...(releaseDates ? { status: "EXPIRED" } : {}),
             },
         });
 
@@ -67,10 +104,13 @@ async function processCheckoutExpired(event: Stripe.Event) {
             data: {
                 reservationId: payment.reservationId,
                 type: "EXPIRED",
+                fromStatus: reservation.status,
+                ...(releaseDates ? { toStatus: "EXPIRED" as const } : {}),
                 metadata: {
                     stripeEventId: event.id,
                     stripeCheckoutSessionId: session.id,
                     paymentId: payment.id,
+                    datesReleased: releaseDates,
                 },
             },
         });
@@ -83,24 +123,19 @@ async function processPaymentFailed(event: Stripe.Event) {
         where: {
             stripePaymentIntentId: paymentIntent.id,
         },
-        include: {
-            reservation: true,
-        },
+        select: { id: true, reservationId: true, status: true },
     });
 
     if (!payment || payment.status === "PAID") {
         return;
     }
 
-    const reservationPaymentStatus =
-        payment.reservation.paidAmountCents > 0
-            ? getReservationPaidStatus(
-                payment.reservation.paidAmountCents,
-                payment.reservation.totalAmountTtcCents
-            )
-            : "PAYMENT_FAILED";
-
     await prisma.$transaction(async (tx) => {
+        const reservation = await lockReservation(tx, payment.reservationId);
+        if (!reservation) {
+            return;
+        }
+
         await tx.bookingPayment.update({
             where: { id: payment.id },
             data: {
@@ -114,10 +149,35 @@ async function processPaymentFailed(event: Stripe.Event) {
             },
         });
 
+        // A late failure must not overwrite the payment status of a cancelled
+        // or refunded stay: REFUND_PENDING would become PAYMENT_FAILED and the
+        // owner would lose the signal that money is owed back.
+        if (isTerminalReservation(reservation.status)) {
+            await tx.reservationEvent.create({
+                data: {
+                    reservationId: payment.reservationId,
+                    type: "PAYMENT_FAILED",
+                    metadata: {
+                        stripeEventId: event.id,
+                        paymentIntentId: paymentIntent.id,
+                        paymentId: payment.id,
+                        skipped: "reservation is terminal",
+                    },
+                },
+            });
+            return;
+        }
+
         await tx.reservation.update({
             where: { id: payment.reservationId },
             data: {
-                paymentStatus: reservationPaymentStatus,
+                paymentStatus:
+                    reservation.paidAmountCents > 0
+                        ? getReservationPaidStatus(
+                            reservation.paidAmountCents,
+                            reservation.totalAmountTtcCents
+                        )
+                        : "PAYMENT_FAILED",
             },
         });
 
@@ -135,6 +195,142 @@ async function processPaymentFailed(event: Stripe.Event) {
     });
 }
 
+/**
+ * Refunds issued straight from the Stripe Dashboard never touch our refund
+ * endpoint, so without this the app would keep showing the stay as paid.
+ */
+async function processChargeRefunded(event: Stripe.Event) {
+    const charge = event.data.object as Stripe.Charge;
+    const paymentIntentId =
+        typeof charge.payment_intent === "string"
+            ? charge.payment_intent
+            : charge.payment_intent?.id ?? null;
+
+    if (!paymentIntentId) {
+        return;
+    }
+
+    const payment = await prisma.bookingPayment.findFirst({
+        where: { stripePaymentIntentId: paymentIntentId },
+        select: { id: true, reservationId: true },
+    });
+
+    if (!payment) {
+        return;
+    }
+
+    // Record each refund by its own Stripe id rather than writing a cumulative
+    // figure. An absolute write computed outside the transaction loses one of
+    // the amounts when two charges are refunded together, and double-counts
+    // when this event races the admin endpoint. The ledger is idempotent on
+    // the refund id, and totals are derived from it.
+    const refundObjects = charge.refunds?.data ?? [];
+
+    await prisma.$transaction(async (tx) => {
+        const reservation = await lockReservation(tx, payment.reservationId);
+        if (!reservation) {
+            return;
+        }
+
+        for (const refund of refundObjects) {
+            await recordRefund(tx, {
+                reservationId: payment.reservationId,
+                paymentId: payment.id,
+                stripeRefundId: refund.id,
+                amountCents: refund.amount,
+                source: "webhook",
+            });
+        }
+
+        const refundedTotal = await syncRefundTotals(tx, {
+            reservationId: payment.reservationId,
+            paymentId: payment.id,
+        });
+
+        await tx.bookingPayment.update({
+            where: { id: payment.id },
+            data: {
+                stripePayload: {
+                    eventId: event.id,
+                    chargeId: charge.id,
+                    amountRefunded: charge.amount_refunded,
+                },
+            },
+        });
+
+        await tx.reservation.update({
+            where: { id: payment.reservationId },
+            data: {
+                paymentStatus: isReservationFullyRefunded({
+                    paidAmountCents: reservation.paidAmountCents,
+                    retainedAmountCents: reservation.retainedAmountCents,
+                    refundedAmountCents: refundedTotal,
+                })
+                    ? "REFUNDED"
+                    : "REFUND_PENDING",
+            },
+        });
+
+        await tx.reservationEvent.create({
+            data: {
+                reservationId: payment.reservationId,
+                type: "REFUNDED",
+                metadata: {
+                    source: "webhook",
+                    stripeEventId: event.id,
+                    chargeId: charge.id,
+                    paymentId: payment.id,
+                    stripeRefundIds: refundObjects.map((refund) => refund.id),
+                    chargeAmountRefundedCents: charge.amount_refunded,
+                    reservationRefundedCents: refundedTotal,
+                },
+            },
+        });
+    });
+}
+
+/**
+ * A dispute is money leaving the account on someone else's initiative. Nothing
+ * is decided automatically here; it is recorded so the owner sees it.
+ */
+async function processDisputeCreated(event: Stripe.Event) {
+    const dispute = event.data.object as Stripe.Dispute;
+    const paymentIntentId =
+        typeof dispute.payment_intent === "string"
+            ? dispute.payment_intent
+            : dispute.payment_intent?.id ?? null;
+
+    if (!paymentIntentId) {
+        return;
+    }
+
+    const payment = await prisma.bookingPayment.findFirst({
+        where: { stripePaymentIntentId: paymentIntentId },
+        select: { id: true, reservationId: true },
+    });
+
+    if (!payment) {
+        return;
+    }
+
+    await prisma.reservationEvent.create({
+        data: {
+            reservationId: payment.reservationId,
+            type: "ADMIN_NOTE",
+            metadata: {
+                source: "webhook",
+                kind: "stripe_dispute",
+                stripeEventId: event.id,
+                disputeId: dispute.id,
+                paymentId: payment.id,
+                amountCents: dispute.amount,
+                reason: dispute.reason,
+                dueBy: dispute.evidence_details?.due_by ?? null,
+            },
+        },
+    });
+}
+
 async function handleEvent(event: Stripe.Event) {
     switch (event.type) {
         case "checkout.session.completed":
@@ -148,6 +344,12 @@ async function handleEvent(event: Stripe.Event) {
             break;
         case "payment_intent.payment_failed":
             await processPaymentFailed(event);
+            break;
+        case "charge.refunded":
+            await processChargeRefunded(event);
+            break;
+        case "charge.dispute.created":
+            await processDisputeCreated(event);
             break;
         default:
             break;
@@ -192,10 +394,23 @@ export async function POST(req: NextRequest) {
             "code" in error &&
             error.code === "P2002"
         ) {
-            return NextResponse.json({ received: true, duplicate: true });
-        }
+            // The row already exists, but that alone does not mean the event was
+            // handled: a previous attempt may have stored it and then failed
+            // during processing. Only a non-null processedAt proves completion.
+            // Short-circuiting on row existence would strand every event whose
+            // first attempt errored, since Stripe's retries all land here.
+            const stored = await prisma.stripeWebhookEvent.findUnique({
+                where: { stripeEventId: event.id },
+                select: { processedAt: true },
+            });
 
-        return NextResponse.json({ error: "Failed to store webhook event" }, { status: 500 });
+            if (stored?.processedAt) {
+                return NextResponse.json({ received: true, duplicate: true });
+            }
+            // Otherwise fall through and retry the handler.
+        } else {
+            return NextResponse.json({ error: "Failed to store webhook event" }, { status: 500 });
+        }
     }
 
     try {

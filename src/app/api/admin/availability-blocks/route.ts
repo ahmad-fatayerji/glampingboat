@@ -5,10 +5,15 @@ import { prisma } from "@/lib/prisma";
 import {
   buildActiveReservationOverlapWhere,
   buildAvailabilityBlockOverlapWhere,
+  isOverlapConstraintViolation,
+  lockCalendar,
   serializeAvailabilityBlock,
 } from "@/lib/reservations";
 import { getString, isRecord } from "@/lib/type-guards";
 import type { AvailabilityBlockType } from "@/generated/prisma/client";
+
+/** Thrown inside the calendar transaction to roll it back with a 409. */
+class AvailabilityConflictError extends Error {}
 
 const BLOCK_TYPES: readonly AvailabilityBlockType[] = [
   "MAINTENANCE",
@@ -90,40 +95,45 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Invalid date range" }, { status: 400 });
     }
 
-    const [reservationOverlap, blockOverlap] = await Promise.all([
-      prisma.reservation.findFirst({
-        where: buildActiveReservationOverlapWhere(startDate, endDate),
-        select: { id: true, bookingRef: true },
-      }),
-      prisma.availabilityBlock.findFirst({
-        where: buildAvailabilityBlockOverlapWhere(startDate, endDate),
-        select: { id: true },
-      }),
-    ]);
+    // Check and insert under the shared calendar lock. Previously these ran
+    // outside any transaction, so a booking could commit between the check and
+    // the insert and both would claim the same nights.
+    const block = await prisma.$transaction(async (tx) => {
+      await lockCalendar(tx);
 
-    if (reservationOverlap) {
-      return NextResponse.json(
-        { error: `Dates overlap reservation ${reservationOverlap.bookingRef}` },
-        { status: 409 }
-      );
-    }
+      const [reservationOverlap, blockOverlap] = await Promise.all([
+        tx.reservation.findFirst({
+          where: buildActiveReservationOverlapWhere(startDate, endDate),
+          select: { id: true, bookingRef: true },
+        }),
+        tx.availabilityBlock.findFirst({
+          where: buildAvailabilityBlockOverlapWhere(startDate, endDate),
+          select: { id: true },
+        }),
+      ]);
 
-    if (blockOverlap) {
-      return NextResponse.json(
-        { error: "Dates overlap an existing availability block" },
-        { status: 409 }
-      );
-    }
+      if (reservationOverlap) {
+        throw new AvailabilityConflictError(
+          `Dates overlap reservation ${reservationOverlap.bookingRef}`
+        );
+      }
 
-    const block = await prisma.availabilityBlock.create({
-      data: {
-        startDate,
-        endDate,
-        reason,
-        note: note || null,
-        type,
-        actorUserId: session.user.id,
-      },
+      if (blockOverlap) {
+        throw new AvailabilityConflictError(
+          "Dates overlap an existing availability block"
+        );
+      }
+
+      return tx.availabilityBlock.create({
+        data: {
+          startDate,
+          endDate,
+          reason,
+          note: note || null,
+          type,
+          actorUserId: session.user.id,
+        },
+      });
     });
 
     return NextResponse.json(
@@ -133,6 +143,19 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     if (error instanceof AdminAccessError) {
       return NextResponse.json({ error: error.message }, { status: error.status });
+    }
+
+    if (error instanceof AvailabilityConflictError) {
+      return NextResponse.json({ error: error.message }, { status: 409 });
+    }
+
+    // The AvailabilityBlock_no_overlap exclusion constraint is the backstop if
+    // a writer ever reaches the insert without the calendar lock.
+    if (isOverlapConstraintViolation(error)) {
+      return NextResponse.json(
+        { error: "Dates overlap an existing availability block" },
+        { status: 409 }
+      );
     }
 
     console.error(error);

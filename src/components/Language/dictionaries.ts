@@ -458,6 +458,9 @@ const en = {
   depositOnBooking: "deposit 50% on booking",
   balanceBeforeArrival: "balance 15 days before date of arrival",
   balanceDueDate: "balance due date",
+  securityDepositLabel: "security deposit",
+  securityDepositNote:
+    "Payable before boarding and returned after the return inspection. Not included in the total above.",
   contactDetails: "contact details",
   paymentSection: "payment",
   bookingPreviewTitle: "Step aboard the Glamping Boat",
@@ -957,6 +960,9 @@ export const dictionaries: Record<Locale, Dictionary> = {
     depositOnBooking: "acompte de 50 % à la réservation",
     balanceBeforeArrival: "solde 15 jours avant la date d'arrivée",
     balanceDueDate: "date limite du solde",
+    securityDepositLabel: "caution",
+    securityDepositNote:
+      "Exigible avant l'embarquement et restituée après l'état des lieux de retour. Non comprise dans le total ci-dessus.",
     contactDetails: "coordonnées",
     paymentSection: "paiement",
     bookingPreviewTitle: "Montez à bord du Glamping Boat",
@@ -1429,6 +1435,9 @@ export const dictionaries: Record<Locale, Dictionary> = {
     depositOnBooking: "50 % Anzahlung bei Buchung",
     balanceBeforeArrival: "Restbetrag 15 Tage vor Anreise",
     balanceDueDate: "Faelligkeit Restbetrag",
+    securityDepositLabel: "Kaution",
+    securityDepositNote:
+      "Vor dem Einschiffen faellig und nach der Rueckgabepruefung erstattet. Nicht im obigen Gesamtbetrag enthalten.",
     contactDetails: "Kontaktdaten",
     paymentSection: "Zahlung",
     bookingPreviewTitle: "An Bord des Glamping Boat",
@@ -1900,6 +1909,9 @@ export const dictionaries: Record<Locale, Dictionary> = {
     depositOnBooking: "aanbetaling 50% bij boeking",
     balanceBeforeArrival: "saldo 15 dagen voor aankomst",
     balanceDueDate: "vervaldatum saldo",
+    securityDepositLabel: "borg",
+    securityDepositNote:
+      "Te betalen voor het inschepen en terugbetaald na de eindinspectie. Niet inbegrepen in het totaal hierboven.",
     contactDetails: "contactgegevens",
     paymentSection: "betaling",
     bookingPreviewTitle: "Stap aan boord van de Glamping Boat",
@@ -2424,6 +2436,9 @@ export const dictionaries: Record<Locale, Dictionary> = {
       "\u043e\u0441\u0442\u0430\u0442\u043e\u043a \u0437\u0430 15 \u0434\u043d\u0435\u0439 \u0434\u043e \u0437\u0430\u0435\u0437\u0434\u0430",
     balanceDueDate:
       "\u0441\u0440\u043e\u043a \u043e\u043f\u043b\u0430\u0442\u044b \u043e\u0441\u0442\u0430\u0442\u043a\u0430",
+    securityDepositLabel: "\u0437\u0430\u043b\u043e\u0433",
+    securityDepositNote:
+      "\u041e\u043f\u043b\u0430\u0447\u0438\u0432\u0430\u0435\u0442\u0441\u044f \u0434\u043e \u043f\u043e\u0441\u0430\u0434\u043a\u0438 \u0438 \u0432\u043e\u0437\u0432\u0440\u0430\u0449\u0430\u0435\u0442\u0441\u044f \u043f\u043e\u0441\u043b\u0435 \u043e\u0441\u043c\u043e\u0442\u0440\u0430 \u043f\u0440\u0438 \u0432\u043e\u0437\u0432\u0440\u0430\u0442\u0435. \u041d\u0435 \u0432\u0445\u043e\u0434\u0438\u0442 \u0432 \u0438\u0442\u043e\u0433\u043e\u0432\u0443\u044e \u0441\u0443\u043c\u043c\u0443 \u0432\u044b\u0448\u0435.",
     contactDetails: "\u043a\u043e\u043d\u0442\u0430\u043a\u0442\u043d\u044b\u0435 \u0434\u0430\u043d\u043d\u044b\u0435",
     paymentSection: "\u043e\u043f\u043b\u0430\u0442\u0430",
     bookingPreviewTitle:
@@ -2902,6 +2917,9 @@ export const dictionaries: Record<Locale, Dictionary> = {
     depositOnBooking: "deposito 50% al reservar",
     balanceBeforeArrival: "saldo 15 dias antes de la llegada",
     balanceDueDate: "fecha limite del saldo",
+    securityDepositLabel: "fianza",
+    securityDepositNote:
+      "Pagadera antes del embarque y devuelta tras la inspeccion de regreso. No incluida en el total anterior.",
     contactDetails: "datos de contacto",
     paymentSection: "pago",
     bookingPreviewTitle: "Sube a bordo del Glamping Boat",
@@ -3374,6 +3392,9 @@ export const dictionaries: Record<Locale, Dictionary> = {
     depositOnBooking: "acconto 50% alla prenotazione",
     balanceBeforeArrival: "saldo 15 giorni prima dell'arrivo",
     balanceDueDate: "scadenza saldo",
+    securityDepositLabel: "cauzione",
+    securityDepositNote:
+      "Dovuta prima dell'imbarco e restituita dopo il controllo di riconsegna. Non inclusa nel totale sopra indicato.",
     contactDetails: "dati di contatto",
     paymentSection: "pagamento",
     bookingPreviewTitle: "Sali a bordo del Glamping Boat",
