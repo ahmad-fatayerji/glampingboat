@@ -54,6 +54,9 @@ type PasswordResetMessage = {
   html: string;
 };
 
+const PASSWORD_RESET_LOCK_QUERY =
+  "SELECT pg_try_advisory_xact_lock(hashtextextended($1, 0)) AS locked";
+
 export function buildPasswordResetEmail(resetUrl: string, locale: string) {
   const copy = getPasswordResetEmailCopy(locale);
   const text = copy.text(resetUrl);
@@ -87,10 +90,15 @@ export async function issuePasswordResetEmail({
 }) {
   const normalizedLocale = normalizeEmailLocale(locale);
   const { token } = await cooldownClient.$transaction(async (tx) => {
-    await tx.$queryRawUnsafe(
-      "SELECT 1 AS locked FROM (SELECT pg_advisory_xact_lock(hashtextextended($1, 0))) AS lock_request",
+    const [lock] = await tx.$queryRawUnsafe<Array<{ locked: boolean }>>(
+      PASSWORD_RESET_LOCK_QUERY,
       `password-reset:${userId}`
     );
+    if (!lock?.locked) {
+      throw new PasswordResetCooldownError(
+        PASSWORD_RESET_RESEND_COOLDOWN_MS
+      );
+    }
 
     const lastIssued = await tx.authChallenge.findFirst({
       where: {

@@ -9,8 +9,12 @@ import {
 } from "@/lib/password-reset-email";
 import type { AuthChallengeWithUser } from "@/lib/auth-security";
 
+const EXPECTED_LOCK_QUERY =
+  "SELECT pg_try_advisory_xact_lock(hashtextextended($1, 0)) AS locked";
+
 function cooldownClient(createdAt: Date | null = null) {
   const rows: AuthChallengeWithUser[] = [];
+  const lockQueries: string[] = [];
   if (createdAt) {
     rows.push({
       id: "existing-challenge",
@@ -27,58 +31,64 @@ function cooldownClient(createdAt: Date | null = null) {
     } as AuthChallengeWithUser);
   }
 
-  let transactionQueue = Promise.resolve();
+  let lockHeld = false;
   const client = {} as PasswordResetCooldownClient;
-  const transactionClient = {
-    authChallenge: {
-      async count() {
-        return rows.length;
-      },
-      async updateMany() {
-        for (const row of rows) row.consumedAt = new Date();
-        return { count: rows.length };
-      },
-      async create({ data }: Prisma.AuthChallengeCreateArgs) {
-        const input = data as Prisma.AuthChallengeUncheckedCreateInput;
-        const row = {
-          id: `challenge-${rows.length + 1}`,
-          userId: input.userId,
-          purpose: input.purpose,
-          tokenHash: input.tokenHash,
-          codeHash: input.codeHash ?? null,
-          expiresAt: input.expiresAt as Date,
-          consumedAt: null,
-          attemptCount: 0,
-          metadata: input.metadata ?? null,
-          createdAt: new Date(),
-          user: { id: input.userId },
-        } as AuthChallengeWithUser;
-        rows.push(row);
-        return row;
-      },
-      async findFirst() {
-        const row = rows.at(-1);
-        return row ? { createdAt: row.createdAt } : null;
-      },
-      async update() {
-        throw new Error("Not implemented in cooldown test client");
-      },
+  const authChallenge = {
+    async count() {
+      return rows.length;
     },
-    async $queryRawUnsafe<T = unknown>() {
-      return [] as T;
+    async updateMany() {
+      for (const row of rows) row.consumedAt = new Date();
+      return { count: rows.length };
+    },
+    async create({ data }: Prisma.AuthChallengeCreateArgs) {
+      const input = data as Prisma.AuthChallengeUncheckedCreateInput;
+      const row = {
+        id: `challenge-${rows.length + 1}`,
+        userId: input.userId,
+        purpose: input.purpose,
+        tokenHash: input.tokenHash,
+        codeHash: input.codeHash ?? null,
+        expiresAt: input.expiresAt as Date,
+        consumedAt: null,
+        attemptCount: 0,
+        metadata: input.metadata ?? null,
+        createdAt: new Date(),
+        user: { id: input.userId },
+      } as AuthChallengeWithUser;
+      rows.push(row);
+      return row;
+    },
+    async findFirst() {
+      const row = rows.at(-1);
+      return row ? { createdAt: row.createdAt } : null;
+    },
+    async update() {
+      throw new Error("Not implemented in cooldown test client");
     },
   };
 
-  client.$transaction = (callback) => {
-    const result = transactionQueue.then(() => callback(transactionClient));
-    transactionQueue = result.then(
-      () => undefined,
-      () => undefined
-    );
-    return result;
+  client.$transaction = async (callback) => {
+    let ownsLock = false;
+    const transactionClient = {
+      authChallenge,
+      async $queryRawUnsafe<T = unknown>(query: string) {
+        lockQueries.push(query);
+        if (lockHeld) return [{ locked: false }] as T;
+        lockHeld = true;
+        ownsLock = true;
+        return [{ locked: true }] as T;
+      },
+    };
+
+    try {
+      return await callback(transactionClient);
+    } finally {
+      if (ownsLock) lockHeld = false;
+    }
   };
 
-  return client;
+  return { client, lockQueries };
 }
 
 test("rejects a second reset request inside the cooldown window", async () => {
@@ -87,7 +97,7 @@ test("rejects a second reset request inside the cooldown window", async () => {
     email: "user@example.com",
     locale: "en",
     origin: "https://example.test",
-    cooldownClient: cooldownClient(new Date(Date.now() - 5_000)),
+    cooldownClient: cooldownClient(new Date(Date.now() - 5_000)).client,
   }).catch((caught: unknown) => caught);
 
   assert.ok(error instanceof PasswordResetCooldownError);
@@ -95,8 +105,8 @@ test("rejects a second reset request inside the cooldown window", async () => {
   assert.ok(error.retryAfterMs <= PASSWORD_RESET_RESEND_COOLDOWN_MS);
 });
 
-test("serializes concurrent reset requests so only one email is sent", async () => {
-  const client = cooldownClient();
+test("rejects a concurrent reset request so only one email is sent", async () => {
+  const { client, lockQueries } = cooldownClient();
   const sentMessages: unknown[] = [];
   const request = () =>
     issuePasswordResetEmail({
@@ -119,4 +129,5 @@ test("serializes concurrent reset requests so only one email is sent", async () 
     assert.ok(rejection.reason instanceof PasswordResetCooldownError);
   }
   assert.equal(sentMessages.length, 1);
+  assert.deepEqual(lockQueries, [EXPECTED_LOCK_QUERY, EXPECTED_LOCK_QUERY]);
 });

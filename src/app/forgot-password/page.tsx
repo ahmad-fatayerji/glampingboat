@@ -6,7 +6,36 @@ import { useLanguage } from "@/components/Language/LanguageContext";
 import { useT } from "@/components/Language/useT";
 import { PASSWORD_RESET_RESEND_COOLDOWN_MS } from "@/lib/password-reset-cooldown";
 
-const COOLDOWN_STORAGE_KEY = "glampingboat.passwordResetCooldownUntil";
+const COOLDOWN_STORAGE_PREFIX = "glampingboat.passwordResetCooldownUntil:";
+const LAST_COOLDOWN_EMAIL_KEY = "glampingboat.passwordResetCooldownEmail";
+
+function normalizeCooldownEmail(email: string) {
+  return email.trim().toLowerCase();
+}
+
+function getCooldownStorageKey(email: string) {
+  const normalized = normalizeCooldownEmail(email);
+  return normalized
+    ? `${COOLDOWN_STORAGE_PREFIX}${encodeURIComponent(normalized)}`
+    : null;
+}
+
+function readRemainingCooldown(email: string) {
+  const storageKey = getCooldownStorageKey(email);
+  if (!storageKey) return 0;
+
+  const stored = Number.parseInt(
+    window.localStorage.getItem(storageKey) ?? "0",
+    10
+  );
+  const remaining = Number.isFinite(stored)
+    ? Math.max(Math.ceil((stored - Date.now()) / 1000), 0)
+    : 0;
+  if (remaining === 0) {
+    window.localStorage.removeItem(storageKey);
+  }
+  return remaining;
+}
 
 export default function ForgotPasswordPage() {
   const t = useT();
@@ -19,25 +48,29 @@ export default function ForgotPasswordPage() {
   const [cooldownReady, setCooldownReady] = useState(false);
 
   useEffect(() => {
-    const syncCooldown = () => {
-      const stored = Number.parseInt(
-        window.localStorage.getItem(COOLDOWN_STORAGE_KEY) ?? "0",
-        10
-      );
-      const remaining = Number.isFinite(stored)
-        ? Math.max(Math.ceil((stored - Date.now()) / 1000), 0)
-        : 0;
-      setCooldown(remaining);
-      if (remaining === 0) {
-        window.localStorage.removeItem(COOLDOWN_STORAGE_KEY);
-      }
-      setCooldownReady(true);
-    };
-
-    syncCooldown();
-    const timer = window.setInterval(syncCooldown, 1000);
-    return () => window.clearInterval(timer);
+    const storedEmail =
+      window.localStorage.getItem(LAST_COOLDOWN_EMAIL_KEY) ?? "";
+    setEmail(storedEmail);
+    setCooldown(readRemainingCooldown(storedEmail));
+    setCooldownReady(true);
   }, []);
+
+  useEffect(() => {
+    if (!cooldownReady || cooldown <= 0) return;
+    const timer = window.setTimeout(
+      () => setCooldown(readRemainingCooldown(email)),
+      1000
+    );
+    return () => window.clearTimeout(timer);
+  }, [cooldown, cooldownReady, email]);
+
+  const handleEmailChange = (value: string) => {
+    setEmail(value);
+    setMessage(null);
+    if (cooldownReady) {
+      setCooldown(readRemainingCooldown(value));
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,11 +88,16 @@ export default function ForgotPasswordPage() {
 
       if (res.ok) {
         setMessage(t("resetEmailSent"));
+        const normalizedEmail = normalizeCooldownEmail(email);
+        const storageKey = getCooldownStorageKey(normalizedEmail);
         const cooldownUntil = Date.now() + PASSWORD_RESET_RESEND_COOLDOWN_MS;
-        window.localStorage.setItem(
-          COOLDOWN_STORAGE_KEY,
-          String(cooldownUntil)
-        );
+        if (storageKey) {
+          window.localStorage.setItem(storageKey, String(cooldownUntil));
+          window.localStorage.setItem(
+            LAST_COOLDOWN_EMAIL_KEY,
+            normalizedEmail
+          );
+        }
         setCooldown(Math.ceil(PASSWORD_RESET_RESEND_COOLDOWN_MS / 1000));
       } else {
         const { error: err } = await res
@@ -104,7 +142,7 @@ export default function ForgotPasswordPage() {
               type="email"
               className="h-10 w-full rounded-md border-2 border-[#0d3350] bg-[var(--color-beige)] px-3 text-sm text-[var(--color-blue)] outline-none transition placeholder:text-[var(--color-blue)]/45 focus:border-[#234d69]"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => handleEmailChange(e.target.value)}
               placeholder={t("authEmailPlaceholder")}
               required
             />
