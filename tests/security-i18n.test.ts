@@ -32,6 +32,7 @@ const securityKeys = [
   "securitySetPassword",
   "securityPasswordSetupSent",
   "securityPasswordSetupError",
+  "securityPasswordSetupRateLimited",
   "securityPasswordAlreadySet",
   "securityChangePassword",
   "securityPasswordUpdateError",

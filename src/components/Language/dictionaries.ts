@@ -224,6 +224,8 @@ const en = {
   securityPasswordSetupSent:
     "A secure password setup link was sent to your verified email.",
   securityPasswordSetupError: "Unable to send the password setup link.",
+  securityPasswordSetupRateLimited:
+    "Too many password setup requests. Try again later.",
   securityPasswordAlreadySet: "This account already has a password.",
   securityChangePassword: "Change password",
   securityPasswordUpdateError: "Unable to change password",
@@ -714,6 +716,8 @@ export const dictionaries: Record<Locale, Dictionary> = {
       "Un lien sécurisé pour définir votre mot de passe a été envoyé à votre e-mail vérifié.",
     securityPasswordSetupError:
       "Impossible d'envoyer le lien de création du mot de passe.",
+    securityPasswordSetupRateLimited:
+      "Trop de demandes de création de mot de passe. Réessayez plus tard.",
     securityPasswordAlreadySet: "Ce compte possède déjà un mot de passe.",
     securityChangePassword: "Modifier le mot de passe",
     securityPasswordUpdateError: "Impossible de modifier le mot de passe",
@@ -1182,6 +1186,8 @@ export const dictionaries: Record<Locale, Dictionary> = {
       "Ein sicherer Link zum Festlegen des Passworts wurde an Ihre bestätigte E-Mail-Adresse gesendet.",
     securityPasswordSetupError:
       "Der Link zum Festlegen des Passworts konnte nicht gesendet werden.",
+    securityPasswordSetupRateLimited:
+      "Zu viele Anfragen zum Festlegen des Passworts. Versuchen Sie es später erneut.",
     securityPasswordAlreadySet: "Dieses Konto hat bereits ein Passwort.",
     securityChangePassword: "Passwort ändern",
     securityPasswordUpdateError: "Passwort konnte nicht geändert werden",
@@ -1651,6 +1657,8 @@ export const dictionaries: Record<Locale, Dictionary> = {
       "Een veilige link om je wachtwoord in te stellen is naar je geverifieerde e-mail gestuurd.",
     securityPasswordSetupError:
       "De link om het wachtwoord in te stellen kon niet worden verzonden.",
+    securityPasswordSetupRateLimited:
+      "Te veel aanvragen om een wachtwoord in te stellen. Probeer het later opnieuw.",
     securityPasswordAlreadySet: "Dit account heeft al een wachtwoord.",
     securityChangePassword: "Wachtwoord wijzigen",
     securityPasswordUpdateError: "Wachtwoord kon niet worden gewijzigd",
@@ -2143,6 +2151,8 @@ export const dictionaries: Record<Locale, Dictionary> = {
       "Безопасная ссылка для установки пароля отправлена на подтверждённую электронную почту.",
     securityPasswordSetupError:
       "Не удалось отправить ссылку для установки пароля.",
+    securityPasswordSetupRateLimited:
+      "Слишком много запросов на установку пароля. Повторите позже.",
     securityPasswordAlreadySet: "Для этого аккаунта уже установлен пароль.",
     securityChangePassword: "Изменить пароль",
     securityPasswordUpdateError: "Не удалось изменить пароль",
@@ -2646,6 +2656,8 @@ export const dictionaries: Record<Locale, Dictionary> = {
       "Se envio un enlace seguro para establecer la contrasena a tu correo verificado.",
     securityPasswordSetupError:
       "No se pudo enviar el enlace para establecer la contrasena.",
+    securityPasswordSetupRateLimited:
+      "Demasiadas solicitudes para establecer la contrasena. Intentalo mas tarde.",
     securityPasswordAlreadySet: "Esta cuenta ya tiene una contrasena.",
     securityChangePassword: "Cambiar contrasena",
     securityPasswordUpdateError: "No se pudo cambiar la contrasena",
@@ -3115,6 +3127,8 @@ export const dictionaries: Record<Locale, Dictionary> = {
       "Un link sicuro per impostare la password e stato inviato all'e-mail verificata.",
     securityPasswordSetupError:
       "Impossibile inviare il link per impostare la password.",
+    securityPasswordSetupRateLimited:
+      "Troppe richieste per impostare la password. Riprova piu tardi.",
     securityPasswordAlreadySet: "Questo account ha gia una password.",
     securityChangePassword: "Cambia password",
     securityPasswordUpdateError: "Impossibile cambiare la password",

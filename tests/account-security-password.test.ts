@@ -4,11 +4,12 @@ import bcrypt from "bcryptjs";
 import type { Prisma } from "@/generated/prisma/client";
 import {
   changeAccountPassword,
+  type AccountSecurityEventRecorder,
   type AccountSecurityPasswordClient,
 } from "@/lib/account-security-password";
 
 function makeClient({ failures = 0 }: { failures?: number } = {}) {
-  const events: Prisma.AuthEventCreateArgs[] = [];
+  const events: Parameters<AccountSecurityEventRecorder>[0][] = [];
   const updates: Prisma.UserUpdateArgs[] = [];
   const client: AccountSecurityPasswordClient = {
     authEvent: {
@@ -18,10 +19,6 @@ function makeClient({ failures = 0 }: { failures?: number } = {}) {
       async count() {
         return failures;
       },
-      async create(args) {
-        events.push(args);
-        return args;
-      },
     },
     user: {
       async update(args) {
@@ -30,7 +27,11 @@ function makeClient({ failures = 0 }: { failures?: number } = {}) {
       },
     },
   };
-  return { client, events, updates };
+  const recordEvent: AccountSecurityEventRecorder = async (event) => {
+    events.push(event);
+    return event;
+  };
+  return { dependencies: { client, recordEvent }, events, updates };
 }
 
 const request = new Request("https://glampingboat.fr/api/account/security", {
@@ -38,7 +39,7 @@ const request = new Request("https://glampingboat.fr/api/account/security", {
 });
 
 test("password change rejects a policy-violating replacement before verification", async () => {
-  const { client, events, updates } = makeClient({ failures: 8 });
+  const { dependencies, events, updates } = makeClient();
   const result = await changeAccountPassword(
     {
       user: { id: "user-1", password: "stored-hash" },
@@ -46,7 +47,7 @@ test("password change rejects a policy-violating replacement before verification
       newPassword: "weak",
       request,
     },
-    client
+    dependencies
   );
 
   assert.equal(result, "PASSWORD_POLICY");
@@ -56,7 +57,7 @@ test("password change rejects a policy-violating replacement before verification
 
 test("password change rejects reuse of the current password", async () => {
   const password = "Current-password1!";
-  const { client, events, updates } = makeClient();
+  const { dependencies, events, updates } = makeClient();
   const result = await changeAccountPassword(
     {
       user: { id: "user-1", password: await bcrypt.hash(password, 4) },
@@ -64,19 +65,19 @@ test("password change rejects reuse of the current password", async () => {
       newPassword: password,
       request,
     },
-    client
+    dependencies
   );
 
   assert.equal(result, "PASSWORD_UNCHANGED");
   assert.equal(events.length, 1);
-  assert.equal(events[0].data.type, "SIGN_IN");
+  assert.equal(events[0].type, "SIGN_IN");
   assert.equal(updates.length, 0);
 });
 
 test("password change updates the hash, increments session version, and writes an audit event", async () => {
   const currentPassword = "Current-password1!";
   const newPassword = "Replacement-password2!";
-  const { client, events, updates } = makeClient();
+  const { dependencies, events, updates } = makeClient();
   const result = await changeAccountPassword(
     {
       user: {
@@ -87,7 +88,7 @@ test("password change updates the hash, increments session version, and writes a
       newPassword,
       request,
     },
-    client
+    dependencies
   );
 
   assert.equal(result, "UPDATED");
@@ -99,12 +100,12 @@ test("password change updates the hash, increments session version, and writes a
   assert.equal(await bcrypt.compare(newPassword, data.password), true);
   assert.deepEqual(data.sessionVersion, { increment: 1 });
   assert.equal(events.length, 2);
-  assert.equal(events[1].data.type, "PASSWORD_RESET");
-  assert.equal(events[1].data.provider, "account-security-change");
+  assert.equal(events[1].type, "PASSWORD_RESET");
+  assert.equal(events[1].provider, "account-security-change");
 });
 
 test("password change preserves the account-security failure limit", async () => {
-  const { client, events, updates } = makeClient({ failures: 8 });
+  const { dependencies, events, updates } = makeClient({ failures: 8 });
   const result = await changeAccountPassword(
     {
       user: {
@@ -112,10 +113,10 @@ test("password change preserves the account-security failure limit", async () =>
         password: await bcrypt.hash("Current-password1!", 4),
       },
       currentPassword: "Current-password1!",
-      newPassword: "Replacement-password2!",
+      newPassword: "weak",
       request,
     },
-    client
+    dependencies
   );
 
   assert.equal(result, "TOO_MANY_ATTEMPTS");

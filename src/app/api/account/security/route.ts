@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { auth } from "@auth";
-import { recordAuthEvent } from "@/lib/auth-security";
+import {
+  AuthChallengeRateLimitError,
+  recordAuthEvent,
+} from "@/lib/auth-security";
 import {
   sendPasswordChangedEmail,
   sendSecuritySettingEmail,
@@ -78,7 +81,22 @@ export async function POST(req: Request) {
       locale,
       origin,
     });
+    await recordAuthEvent({
+      userId: user.id,
+      type: "PASSWORD_SETUP_REQUESTED",
+      provider: "email",
+      request: req,
+    });
   } catch (error) {
+    if (error instanceof AuthChallengeRateLimitError) {
+      return NextResponse.json(
+        {
+          code: "PASSWORD_SETUP_RATE_LIMITED",
+          error: "Too many password setup requests. Try again later.",
+        },
+        { status: 429 }
+      );
+    }
     console.error("Failed to issue password setup link", error);
     return NextResponse.json(
       { code: "PASSWORD_SETUP_ERROR", error: "Unable to send password setup link" },
@@ -210,8 +228,10 @@ export async function PATCH(req: Request) {
 }
 
 function passwordChangeErrorResponse(result: AccountPasswordChangeResult) {
-  const errors: Partial<
-    Record<AccountPasswordChangeResult, { status: number; error: string }>
+  if (result === "UPDATED") return null;
+  const errors: Record<
+    Exclude<AccountPasswordChangeResult, "UPDATED">,
+    { status: number; error: string }
   > = {
     PASSWORD_NOT_SET: {
       status: 409,
@@ -232,10 +252,8 @@ function passwordChangeErrorResponse(result: AccountPasswordChangeResult) {
     },
   };
   const match = errors[result];
-  return match
-    ? NextResponse.json(
-        { code: result, error: match.error },
-        { status: match.status }
-      )
-    : null;
+  return NextResponse.json(
+    { code: result, error: match.error },
+    { status: match.status }
+  );
 }

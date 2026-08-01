@@ -43,6 +43,7 @@ const securityErrorKeys: Record<string, TranslationKey> = {
   PASSWORD_NOT_SET: "securityPasswordUnavailable",
   PASSWORD_ALREADY_SET: "securityPasswordAlreadySet",
   PASSWORD_SETUP_ERROR: "securityPasswordSetupError",
+  PASSWORD_SETUP_RATE_LIMITED: "securityPasswordSetupRateLimited",
 };
 
 export default function SecurityPanel({
@@ -235,7 +236,10 @@ export default function SecurityPanel({
               ref={passwordTriggerRef}
               type="button"
               disabled={working}
-              onClick={() => setPasswordDialogOpen(true)}
+              onClick={() => {
+                setMessage("");
+                setPasswordDialogOpen(true);
+              }}
               className="rounded-xl bg-[#0d3350] px-5 py-2 disabled:opacity-60"
             >
               {t("securityChangePassword")}
@@ -266,7 +270,10 @@ export default function SecurityPanel({
               ref={mfaTriggerRef}
               type="button"
               disabled={working || security.emailMfaRequired}
-              onClick={() => setMfaDialogEnabled(!emailMfaEnabled)}
+              onClick={() => {
+                setMessage("");
+                setMfaDialogEnabled(!emailMfaEnabled);
+              }}
               className="rounded-xl bg-[#0d3350] px-5 py-2 disabled:opacity-60"
             >
               {emailMfaEnabled
@@ -505,7 +512,7 @@ function SecurityDialog({
 
       const focusable = Array.from(
         dialogRef.current?.querySelectorAll<HTMLElement>(
-          'button:not([disabled]), input:not([disabled]), [href], [tabindex]:not([tabindex="-1"])'
+          'button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [href], [tabindex]:not([tabindex="-1"])'
         ) ?? []
       );
       if (!focusable.length) return;
