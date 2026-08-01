@@ -7,6 +7,7 @@ const eslintConfig = [
   {
     ignores: [
       ".next/**",
+      ".next-security/**",
       "generated/**",
       "coverage/**",
       "dist/**",

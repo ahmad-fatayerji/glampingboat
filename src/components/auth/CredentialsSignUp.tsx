@@ -1,16 +1,18 @@
 "use client";
-import { signIn } from "next-auth/react";
 import { useState } from "react";
 import { useT } from "@/components/Language/useT";
+import { useLanguage } from "@/components/Language/LanguageContext";
 import { validatePasswordPolicy } from "@/lib/password-policy";
 import PasswordRequirements from "@/components/auth/PasswordRequirements";
 
 export default function CredentialsSignUp() {
   const t = useT();
+  const { locale } = useLanguage();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [message, setMessage] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const passwordPolicy = validatePasswordPolicy(password);
   const passwordsMatch = password === confirmPassword;
@@ -20,6 +22,7 @@ export default function CredentialsSignUp() {
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setMessage(null);
 
     if (!passwordPolicy.valid) {
       setError(t("passwordPolicyError"));
@@ -34,19 +37,23 @@ export default function CredentialsSignUp() {
     setSubmitting(true);
 
     try {
-      const res = await signIn("credentials", {
-        redirect: false,
-        email,
-        password,
-        isSignup: "true",
+      const res = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password, locale }),
       });
 
-      if (res?.error) {
-        setError(res.error);
+      const result = (await res.json().catch(() => ({}))) as {
+        error?: string;
+      };
+      if (!res.ok) {
+        setError(result.error ?? t("genericError"));
         return;
       }
 
-      window.location.href = "/";
+      setPassword("");
+      setConfirmPassword("");
+      setMessage(t("authSignupVerificationSent"));
     } catch {
       setError(t("genericError"));
     } finally {
@@ -59,6 +66,11 @@ export default function CredentialsSignUp() {
       {error && (
         <p className="rounded-md border border-[#8a3a30] bg-[#8a3a30]/25 px-3 py-2 text-sm text-[#ffd9d9]">
           {error}
+        </p>
+      )}
+      {message && (
+        <p className="rounded-md border border-[#65845f] bg-[#3f6546]/35 px-3 py-2 text-sm text-[#e8f4df]">
+          {message}
         </p>
       )}
       <div className="flex flex-col gap-1">

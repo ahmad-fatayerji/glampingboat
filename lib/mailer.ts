@@ -9,6 +9,19 @@ const BRAND = {
 };
 
 export function createGmailTransporter() {
+  if (process.env.SMTP_HOST) {
+    const port = Number.parseInt(process.env.SMTP_PORT ?? "1025", 10);
+    const user = process.env.SMTP_USER;
+    const pass = process.env.SMTP_PASSWORD;
+
+    return nodemailer.createTransport({
+      host: process.env.SMTP_HOST,
+      port: Number.isFinite(port) ? port : 1025,
+      secure: process.env.SMTP_SECURE === "true",
+      ...(user && pass ? { auth: { user, pass } } : {}),
+    });
+  }
+
   return nodemailer.createTransport({
     service: "gmail",
     auth: {
@@ -19,7 +32,7 @@ export function createGmailTransporter() {
 }
 
 export function getMailerAddress(label: string) {
-  return `"${label}" <${process.env.GMAIL_USER}>`;
+  return `"${label}" <${process.env.MAIL_FROM ?? process.env.GMAIL_USER}>`;
 }
 
 export function escapeHtml(value: string) {

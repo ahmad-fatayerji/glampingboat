@@ -4,23 +4,30 @@ import { startTransition, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import ReservationList from "./ReservationList";
 import ProfileForm from "./ProfileForm";
+import SecurityPanel from "./SecurityPanel";
 import { useT } from "@/components/Language/useT";
 import type { AccountTab, ReservationSerialized } from "@/lib/types";
 
 interface Props {
   reservations: ReservationSerialized[];
   initialTab: AccountTab;
+  googleAuthEnabled: boolean;
 }
 
-export default function AccountTabs({ reservations, initialTab }: Props) {
+export default function AccountTabs({
+  reservations,
+  initialTab,
+  googleAuthEnabled,
+}: Props) {
   const search = useSearchParams();
   const router = useRouter();
   const [tab, setTab] = useState<AccountTab>(initialTab);
   const t = useT();
 
   useEffect(() => {
+    const value = search.get("tab");
     const nextTab: AccountTab =
-      search.get("tab") === "profile" ? "profile" : "bookings";
+      value === "profile" || value === "security" ? value : "bookings";
     startTransition(() => {
       setTab(nextTab);
     });
@@ -47,9 +54,18 @@ export default function AccountTabs({ reservations, initialTab }: Props) {
         >
           {t("profileMenu")}
         </TabButton>
+        <TabButton
+          active={tab === "security"}
+          onClick={() => switchTab("security")}
+        >
+          Security
+        </TabButton>
       </div>
       {tab === "bookings" && <ReservationList reservations={reservations} />}
       {tab === "profile" && <ProfileForm />}
+      {tab === "security" && (
+        <SecurityPanel googleAuthEnabled={googleAuthEnabled} />
+      )}
     </div>
   );
 }

@@ -1,62 +1,75 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import type { UserRole } from "@/generated/prisma/client";
-import { authorizeCredentials } from "@/lib/auth-credentials";
-import { PASSWORD_POLICY_ERROR } from "@/lib/password-policy";
+import bcrypt from "bcryptjs";
+import type { MfaMode, UserRole } from "@/generated/prisma/client";
+import {
+  AUTH_ERROR_EMAIL_NOT_VERIFIED,
+  AUTH_ERROR_INVALID,
+  AUTH_ERROR_MFA_REQUIRED,
+  authorizeCredentials,
+} from "@/lib/auth-credentials";
 
 type TestUser = {
   id: string;
   email: string;
+  canonicalEmail: string | null;
+  emailVerifiedAt: Date | null;
   name: string | null;
   password: string | null;
   role: UserRole;
+  mfaMode: MfaMode;
+  sessionVersion: number;
 };
 
-function makeClient(seed: TestUser[] = []) {
-  const users = new Map(seed.map((user) => [user.email, user]));
-
+function makeClient(seed: TestUser[]) {
   return {
-    users,
-    client: {
-      user: {
-        async findUnique({ where }: { where: { email: string } }) {
-          return users.get(where.email) ?? null;
-        },
-        async update({
-          where,
-          data,
-        }: {
-          where: { id: string };
-          data: { role: UserRole };
-        }) {
-          const user = [...users.values()].find((entry) => entry.id === where.id);
-          assert.ok(user);
-          user.role = data.role;
-          return { role: user.role };
-        },
-        async create({
-          data,
-        }: {
-          data: {
-            email: string;
-            password: string;
-            name: string;
-            avatar: string;
-            role: UserRole;
-          };
-        }) {
-          const user = {
-            id: `user-${users.size + 1}`,
-            email: data.email,
-            name: data.name,
-            password: data.password,
-            role: data.role,
-          };
-          users.set(user.email, user);
-          return user;
-        },
+    user: {
+      async findFirst({
+        where,
+      }: {
+        where: {
+          OR: Array<{ email: string } | { canonicalEmail: string }>;
+        };
+      }) {
+        return (
+          seed.find((user) =>
+            where.OR.some((condition) =>
+              "email" in condition
+                ? user.email === condition.email
+                : user.canonicalEmail === condition.canonicalEmail
+            )
+          ) ?? null
+        );
+      },
+      async update({
+        where,
+        data,
+      }: {
+        where: { id: string };
+        data: { role: UserRole };
+        select: { role: true };
+      }) {
+        const user = seed.find((entry) => entry.id === where.id);
+        assert.ok(user);
+        user.role = data.role;
+        return { role: user.role };
       },
     },
+  };
+}
+
+async function makeUser(overrides: Partial<TestUser> = {}): Promise<TestUser> {
+  return {
+    id: "user-1",
+    email: "ahmad.fatayerji2004@gmail.com",
+    canonicalEmail: "ahmadfatayerji2004@gmail.com",
+    emailVerifiedAt: new Date(),
+    name: "Ahmad",
+    password: await bcrypt.hash("Correct-password1", 4),
+    role: "CUSTOMER",
+    mfaMode: "DISABLED",
+    sessionVersion: 2,
+    ...overrides,
   };
 }
 
@@ -64,87 +77,137 @@ function customerRole(): UserRole {
   return "CUSTOMER";
 }
 
-test("credentials signup creates a normalized user", async () => {
-  const { client, users } = makeClient();
-
+test("credentials sign-in matches a dotless Gmail alias", async () => {
+  const user = await makeUser();
   const result = await authorizeCredentials(
     {
-      email: " NewUser@Example.COM ",
+      email: "ahmadfatayerji2004@gmail.com",
       password: "Correct-password1",
-      isSignup: "true",
     },
-    client,
+    makeClient([user]),
     customerRole
   );
 
-  assert.equal(result.email, "newuser@example.com");
-  assert.equal(result.role, "CUSTOMER");
-  assert.equal(users.size, 1);
-  assert.ok(users.get("newuser@example.com")?.password);
+  assert.equal(result.id, user.id);
+  assert.equal(result.email, user.email);
+  assert.equal(result.sessionVersion, 2);
 });
 
-test("credentials signup rejects weak passwords", async () => {
-  const { client, users } = makeClient();
+test("credentials sign-in rejects an unverified email", async () => {
+  const user = await makeUser({ emailVerifiedAt: null });
 
   await assert.rejects(
     () =>
       authorizeCredentials(
-        {
-          email: "newuser@example.com",
-          password: "weak-password",
-          isSignup: "true",
-        },
-        client,
+        { email: user.email, password: "Correct-password1" },
+        makeClient([user]),
         customerRole
       ),
-    new RegExp(PASSWORD_POLICY_ERROR.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
+    new RegExp(AUTH_ERROR_EMAIL_NOT_VERIFIED)
   );
-
-  assert.equal(users.size, 0);
 });
 
-test("credentials signin does not create missing users", async () => {
-  const { client, users } = makeClient();
+test("credentials sign-in keeps missing-user and wrong-password errors generic", async () => {
+  const user = await makeUser();
 
   await assert.rejects(
     () =>
       authorizeCredentials(
-        {
-          email: "missing@example.com",
-          password: "wrong-password",
-          isSignup: "false",
-        },
-        client,
+        { email: user.email, password: "wrong-password" },
+        makeClient([user]),
         customerRole
       ),
-    /Invalid email or password/
+    new RegExp(AUTH_ERROR_INVALID)
   );
-
-  assert.equal(users.size, 0);
 });
 
-test("credentials signup rejects existing users", async () => {
-  const { client } = makeClient([
+test("email MFA requires a valid challenge for the same user", async () => {
+  const user = await makeUser({ mfaMode: "EMAIL" });
+
+  await assert.rejects(
+    () =>
+      authorizeCredentials(
+        { email: user.email, password: "Correct-password1" },
+        makeClient([user]),
+        customerRole,
+        async () => null
+      ),
+    new RegExp(AUTH_ERROR_MFA_REQUIRED)
+  );
+
+  const result = await authorizeCredentials(
     {
-      id: "user-1",
-      email: "existing@example.com",
-      name: "",
-      password: "stored-hash",
-      role: "CUSTOMER",
+      email: user.email,
+      password: "Correct-password1",
+      challengeToken: "ticket",
+      code: "12345678",
     },
-  ]);
+    makeClient([user]),
+    customerRole,
+    async () => ({ userId: user.id }) as never
+  );
+  assert.equal(result.id, user.id);
+});
+
+test("administrator password sign-in always requires email MFA", async () => {
+  const user = await makeUser({ role: "ADMIN", mfaMode: "DISABLED" });
 
   await assert.rejects(
     () =>
       authorizeCredentials(
-        {
-          email: "existing@example.com",
-          password: "new-password",
-          isSignup: "true",
-        },
-        client,
-        customerRole
+        { email: user.email, password: "Correct-password1" },
+        makeClient([user]),
+        customerRole,
+        async () => null
       ),
-    /An account already exists for this email/
+    new RegExp(AUTH_ERROR_MFA_REQUIRED)
   );
+});
+
+test("super-admin promotion is not persisted before email verification", async () => {
+  const user = await makeUser({ emailVerifiedAt: null });
+
+  await assert.rejects(
+    () =>
+      authorizeCredentials(
+        { email: user.email, password: "Correct-password1" },
+        makeClient([user]),
+        () => "SUPER_ADMIN"
+      ),
+    new RegExp(AUTH_ERROR_EMAIL_NOT_VERIFIED)
+  );
+
+  assert.equal(user.role, "CUSTOMER");
+});
+
+test("super-admin promotion is persisted only after successful MFA", async () => {
+  const user = await makeUser();
+  const client = makeClient([user]);
+
+  await assert.rejects(
+    () =>
+      authorizeCredentials(
+        { email: user.email, password: "Correct-password1" },
+        client,
+        () => "SUPER_ADMIN",
+        async () => null
+      ),
+    new RegExp(AUTH_ERROR_MFA_REQUIRED)
+  );
+  assert.equal(user.role, "CUSTOMER");
+
+  const result = await authorizeCredentials(
+    {
+      email: user.email,
+      password: "Correct-password1",
+      challengeToken: "ticket",
+      code: "12345678",
+    },
+    client,
+    () => "SUPER_ADMIN",
+    async () => ({ userId: user.id }) as never
+  );
+
+  assert.equal(user.role, "SUPER_ADMIN");
+  assert.equal(result.role, "SUPER_ADMIN");
 });

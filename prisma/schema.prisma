@@ -38,6 +38,32 @@ enum UserRole {
   SUPER_ADMIN
 }
 
+enum MfaMode {
+  DISABLED
+  EMAIL
+}
+
+enum AuthChallengePurpose {
+  VERIFY_EMAIL
+  LOGIN_EMAIL_OTP
+  RESET_PASSWORD
+  LINK_GOOGLE_INTENT
+  LINK_GOOGLE
+}
+
+enum AuthEventType {
+  SIGNUP
+  EMAIL_VERIFIED
+  SIGN_IN
+  SIGN_IN_FAILED
+  LOGIN_CODE_SENT
+  PASSWORD_RESET
+  GOOGLE_LINKED
+  GOOGLE_UNLINKED
+  MFA_ENABLED
+  MFA_DISABLED
+}
+
 enum BookingPaymentPurpose {
   DEPOSIT
   FULL
@@ -83,6 +109,9 @@ enum AvailabilityBlockType {
 model User {
   id                  String    @id @default(cuid()) @db.Text
   email               String    @unique
+  canonicalEmail      String?   @unique
+  collisionCanonicalEmail String?
+  emailVerifiedAt     DateTime?
   name                String?
   avatar              String?
   password            String?
@@ -95,15 +124,69 @@ model User {
   addressStreet       String?
   addressCity         String?
   addressState        String?
-  resetToken          String?
-  resetTokenExpiresAt DateTime?
   role                UserRole  @default(CUSTOMER)
+  mfaMode             MfaMode   @default(DISABLED)
+  sessionVersion      Int       @default(0)
   createdAt           DateTime  @default(now())
   updatedAt           DateTime  @updatedAt
 
   reservations Reservation[]
   availabilityBlocks AvailabilityBlock[] @relation("AvailabilityBlockActor")
   bookingPromos BookingPromo[] @relation("BookingPromoActor")
+  authIdentities AuthIdentity[]
+  authChallenges AuthChallenge[]
+  authEvents AuthEvent[]
+
+  @@index([collisionCanonicalEmail])
+}
+
+model AuthIdentity {
+  id               String   @id @default(uuid())
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId           String   @db.Text
+  provider         String
+  providerSubject  String
+  providerEmail    String?
+  linkedAt         DateTime @default(now())
+  lastUsedAt       DateTime @default(now())
+
+  @@unique([provider, providerSubject])
+  @@index([userId])
+}
+
+model AuthChallenge {
+  id           String               @id @default(uuid())
+  user         User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId       String               @db.Text
+  purpose      AuthChallengePurpose
+  tokenHash    String               @unique
+  codeHash     String?
+  expiresAt    DateTime
+  consumedAt   DateTime?
+  attemptCount Int                  @default(0)
+  metadata     Json?
+  createdAt    DateTime             @default(now())
+
+  @@index([userId, purpose, createdAt])
+  @@index([purpose, expiresAt])
+}
+
+model AuthEvent {
+  id         String        @id @default(uuid())
+  user       User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+  userId     String?       @db.Text
+  type       AuthEventType
+  provider   String?
+  ipAddress  String?
+  subjectHash String?
+  userAgent  String?
+  metadata   Json?
+  createdAt  DateTime      @default(now())
+
+  @@index([userId, createdAt])
+  @@index([type, createdAt])
+  @@index([type, ipAddress, createdAt])
+  @@index([type, subjectHash, createdAt])
 }
 
 model Reservation {

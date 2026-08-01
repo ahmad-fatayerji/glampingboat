@@ -7,7 +7,7 @@ export type AddressField = (typeof ADDRESS_FIELDS)[number];
 export const PHONE_FIELDS = ["phone", "mobile"] as const;
 export type PhoneField = (typeof PHONE_FIELDS)[number];
 
-export const ACCOUNT_TABS = ["bookings", "profile"] as const;
+export const ACCOUNT_TABS = ["bookings", "profile", "security"] as const;
 export type AccountTab = (typeof ACCOUNT_TABS)[number];
 
 export interface Address {

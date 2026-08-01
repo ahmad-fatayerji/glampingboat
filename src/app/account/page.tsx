@@ -21,13 +21,26 @@ export default async function AccountPage({
   const signedOutRaw = resolvedSearchParams.signedOut;
   const signedOutRecently =
     (Array.isArray(signedOutRaw) ? signedOutRaw[0] : signedOutRaw) === "1";
+  const errorRaw = resolvedSearchParams.error;
+  const errorCode = Array.isArray(errorRaw) ? errorRaw[0] : errorRaw;
+  const authError =
+    errorCode === "AccountMergeRequired"
+      ? "This email matches more than one existing account and requires a reviewed merge."
+      : errorCode === "GoogleEmailNotVerified"
+        ? "Google did not provide a verified email address."
+        : errorCode === "TooManyLinkAttempts"
+          ? "Too many Google-link attempts. Please try again later."
+          : errorCode
+            ? "Sign-in could not be completed. Please try again."
+            : undefined;
 
-  if (!session) {
+  if (!session?.user?.id) {
     return (
       <div className="min-h-screen flex items-center justify-center px-4 pt-40 pb-12">
         <AccountAuthPanel
           googleAuthEnabled={isGoogleAuthEnabled()}
           signedOutRecently={signedOutRecently}
+          authError={authError}
         />
       </div>
     );
@@ -35,9 +48,10 @@ export default async function AccountPage({
 
   const tabRaw = resolvedSearchParams.tab;
   const signedInRaw = resolvedSearchParams.signedIn;
+  const requestedTab = Array.isArray(tabRaw) ? tabRaw[0] : tabRaw;
   const initialTab: AccountTab =
-    (Array.isArray(tabRaw) ? tabRaw[0] : tabRaw) === "profile"
-      ? "profile"
+    requestedTab === "profile" || requestedTab === "security"
+      ? requestedTab
       : "bookings";
   const signedInRecently =
     (Array.isArray(signedInRaw) ? signedInRaw[0] : signedInRaw) === "1";
@@ -94,7 +108,11 @@ export default async function AccountPage({
           canAccessAdmin={isAdminRole(session.user.role)}
           signedInRecently={signedInRecently}
         />
-        <AccountTabs reservations={serialized} initialTab={initialTab} />
+        <AccountTabs
+          reservations={serialized}
+          initialTab={initialTab}
+          googleAuthEnabled={isGoogleAuthEnabled()}
+        />
       </div>
     </div>
   );
