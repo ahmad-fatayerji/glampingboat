@@ -101,21 +101,18 @@ export async function recordRefund(
     source: "admin" | "webhook";
   }
 ) {
-  try {
-    await tx.paymentRefund.create({
-      data: { reservationId, paymentId, stripeRefundId, amountCents, source },
-    });
-  } catch (error) {
-    if (
-      !error ||
-      typeof error !== "object" ||
-      !("code" in error) ||
-      error.code !== "P2002"
-    ) {
-      throw error;
-    }
-    // Already recorded by another path; the totals below still reconcile.
-  }
+  // createMany + skipDuplicates compiles to INSERT ... ON CONFLICT DO NOTHING,
+  // so a refund already recorded by another path is skipped by the database
+  // without raising. Catching a P2002 from create() would NOT work here:
+  // Postgres marks the whole transaction aborted on a constraint violation, so
+  // handling the JavaScript error still leaves every later statement failing.
+  // That would break precisely the common case - the charge.refunded webhook
+  // arriving after the admin endpoint already recorded the same refund - and
+  // every webhook retry would fail the same way.
+  await tx.paymentRefund.createMany({
+    data: [{ reservationId, paymentId, stripeRefundId, amountCents, source }],
+    skipDuplicates: true,
+  });
 
   return syncRefundTotals(tx, { reservationId, paymentId });
 }

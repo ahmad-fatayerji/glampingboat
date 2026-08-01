@@ -9,6 +9,17 @@ import {
 import { getErrorMessage } from "@/lib/http";
 import { prisma } from "@/lib/prisma";
 import { getNumber, getString, isRecord } from "@/lib/type-guards";
+import { isTerminalReservation, lockReservation } from "@/lib/reservation-state";
+
+/** Thrown inside the locked transaction to roll it back with a status code. */
+class ManualPaymentError extends Error {
+  constructor(
+    message: string,
+    public readonly status: 404 | 409
+  ) {
+    super(message);
+  }
+}
 
 const MANUAL_PAYMENT_PURPOSES: readonly BookingPaymentPurpose[] = [
   "DEPOSIT",
@@ -44,38 +55,37 @@ export async function POST(
       return NextResponse.json({ error: "Invalid amount" }, { status: 400 });
     }
 
-    const existing = await prisma.reservation.findUnique({
-      where: { id },
-      select: {
-        id: true,
-        status: true,
-        paymentStatus: true,
-        totalAmountTtcCents: true,
-        paidAmountCents: true,
-        currency: true,
-      },
-    });
-
-    if (!existing) {
-      return NextResponse.json({ error: "Not found" }, { status: 404 });
-    }
-
-    if (existing.status === "CANCELLED") {
-      return NextResponse.json(
-        { error: "Cannot record payment on a cancelled reservation" },
-        { status: 409 }
-      );
-    }
-
-    const countsTowardBookingTotal = purpose !== "SECURITY_DEPOSIT";
-    const paidAmountCents = countsTowardBookingTotal
-      ? Math.min(existing.totalAmountTtcCents, existing.paidAmountCents + amountCents)
-      : existing.paidAmountCents;
-    const paymentStatus = countsTowardBookingTotal
-      ? getReservationPaymentStatus(paidAmountCents, existing.totalAmountTtcCents)
-      : existing.paymentStatus;
-
     const updated = await prisma.$transaction(async (tx) => {
+      // Lock and re-read before branching. Reading outside the transaction let
+      // a cancellation commit in between, after which recording a payment set
+      // the reservation back to CONFIRMED and overwrote its refund state.
+      const existing = await lockReservation(tx, id);
+
+      if (!existing) {
+        throw new ManualPaymentError("Not found", 404);
+      }
+
+      if (isTerminalReservation(existing.status)) {
+        throw new ManualPaymentError(
+          "Cannot record payment on a cancelled reservation",
+          409
+        );
+      }
+
+      const countsTowardBookingTotal = purpose !== "SECURITY_DEPOSIT";
+      const paidAmountCents = countsTowardBookingTotal
+        ? Math.min(
+            existing.totalAmountTtcCents,
+            existing.paidAmountCents + amountCents
+          )
+        : existing.paidAmountCents;
+      const paymentStatus = countsTowardBookingTotal
+        ? getReservationPaymentStatus(
+            paidAmountCents,
+            existing.totalAmountTtcCents
+          )
+        : existing.paymentStatus;
+
       const payment = await tx.bookingPayment.create({
         data: {
           reservationId: id,
@@ -128,6 +138,10 @@ export async function POST(
     return NextResponse.json({ reservation: serializeAdminReservation(updated) });
   } catch (error) {
     if (error instanceof AdminAccessError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
+
+    if (error instanceof ManualPaymentError) {
       return NextResponse.json({ error: error.message }, { status: error.status });
     }
 

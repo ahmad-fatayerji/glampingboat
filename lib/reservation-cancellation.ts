@@ -224,160 +224,178 @@ export async function refundReservation({
   /** Defaults to everything still owed under the recorded retention. */
   amountCents?: number;
 }) {
-  const reservation = await prisma.reservation.findUnique({
-    where: { id: reservationId },
-    include: {
-      payments: {
-        where: { status: "PAID", provider: "stripe" },
-        orderBy: { paidAt: "desc" },
-      },
-    },
-  });
-
-  if (!reservation) {
-    throw new ReservationCancellationError("Not found", 404);
-  }
-
-  // Retention is only computed at cancellation, so refunding a live booking
-  // would have no article 9 basis and would leave a CONFIRMED stay looking
-  // paid. Cancel first (OWNER_FORCE_MAJEURE for a full goodwill refund).
-  if (
-    reservation.status !== "CANCELLED" &&
-    reservation.status !== "REFUNDED"
-  ) {
-    throw new ReservationCancellationError(
-      "Cancel the reservation before refunding it",
-      409
-    );
-  }
-
-  const alreadyRefunded = reservation.refundedAmountCents;
-  const owed =
-    getRefundableTotalCents({
-      paidAmountCents: reservation.paidAmountCents,
-      retainedAmountCents: reservation.retainedAmountCents,
-    }) - alreadyRefunded;
-
-  if (owed <= 0) {
-    throw new ReservationCancellationError("No refund is owed", 409);
-  }
-
-  const target = amountCents ?? owed;
-  if (!Number.isInteger(target) || target <= 0 || target > owed) {
-    throw new ReservationCancellationError(
-      `Refund must be between 1 and ${owed} cents`,
-      409
-    );
-  }
-
   const stripe = getStripeServerClient();
-  let remaining = target;
-  const refunds: {
-    paymentId: string;
-    stripeRefundId: string;
-    amountCents: number;
-  }[] = [];
 
-  for (const payment of reservation.payments) {
-    if (remaining <= 0) break;
+  // The entire operation runs under the reservation row lock, Stripe calls
+  // included. Validating the entitlement and spending against it must be
+  // atomic: two concurrent requests for different amounts would otherwise pass
+  // their own checks, use different idempotency keys, and both succeed,
+  // refunding more than article 9 leaves owed. A ledger records that
+  // faithfully but cannot undo it, and no client-side guard covers two tabs,
+  // two admins, retries, or multiple app instances.
+  //
+  // Holding a row lock across a network call is the deliberate tradeoff: it
+  // blocks only other writers on this one reservation, refunds are rare, and
+  // the Stripe client carries a strict timeout. If Stripe succeeds but this
+  // transaction later fails, the idempotency keys plus the charge.refunded
+  // webhook reconcile the ledger.
+  const result = await prisma.$transaction(
+    async (tx) => {
+      const reservation = await lockReservation(tx, reservationId);
 
-    const refundable = payment.amountCents - payment.refundedAmountCents;
-    if (refundable <= 0) continue;
-
-    const slice = Math.min(refundable, remaining);
-    if (!payment.stripePaymentIntentId) continue;
-
-    const refund = await stripe.refunds.create(
-      {
-        payment_intent: payment.stripePaymentIntentId,
-        amount: slice,
-        metadata: {
-          reservationId,
-          bookingRef: reservation.bookingRef ?? "",
-          paymentId: payment.id,
-        },
-      },
-      // Keyed so a retried admin click cannot double-refund.
-      {
-        idempotencyKey: `refund:${payment.id}:${payment.refundedAmountCents}:${slice}`,
+      if (!reservation) {
+        throw new ReservationCancellationError("Not found", 404);
       }
-    );
 
-    // Commit this slice before moving on, so a later failure leaves the money
-    // already sent durably accounted for and a retry recomputes what is still
-    // owed from real state. Recording is keyed on the Stripe refund id, so two
-    // concurrent clicks receiving the same idempotent response — or the
-    // charge.refunded webhook arriving first — record it exactly once.
-    await prisma.$transaction(async (tx) => {
-      await lockReservation(tx, reservationId);
-      await recordRefund(tx, {
-        reservationId,
-        paymentId: payment.id,
-        stripeRefundId: refund.id,
-        amountCents: slice,
-        source: "admin",
-      });
-      await tx.bookingPayment.update({
-        where: { id: payment.id },
-        data: { stripeRefundId: refund.id },
-      });
-    });
+      // Retention is only computed at cancellation, so refunding a live
+      // booking would have no article 9 basis and would leave a CONFIRMED stay
+      // looking paid. Cancel first (OWNER_FORCE_MAJEURE for a goodwill refund).
+      if (
+        reservation.status !== "CANCELLED" &&
+        reservation.status !== "REFUNDED"
+      ) {
+        throw new ReservationCancellationError(
+          "Cancel the reservation before refunding it",
+          409
+        );
+      }
 
-    refunds.push({
-      paymentId: payment.id,
-      stripeRefundId: refund.id,
-      amountCents: slice,
-    });
-    remaining -= slice;
-  }
+      const owed =
+        getRefundableTotalCents({
+          paidAmountCents: reservation.paidAmountCents,
+          retainedAmountCents: reservation.retainedAmountCents,
+        }) - reservation.refundedAmountCents;
 
-  if (refunds.length === 0) {
-    throw new ReservationCancellationError(
-      "No refundable Stripe payment found; record the refund manually",
-      409
-    );
-  }
+      if (owed <= 0) {
+        throw new ReservationCancellationError("No refund is owed", 409);
+      }
 
-  const refundedTotal = target - remaining;
+      const target = amountCents ?? owed;
+      if (!Number.isInteger(target) || target <= 0 || target > owed) {
+        throw new ReservationCancellationError(
+          `Refund must be between 1 and ${owed} cents`,
+          409
+        );
+      }
 
-  const updated = await prisma.$transaction(async (tx) => {
-    // Decide the final status from ledger-derived state under the lock, not
-    // from the figures we started with.
-    const current = await lockReservation(tx, reservationId);
-    if (!current) {
-      throw new ReservationCancellationError("Not found", 404);
-    }
-
-    const fullyRefunded = isReservationFullyRefunded({
-      paidAmountCents: current.paidAmountCents,
-      retainedAmountCents: current.retainedAmountCents,
-      refundedAmountCents: current.refundedAmountCents,
-    });
-
-    const next = await tx.reservation.update({
-      where: { id: reservationId },
-      data: {
-        paymentStatus: fullyRefunded ? "REFUNDED" : "REFUND_PENDING",
-      },
-    });
-
-    await tx.reservationEvent.create({
-      data: {
-        reservationId,
-        actorUserId,
-        type: "REFUNDED",
-        metadata: {
-          refunds,
-          refundedCents: refundedTotal,
-          refundedToDateCents: current.refundedAmountCents,
-          retainedCents: current.retainedAmountCents,
-          policyVersion: current.cancellationPolicyVersion,
+      const payments = await tx.bookingPayment.findMany({
+        where: {
+          reservationId,
+          status: { in: ["PAID", "REFUNDED"] },
+          provider: "stripe",
         },
-      },
-    });
+        orderBy: { paidAt: "desc" },
+      });
 
-    return next;
-  });
+      let remaining = target;
+      const refunds: {
+        paymentId: string;
+        stripeRefundId: string;
+        amountCents: number;
+      }[] = [];
 
-  return { reservation: updated, refunds, refundedCents: refundedTotal };
+      for (const payment of payments) {
+        if (remaining <= 0) break;
+
+        const refundable = payment.amountCents - payment.refundedAmountCents;
+        if (refundable <= 0) continue;
+        if (!payment.stripePaymentIntentId) continue;
+
+        const slice = Math.min(refundable, remaining);
+
+        const refund = await stripe.refunds.create(
+          {
+            payment_intent: payment.stripePaymentIntentId,
+            amount: slice,
+            metadata: {
+              reservationId,
+              bookingRef: reservation.bookingRef ?? "",
+              paymentId: payment.id,
+            },
+          },
+          // Derived from state already committed, so a retried request that
+          // reaches Stripe twice reuses the same refund rather than issuing a
+          // second one.
+          {
+            idempotencyKey: `refund:${payment.id}:${payment.refundedAmountCents}:${slice}`,
+          }
+        );
+
+        await recordRefund(tx, {
+          reservationId,
+          paymentId: payment.id,
+          stripeRefundId: refund.id,
+          amountCents: slice,
+          source: "admin",
+        });
+
+        await tx.bookingPayment.update({
+          where: { id: payment.id },
+          data: { stripeRefundId: refund.id },
+        });
+
+        refunds.push({
+          paymentId: payment.id,
+          stripeRefundId: refund.id,
+          amountCents: slice,
+        });
+        remaining -= slice;
+      }
+
+      if (refunds.length === 0) {
+        throw new ReservationCancellationError(
+          "No refundable Stripe payment found; record the refund manually",
+          409
+        );
+      }
+
+      // recordRefund has been recomputing the cached totals as it went, so
+      // re-read rather than trusting the figures we started with.
+      const settled = await tx.reservation.findUniqueOrThrow({
+        where: { id: reservationId },
+        select: {
+          paidAmountCents: true,
+          retainedAmountCents: true,
+          refundedAmountCents: true,
+          cancellationPolicyVersion: true,
+        },
+      });
+
+      const refundedCents = target - remaining;
+
+      const next = await tx.reservation.update({
+        where: { id: reservationId },
+        data: {
+          paymentStatus: isReservationFullyRefunded(settled)
+            ? "REFUNDED"
+            : "REFUND_PENDING",
+        },
+      });
+
+      await tx.reservationEvent.create({
+        data: {
+          reservationId,
+          actorUserId,
+          type: "REFUNDED",
+          metadata: {
+            refunds,
+            refundedCents,
+            refundedToDateCents: settled.refundedAmountCents,
+            retainedCents: settled.retainedAmountCents,
+            policyVersion: settled.cancellationPolicyVersion,
+          },
+        },
+      });
+
+      return { reservation: next, refunds, refundedCents };
+    },
+    {
+      // Must exceed the Stripe client timeout so a slow call fails on Stripe's
+      // deadline with the ledger intact, rather than being torn down mid-write.
+      timeout: 30_000,
+      maxWait: 10_000,
+    }
+  );
+
+  return result;
 }

@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { getErrorMessage } from "@/lib/http";
 import { getStripeServerClient } from "@/lib/stripe";
 import { markCheckoutSessionPaid } from "@/lib/stripe-payments";
+import { isTerminalReservation, lockReservation } from "@/lib/reservation-state";
 
 interface CreateCheckoutSessionPayload {
     reservationId?: string;
@@ -183,36 +184,61 @@ export async function POST(req: NextRequest) {
         }
 
         if (payment.status === "CHECKOUT_OPEN") {
-            await prisma.bookingPayment.updateMany({
-                where: {
-                    id: payment.id,
-                    status: "CHECKOUT_OPEN",
-                },
-                data: {
-                    status: "EXPIRED",
-                    stripeStatus: "expired",
-                },
+            // First phase: swap the stale checkout for a fresh payment row
+            // under the lock, re-checking eligibility so we never open a new
+            // payment against a reservation cancelled since the read above.
+            const previousPayment = payment;
+            const replacement = await prisma.$transaction(async (tx) => {
+                const current = await lockReservation(tx, reservation.id);
+
+                if (
+                    !current ||
+                    isTerminalReservation(current.status) ||
+                    !canCreateCheckoutForReservation(current)
+                ) {
+                    return null;
+                }
+
+                await tx.bookingPayment.updateMany({
+                    where: {
+                        id: previousPayment.id,
+                        status: "CHECKOUT_OPEN",
+                    },
+                    data: {
+                        status: "EXPIRED",
+                        stripeStatus: "expired",
+                    },
+                });
+
+                const replacementIdempotencyKey = `checkout:${current.bookingRef}:${expectedPurpose.toLowerCase()}:${crypto.randomUUID()}`;
+                return tx.bookingPayment.create({
+                    data: {
+                        reservationId: current.id,
+                        provider: "stripe",
+                        purpose: expectedPurpose,
+                        status: "PENDING",
+                        amountCents:
+                            expectedPurpose === "BALANCE"
+                                ? Math.max(
+                                    0,
+                                    current.totalAmountTtcCents - current.paidAmountCents
+                                )
+                                : previousPayment.amountCents,
+                        currency: previousPayment.currency,
+                        idempotencyKey: replacementIdempotencyKey,
+                        stripeStatus: "not_created",
+                    },
+                });
             });
 
-            const replacementIdempotencyKey = `checkout:${reservation.bookingRef}:${expectedPurpose.toLowerCase()}:${crypto.randomUUID()}`;
-            payment = await prisma.bookingPayment.create({
-                data: {
-                    reservationId: reservation.id,
-                    provider: "stripe",
-                    purpose: expectedPurpose,
-                    status: "PENDING",
-                    amountCents:
-                        expectedPurpose === "BALANCE"
-                            ? Math.max(
-                                0,
-                                reservation.totalAmountTtcCents - reservation.paidAmountCents
-                            )
-                            : payment.amountCents,
-                    currency: payment.currency,
-                    idempotencyKey: replacementIdempotencyKey,
-                    stripeStatus: "not_created",
-                },
-            });
+            if (!replacement) {
+                return NextResponse.json(
+                    { error: "Reservation is no longer payable" },
+                    { status: 409 }
+                );
+            }
+
+            payment = replacement;
         }
 
         const stripe = getStripeServerClient();
@@ -280,7 +306,18 @@ export async function POST(req: NextRequest) {
                 ? checkoutSession.payment_intent
                 : checkoutSession.payment_intent?.id ?? null;
 
-        await prisma.$transaction(async (tx) => {
+        // Second phase: re-check eligibility under the lock before recording
+        // the session. The reservation may have been cancelled while Stripe was
+        // creating it, in which case the cancellation could not have expired a
+        // session it never saw, and recording it here would mark a cancelled
+        // stay CHECKOUT_OPEN and leave the customer a payable link.
+        const recorded = await prisma.$transaction(async (tx) => {
+            const current = await lockReservation(tx, reservation.id);
+
+            if (!current || isTerminalReservation(current.status)) {
+                return false;
+            }
+
             await tx.bookingPayment.update({
                 where: { id: payment.id },
                 data: {
@@ -320,7 +357,33 @@ export async function POST(req: NextRequest) {
                     },
                 },
             });
+
+            return true;
         });
+
+        if (!recorded) {
+            // Void the orphaned session so the customer cannot pay it. Best
+            // effort: markCheckoutSessionPaid still refuses to revive a
+            // terminal reservation if this fails and the customer pays anyway.
+            try {
+                await stripe.checkout.sessions.expire(checkoutSession.id);
+            } catch (expireError) {
+                console.error(
+                    "Failed to expire checkout session for cancelled reservation",
+                    expireError
+                );
+            }
+
+            await prisma.bookingPayment.updateMany({
+                where: { id: payment.id, status: { in: ["PENDING", "CHECKOUT_OPEN"] } },
+                data: { status: "CANCELLED", stripeStatus: "cancelled" },
+            });
+
+            return NextResponse.json(
+                { error: "Reservation is no longer payable" },
+                { status: 409 }
+            );
+        }
 
         return NextResponse.json({
             sessionId: checkoutSession.id,
